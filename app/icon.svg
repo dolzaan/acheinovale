@@ -1,6 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="17" fill="#163f35"/>
-  <path d="M32 11c-10.5 0-19 8.2-19 18.4C13 43 32 55 32 55s19-12 19-25.6C51 19.2 42.5 11 32 11Z" fill="#71d68e"/>
-  <path d="m20 31 12-10 12 10v12H20V31Z" fill="#fff"/>
-  <path d="M28 43V33h8v10" fill="#163f35"/>
+  <defs><clipPath id="landscape"><circle cx="32" cy="27" r="16"/></clipPath></defs>
+  <rect width="64" height="64" rx="17" fill="#F4F0E7"/>
+  <path d="M32 5C19 5 9.5 14.9 9.5 27.5 9.5 43.6 32 59 32 59s22.5-15.4 22.5-31.5C54.5 14.9 45 5 32 5Z" fill="#173F35"/>
+  <circle cx="32" cy="27" r="16" fill="#F4F0E7"/>
+  <g clip-path="url(#landscape)">
+    <circle cx="39.5" cy="17.5" r="3.3" fill="#E8A15F"/>
+    <path d="M14 32 23.5 21.5l6.5 7 8.7-11.2L51.5 32v11.5H14Z" fill="#77BD88"/>
+    <path d="M13.2 34q8.2-8.3 18.8.2 10.3-9.8 19-.2v11.5H13.2Z" fill="#2F8F5A"/>
+    <path d="M32.2 30c-3.6 4.4-3.8 8.7.2 15" fill="none" stroke="#E27745" stroke-width="2.8" stroke-linecap="round"/>
+  </g>
 </svg>

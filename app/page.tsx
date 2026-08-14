@@ -23,8 +23,6 @@ export default function HomePage() {
       <Header />
       <main>
         <section className="hero">
-          <div className="hero__shape hero__shape--one" />
-          <div className="hero__shape hero__shape--two" />
           <div className="container hero__inner">
             <div className="hero__content">
               <div className="eyebrow"><PinIcon size={16}/> Feito para Rio do Sul e região</div>
@@ -149,7 +147,7 @@ export default function HomePage() {
 
       <footer className="site-footer">
         <div className="container footer-grid">
-          <div><Logo light/><p>Imóveis e fretes perto de você.<br/>Feito no Alto Vale.</p></div>
+          <div><Logo light/><p>Encontre perto. Resolva no Vale.<br/>Feito no Alto Vale.</p></div>
           <div><strong>Explorar</strong><Link href="/rio-do-sul/imoveis">Imóveis</Link><Link href="/rio-do-sul/freteiros">Freteiros</Link><Link href="/publicar">Publicar anúncio</Link></div>
           <div><strong>Ajuda</strong><Link href="/seguranca">Segurança</Link><Link href="/ajuda">Central de ajuda</Link><Link href="/contato">Fale conosco</Link></div>
           <div className="footer-local"><PinIcon/><span>Começando por</span><strong>Rio do Sul — SC</strong></div>
