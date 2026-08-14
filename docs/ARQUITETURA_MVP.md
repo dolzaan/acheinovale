@@ -15,7 +15,7 @@ Pedido público de frete, cobrança, chat interno e outras categorias ficam fora
 - CSS responsivo e design mobile-first; PWA pode ser ativada após a validação da navegação.
 - Supabase Postgres como banco e Supabase Storage para imagens.
 - Prisma para modelo, migrations e acesso tipado ao banco.
-- Auth.js com Google e credenciais; uma conta pode anunciar imóveis e manter um perfil de freteiro.
+- Supabase Auth com Google e e-mail/senha; uma conta pode anunciar imóveis e manter um perfil de freteiro.
 - Vercel para aplicação, previews e cron de tarefas leves.
 
 ## Organização funcional

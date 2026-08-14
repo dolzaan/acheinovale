@@ -39,15 +39,24 @@ enum ReportStatus {
   DISMISSED
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 model User {
-  id               String            @id @default(cuid())
-  email            String            @unique
-  name             String?
+  id                String            @id @default(cuid())
+  authUserId        String?           @unique @db.Uuid
+  email             String            @unique
+  emailVerifiedAt   DateTime?
+  name              String?
   image             String?
   phone             String?
+  role              UserRole          @default(USER)
   isBlocked         Boolean           @default(false)
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  lastLoginAt       DateTime?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
   properties        Property[]
   freighterProfile  FreighterProfile?
   favorites         Favorite[]
