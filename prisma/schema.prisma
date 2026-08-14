@@ -1,0 +1,221 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_NON_POOLING")
+}
+
+enum ContentStatus {
+  DRAFT
+  PENDING
+  ACTIVE
+  PAUSED
+  REJECTED
+  ARCHIVED
+}
+
+enum PropertyPurpose {
+  RENT
+  SALE
+}
+
+enum PropertyType {
+  HOUSE
+  APARTMENT
+  STUDIO
+  LAND
+  COMMERCIAL_ROOM
+  WAREHOUSE
+  OTHER
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWING
+  RESOLVED
+  DISMISSED
+}
+
+model User {
+  id               String            @id @default(cuid())
+  email            String            @unique
+  name             String?
+  image             String?
+  phone             String?
+  isBlocked         Boolean           @default(false)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  properties        Property[]
+  freighterProfile  FreighterProfile?
+  favorites         Favorite[]
+  reviews           Review[]
+  reports           Report[]
+}
+
+model City {
+  id                String             @id @default(cuid())
+  name              String
+  slug              String             @unique
+  stateCode         String             @default("SC")
+  isActive          Boolean            @default(false)
+  neighborhoods     Neighborhood[]
+  properties        Property[]
+  freighterProfiles FreighterProfile[]
+
+  @@index([isActive])
+}
+
+model Neighborhood {
+  id         String     @id @default(cuid())
+  name       String
+  slug       String
+  cityId     String
+  city       City       @relation(fields: [cityId], references: [id])
+  properties Property[]
+
+  @@unique([cityId, slug])
+}
+
+model Property {
+  id                 String          @id @default(cuid())
+  slug               String          @unique
+  ownerId            String
+  owner              User            @relation(fields: [ownerId], references: [id])
+  cityId             String
+  city               City            @relation(fields: [cityId], references: [id])
+  neighborhoodId     String
+  neighborhood       Neighborhood    @relation(fields: [neighborhoodId], references: [id])
+  status             ContentStatus   @default(PENDING)
+  purpose            PropertyPurpose
+  type               PropertyType
+  title              String
+  description        String
+  priceCents         Int
+  bedrooms           Int?
+  bathrooms          Int?
+  parkingSpots       Int?
+  areaM2             Decimal?        @db.Decimal(10, 2)
+  acceptsPets        Boolean?
+  furnished          Boolean?
+  whatsapp           String
+  approximateLat     Decimal?        @db.Decimal(9, 6)
+  approximateLng     Decimal?        @db.Decimal(9, 6)
+  privateAddressData Json?
+  publishedAt        DateTime?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  images             PropertyImage[]
+  favorites          Favorite[]
+  reports            Report[]
+
+  @@index([cityId, status, purpose, createdAt])
+  @@index([neighborhoodId, type, priceCents])
+}
+
+model PropertyImage {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  storageKey String
+  altText    String?
+  position   Int      @default(0)
+
+  @@index([propertyId, position])
+}
+
+model FreighterProfile {
+  id             String             @id @default(cuid())
+  slug           String             @unique
+  userId         String             @unique
+  user           User               @relation(fields: [userId], references: [id])
+  cityId         String
+  city           City               @relation(fields: [cityId], references: [id])
+  status         ContentStatus      @default(PENDING)
+  displayName    String
+  description    String
+  whatsapp       String
+  serviceRadiusKm Int?
+  availableToday Boolean            @default(false)
+  priceNote      String?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  services       FreighterService[]
+  images         FreighterImage[]
+  reviews        Review[]
+  favorites      Favorite[]
+  reports        Report[]
+
+  @@index([cityId, status, availableToday])
+}
+
+model FreighterService {
+  id          String             @id @default(cuid())
+  profileId   String
+  profile     FreighterProfile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  name        String
+  slug        String
+
+  @@unique([profileId, slug])
+  @@index([slug])
+}
+
+model FreighterImage {
+  id         String             @id @default(cuid())
+  profileId  String
+  profile    FreighterProfile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  storageKey String
+  altText    String?
+  position   Int                @default(0)
+
+  @@index([profileId, position])
+}
+
+model Review {
+  id         String             @id @default(cuid())
+  authorId   String
+  author     User               @relation(fields: [authorId], references: [id])
+  profileId  String
+  profile    FreighterProfile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  rating     Int
+  comment    String?
+  isVisible  Boolean            @default(true)
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  @@unique([authorId, profileId])
+  @@index([profileId, isVisible, createdAt])
+}
+
+model Favorite {
+  id                 String              @id @default(cuid())
+  userId             String
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  propertyId         String?
+  property           Property?           @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  freighterProfileId String?
+  freighterProfile   FreighterProfile?   @relation(fields: [freighterProfileId], references: [id], onDelete: Cascade)
+  createdAt          DateTime            @default(now())
+
+  @@unique([userId, propertyId])
+  @@unique([userId, freighterProfileId])
+}
+
+model Report {
+  id                 String              @id @default(cuid())
+  reporterId         String
+  reporter           User                @relation(fields: [reporterId], references: [id])
+  propertyId         String?
+  property           Property?           @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  freighterProfileId String?
+  freighterProfile   FreighterProfile?   @relation(fields: [freighterProfileId], references: [id], onDelete: Cascade)
+  reason             String
+  details            String?
+  status             ReportStatus        @default(OPEN)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  @@index([status, createdAt])
+}

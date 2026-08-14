@@ -1,0 +1,29 @@
+import type { Metadata, Viewport } from "next";
+import "./globals.css";
+
+export const metadata: Metadata = {
+  title: "AcheiNoVale — Imóveis e fretes em Rio do Sul",
+  description:
+    "Encontre imóveis para vender ou alugar e freteiros de confiança em Rio do Sul e região.",
+  metadataBase: new URL("https://acheinovale.com.br"),
+  openGraph: {
+    title: "AcheiNoVale",
+    description: "Imóveis e fretes perto de você.",
+    locale: "pt_BR",
+    type: "website",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#f7f5ef",
+};
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  return (
+    <html lang="pt-BR">
+      <body>{children}</body>
+    </html>
+  );
+}
