@@ -1,8 +1,12 @@
 import Link from "next/link";
 import { ChevronDownIcon, PlusIcon } from "./icons";
 import { Logo } from "./logo";
+import { UserAvatar } from "./user-avatar";
+import { getCurrentUser } from "@/lib/auth/current-user";
+import { signOut } from "@/app/auth/actions";
 
-export function Header() {
+export async function Header() {
+  const user = await getCurrentUser();
   return (
     <header className="site-header">
       <div className="container header-inner">
@@ -15,7 +19,20 @@ export function Header() {
           </button>
         </nav>
         <div className="header-actions">
-          <Link className="login-link" href="/entrar">Entrar</Link>
+          {user ? (
+            <details className="user-menu">
+              <summary><UserAvatar image={user.image} name={user.name} /><span>{user.name?.split(" ")[0] || "Minha conta"}</span><ChevronDownIcon /></summary>
+              <div className="user-menu__panel">
+                <div className="user-menu__identity"><strong>{user.name || "Usuário"}</strong><small>{user.email}</small></div>
+                <Link href="/perfil">Meu perfil</Link>
+                <Link href="/meus-anuncios">Meus anúncios</Link>
+                <Link href="/favoritos">Favoritos <small>em breve</small></Link>
+                <form action={signOut}><button type="submit">Sair</button></form>
+              </div>
+            </details>
+          ) : (
+            <Link className="login-link" href="/entrar">Entrar</Link>
+          )}
           <Link className="button button--primary button--sm" href="/publicar">
             <PlusIcon size={18} /> Publicar grátis
           </Link>

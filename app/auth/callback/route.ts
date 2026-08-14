@@ -1,19 +1,12 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { syncAuthUser } from "@/lib/auth/sync-user";
-
-function safeNextPath(value: string | null) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return "/perfil";
-  }
-
-  return value;
-}
+import { safeInternalPath } from "@/lib/validation/profile";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
-  const next = safeNextPath(requestUrl.searchParams.get("next"));
+  const next = safeInternalPath(requestUrl.searchParams.get("next"));
 
   if (!code) {
     return NextResponse.redirect(new URL("/entrar?erro=callback", requestUrl.origin));
@@ -32,10 +25,18 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL("/entrar?erro=usuario", requestUrl.origin));
   }
 
+  let user;
   try {
-    await syncAuthUser(data.user);
+    user = await syncAuthUser(data.user);
   } catch {
     return NextResponse.redirect(new URL("/entrar?erro=sincronizacao", requestUrl.origin));
+  }
+
+  if (!user.cityId || !user.phone) {
+    const profileUrl = new URL("/perfil", requestUrl.origin);
+    profileUrl.searchParams.set("primeiro", "1");
+    profileUrl.searchParams.set("next", next);
+    return NextResponse.redirect(profileUrl);
   }
 
   return NextResponse.redirect(new URL(next, requestUrl.origin));

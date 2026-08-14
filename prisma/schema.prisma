@@ -45,23 +45,30 @@ enum UserRole {
 }
 
 model User {
-  id                String            @id @default(cuid())
-  authUserId        String?           @unique @db.Uuid
-  email             String            @unique
-  emailVerifiedAt   DateTime?
-  name              String?
-  image             String?
-  phone             String?
-  role              UserRole          @default(USER)
-  isBlocked         Boolean           @default(false)
-  lastLoginAt       DateTime?
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  properties        Property[]
-  freighterProfile  FreighterProfile?
-  favorites         Favorite[]
-  reviews           Review[]
-  reports           Report[]
+  id               String            @id @default(cuid())
+  authUserId       String?           @unique @db.Uuid
+  authProvider     String?
+  providerId       String?
+  email            String            @unique
+  emailVerifiedAt  DateTime?
+  name             String?
+  image            String?
+  phone            String?
+  cityId           String?
+  city             City?             @relation(fields: [cityId], references: [id])
+  role             UserRole          @default(USER)
+  isBlocked        Boolean           @default(false)
+  lastLoginAt      DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  properties       Property[]
+  freighterProfile FreighterProfile?
+  favorites        Favorite[]
+  reviews          Review[]
+  reports          Report[]
+
+  @@unique([authProvider, providerId])
+  @@index([cityId])
 }
 
 model City {
@@ -73,6 +80,7 @@ model City {
   neighborhoods     Neighborhood[]
   properties        Property[]
   freighterProfiles FreighterProfile[]
+  users             User[]
 
   @@index([isActive])
 }
@@ -136,95 +144,95 @@ model PropertyImage {
 }
 
 model FreighterProfile {
-  id             String             @id @default(cuid())
-  slug           String             @unique
-  userId         String             @unique
-  user           User               @relation(fields: [userId], references: [id])
-  cityId         String
-  city           City               @relation(fields: [cityId], references: [id])
-  status         ContentStatus      @default(PENDING)
-  displayName    String
-  description    String
-  whatsapp       String
+  id              String             @id @default(cuid())
+  slug            String             @unique
+  userId          String             @unique
+  user            User               @relation(fields: [userId], references: [id])
+  cityId          String
+  city            City               @relation(fields: [cityId], references: [id])
+  status          ContentStatus      @default(PENDING)
+  displayName     String
+  description     String
+  whatsapp        String
   serviceRadiusKm Int?
-  availableToday Boolean            @default(false)
-  priceNote      String?
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
-  services       FreighterService[]
-  images         FreighterImage[]
-  reviews        Review[]
-  favorites      Favorite[]
-  reports        Report[]
+  availableToday  Boolean            @default(false)
+  priceNote       String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  services        FreighterService[]
+  images          FreighterImage[]
+  reviews         Review[]
+  favorites       Favorite[]
+  reports         Report[]
 
   @@index([cityId, status, availableToday])
 }
 
 model FreighterService {
-  id          String             @id @default(cuid())
-  profileId   String
-  profile     FreighterProfile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  name        String
-  slug        String
+  id        String           @id @default(cuid())
+  profileId String
+  profile   FreighterProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  name      String
+  slug      String
 
   @@unique([profileId, slug])
   @@index([slug])
 }
 
 model FreighterImage {
-  id         String             @id @default(cuid())
+  id         String           @id @default(cuid())
   profileId  String
-  profile    FreighterProfile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profile    FreighterProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
   storageKey String
   altText    String?
-  position   Int                @default(0)
+  position   Int              @default(0)
 
   @@index([profileId, position])
 }
 
 model Review {
-  id         String             @id @default(cuid())
-  authorId   String
-  author     User               @relation(fields: [authorId], references: [id])
-  profileId  String
-  profile    FreighterProfile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  rating     Int
-  comment    String?
-  isVisible  Boolean            @default(true)
-  createdAt  DateTime           @default(now())
-  updatedAt  DateTime           @updatedAt
+  id        String           @id @default(cuid())
+  authorId  String
+  author    User             @relation(fields: [authorId], references: [id])
+  profileId String
+  profile   FreighterProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  rating    Int
+  comment   String?
+  isVisible Boolean          @default(true)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 
   @@unique([authorId, profileId])
   @@index([profileId, isVisible, createdAt])
 }
 
 model Favorite {
-  id                 String              @id @default(cuid())
+  id                 String            @id @default(cuid())
   userId             String
-  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   propertyId         String?
-  property           Property?           @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  property           Property?         @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   freighterProfileId String?
-  freighterProfile   FreighterProfile?   @relation(fields: [freighterProfileId], references: [id], onDelete: Cascade)
-  createdAt          DateTime            @default(now())
+  freighterProfile   FreighterProfile? @relation(fields: [freighterProfileId], references: [id], onDelete: Cascade)
+  createdAt          DateTime          @default(now())
 
   @@unique([userId, propertyId])
   @@unique([userId, freighterProfileId])
 }
 
 model Report {
-  id                 String              @id @default(cuid())
+  id                 String            @id @default(cuid())
   reporterId         String
-  reporter           User                @relation(fields: [reporterId], references: [id])
+  reporter           User              @relation(fields: [reporterId], references: [id])
   propertyId         String?
-  property           Property?           @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  property           Property?         @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   freighterProfileId String?
-  freighterProfile   FreighterProfile?   @relation(fields: [freighterProfileId], references: [id], onDelete: Cascade)
+  freighterProfile   FreighterProfile? @relation(fields: [freighterProfileId], references: [id], onDelete: Cascade)
   reason             String
   details            String?
-  status             ReportStatus        @default(OPEN)
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
+  status             ReportStatus      @default(OPEN)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
 
   @@index([status, createdAt])
 }

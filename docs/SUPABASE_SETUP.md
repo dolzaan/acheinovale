@@ -73,6 +73,21 @@ Em **Authentication → URL Configuration**:
 
 Para Google, habilite o provider no Supabase e cadastre no Google Cloud o callback exibido pelo próprio Supabase. O aplicativo redireciona de volta por `/auth/callback`, troca o código por sessão e sincroniza o usuário autenticado com a tabela `User`.
 
+No cliente OAuth do Google, o redirect autorizado é o callback do Supabase:
+
+```text
+https://SEU_PROJECT_REF.supabase.co/auth/v1/callback
+```
+
+No Supabase, adicione à lista de Redirect URLs:
+
+```text
+http://localhost:3000/auth/callback
+https://acheinovale.vercel.app/auth/callback
+```
+
+O Supabase usa PKCE e valida o `state` do OAuth. Os cookies de sessão são `httpOnly`, `sameSite` e `secure` em produção por meio do cliente SSR oficial.
+
 ## 6. Variáveis na Vercel
 
 Cadastre as mesmas variáveis em **Project Settings → Environment Variables**. Em produção, altere:

@@ -15,6 +15,10 @@ export async function syncAuthUser(authUser: SupabaseUser) {
         ? metadata.name
         : null;
   const image = typeof metadata.avatar_url === "string" ? metadata.avatar_url : null;
+  const googleIdentity = authUser.identities?.find((identity) => identity.provider === "google");
+  const authProvider = googleIdentity ? "google" : authUser.app_metadata?.provider ?? null;
+  const googleSubject = googleIdentity?.identity_data?.sub;
+  const providerId = typeof googleSubject === "string" ? googleSubject : googleIdentity?.identity_id ?? authUser.id;
 
   const email = authUser.email.toLowerCase();
   const existingUser = await prisma.user.findFirst({
@@ -25,6 +29,8 @@ export async function syncAuthUser(authUser: SupabaseUser) {
 
   const data = {
     authUserId: authUser.id,
+    authProvider,
+    providerId,
     email,
     emailVerifiedAt: authUser.email_confirmed_at
       ? new Date(authUser.email_confirmed_at)
@@ -37,7 +43,12 @@ export async function syncAuthUser(authUser: SupabaseUser) {
   if (existingUser) {
     return prisma.user.update({
       where: { id: existingUser.id },
-      data,
+      data: {
+        ...data,
+        // Alterações feitas pelo próprio usuário não são sobrescritas no próximo login.
+        name: existingUser.name ?? name,
+        image: existingUser.image ?? image,
+      },
     });
   }
 
