@@ -2,6 +2,27 @@
 -- O aplicativo acessa as tabelas do marketplace pelo backend Prisma.
 -- RLS sem políticas públicas impede acesso direto via Data API.
 
+-- Cidade inicial e bairros usados no perfil e nos anúncios.
+insert into public."City" (id, name, slug, "stateCode", "isActive")
+values ('city_rio_do_sul', 'Rio do Sul', 'rio-do-sul', 'SC', true)
+on conflict (slug) do update set
+  name = excluded.name,
+  "stateCode" = excluded."stateCode",
+  "isActive" = true;
+
+insert into public."Neighborhood" (id, name, slug, "cityId")
+values
+  ('neighborhood_centro', 'Centro', 'centro', (select id from public."City" where slug = 'rio-do-sul')),
+  ('neighborhood_canta_galo', 'Canta Galo', 'canta-galo', (select id from public."City" where slug = 'rio-do-sul')),
+  ('neighborhood_budag', 'Budag', 'budag', (select id from public."City" where slug = 'rio-do-sul')),
+  ('neighborhood_fundo_canoas', 'Fundo Canoas', 'fundo-canoas', (select id from public."City" where slug = 'rio-do-sul')),
+  ('neighborhood_jardim_america', 'Jardim América', 'jardim-america', (select id from public."City" where slug = 'rio-do-sul')),
+  ('neighborhood_laranjeiras', 'Laranjeiras', 'laranjeiras', (select id from public."City" where slug = 'rio-do-sul')),
+  ('neighborhood_progresso', 'Progresso', 'progresso', (select id from public."City" where slug = 'rio-do-sul')),
+  ('neighborhood_santana', 'Santana', 'santana', (select id from public."City" where slug = 'rio-do-sul')),
+  ('neighborhood_taboao', 'Taboão', 'taboao', (select id from public."City" where slug = 'rio-do-sul'))
+on conflict ("cityId", slug) do update set name = excluded.name;
+
 alter table public."User" enable row level security;
 alter table public."City" enable row level security;
 alter table public."Neighborhood" enable row level security;
