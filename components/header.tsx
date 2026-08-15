@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ChevronDownIcon, PlusIcon } from "./icons";
 import { Logo } from "./logo";
+import { HeaderSearch } from "./header-search";
 import { NavigationProgress } from "./navigation-progress";
 import { PendingSubmitButton } from "./pending-submit-button";
 import { UserAvatar } from "./user-avatar";
@@ -22,6 +23,7 @@ export async function Header() {
           </button>
         </nav>
         <div className="header-actions">
+          <HeaderSearch />
           {user ? (
             <details className="user-menu">
               <summary><UserAvatar image={user.image} name={user.name} /><span>{user.name?.split(" ")[0] || "Minha conta"}</span><ChevronDownIcon /></summary>
