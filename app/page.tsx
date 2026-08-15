@@ -37,8 +37,8 @@ export default function HomePage() {
 
               <div className="quick-searches" aria-label="Buscas populares">
                 <span>Buscas populares:</span>
-                <Link href="/rio-do-sul/imoveis/aluguel">Aluguel até R$ 1.500</Link>
-                <Link href="/rio-do-sul/freteiros?disponivel=hoje">Frete hoje</Link>
+                <Link href="/imoveis?finalidade=aluguel">Imóveis para alugar</Link>
+                <Link href="/freteiros?disponivel=hoje">Frete hoje</Link>
               </div>
             </div>
 
@@ -60,12 +60,12 @@ export default function HomePage() {
 
           <div className="container category-wrap">
             <div className="category-grid">
-              <Link className="category-card category-card--property" href="/rio-do-sul/imoveis">
+              <Link className="category-card category-card--property" href="/imoveis">
                 <span className="category-card__icon"><HomeIcon size={31}/></span>
                 <span className="category-card__copy"><small>Quero encontrar</small><strong>Um imóvel</strong><span>Casas, apartamentos e terrenos</span></span>
                 <span className="category-card__arrow"><ArrowIcon/></span>
               </Link>
-              <Link className="category-card category-card--freight" href="/rio-do-sul/freteiros">
+              <Link className="category-card category-card--freight" href="/freteiros">
                 <span className="category-card__icon"><TruckIcon size={31}/></span>
                 <span className="category-card__copy"><small>Preciso de</small><strong>Um freteiro</strong><span>Mudanças, entregas e transportes</span></span>
                 <span className="category-card__arrow"><ArrowIcon/></span>
@@ -78,13 +78,13 @@ export default function HomePage() {
           <div className="container">
             <div className="section-heading">
               <div><span className="section-kicker">Novidades por perto</span><h2>Imóveis recentes</h2><p>Boas oportunidades publicadas em Rio do Sul.</p></div>
-              <Link className="text-link" href="/rio-do-sul/imoveis">Ver todos <ArrowIcon/></Link>
+              <Link className="text-link" href="/imoveis">Ver todos <ArrowIcon/></Link>
             </div>
             <div className="property-grid">
               {properties.map((property) => (
                 <article className="property-card" key={property.id}>
                   <div className="property-card__image">
-                    <Link href={`/imovel/${property.id}`} aria-label={`Ver ${property.title}`}>
+                    <Link href="/imoveis" aria-label="Ver imóveis disponíveis">
                       {/* A URL é de uma fonte de demonstração e será substituída por Supabase Storage. */}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={property.image} alt={property.title}/>
@@ -94,7 +94,7 @@ export default function HomePage() {
                   </div>
                   <div className="property-card__body">
                     <span className="property-card__location"><PinIcon size={15}/>{property.location}</span>
-                    <h3><Link href={`/imovel/${property.id}`}>{property.title}</Link></h3>
+                    <h3><Link href="/imoveis">{property.title}</Link></h3>
                     <div className="property-card__features">
                       <span><BedIcon/>{property.beds} quartos</span><span><BathIcon/>{property.baths} banh.</span><span>{property.area}</span>
                     </div>
@@ -103,7 +103,7 @@ export default function HomePage() {
                 </article>
               ))}
             </div>
-            <Link className="mobile-more-button" href="/rio-do-sul/imoveis">Ver todos os imóveis <ArrowIcon/></Link>
+            <Link className="mobile-more-button" href="/imoveis">Ver todos os imóveis <ArrowIcon/></Link>
           </div>
         </section>
 
@@ -111,7 +111,7 @@ export default function HomePage() {
           <div className="container">
             <div className="section-heading">
               <div><span className="section-kicker section-kicker--orange">Quem resolve por aqui</span><h2>Freteiros em destaque</h2><p>Profissionais avaliados que atendem Rio do Sul e região.</p></div>
-              <Link className="text-link" href="/rio-do-sul/freteiros">Ver todos <ArrowIcon/></Link>
+              <Link className="text-link" href="/freteiros">Ver todos <ArrowIcon/></Link>
             </div>
             <div className="freighter-grid">
               {freighters.map((freighter) => (
@@ -124,11 +124,11 @@ export default function HomePage() {
                   <span className="freighter-location"><PinIcon size={15}/>{freighter.location}</span>
                   <div className="rating"><StarIcon/><strong>{freighter.rating}</strong><span>({freighter.reviews} avaliações)</span></div>
                   <div className="service-tags">{freighter.services.map((service) => <span key={service}>{service}</span>)}</div>
-                  <Link className="outline-button" href={`/freteiro/${freighter.id}`}>Ver perfil <ArrowIcon/></Link>
+                  <Link className="outline-button" href="/freteiros">Ver profissionais <ArrowIcon/></Link>
                 </article>
               ))}
             </div>
-            <Link className="mobile-more-button" href="/rio-do-sul/freteiros">Encontrar um freteiro <ArrowIcon/></Link>
+            <Link className="mobile-more-button" href="/freteiros">Encontrar um freteiro <ArrowIcon/></Link>
           </div>
         </section>
 
@@ -148,7 +148,7 @@ export default function HomePage() {
       <footer className="site-footer">
         <div className="container footer-grid">
           <div><Logo light/><p>Encontre perto. Resolva no Vale.<br/>Feito no Alto Vale.</p></div>
-          <div><strong>Explorar</strong><Link href="/rio-do-sul/imoveis">Imóveis</Link><Link href="/rio-do-sul/freteiros">Freteiros</Link><Link href="/publicar">Publicar anúncio</Link></div>
+          <div><strong>Explorar</strong><Link href="/imoveis">Imóveis</Link><Link href="/freteiros">Freteiros</Link><Link href="/publicar">Publicar anúncio</Link></div>
           <div><strong>Ajuda</strong><Link href="/seguranca">Segurança</Link><Link href="/ajuda">Central de ajuda</Link><Link href="/contato">Fale conosco</Link></div>
           <div className="footer-local"><PinIcon/><span>Começando por</span><strong>Rio do Sul — SC</strong></div>
         </div>

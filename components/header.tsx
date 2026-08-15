@@ -12,8 +12,8 @@ export async function Header() {
       <div className="container header-inner">
         <Logo />
         <nav className="desktop-nav" aria-label="Navegação principal">
-          <Link href="/rio-do-sul/imoveis">Imóveis</Link>
-          <Link href="/rio-do-sul/freteiros">Freteiros</Link>
+          <Link href="/imoveis">Imóveis</Link>
+          <Link href="/freteiros">Freteiros</Link>
           <button className="city-switcher" type="button">
             Rio do Sul <ChevronDownIcon />
           </button>
