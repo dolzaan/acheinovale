@@ -171,6 +171,18 @@ button { cursor: pointer; }
 .footer-bottom { display: flex; justify-content: space-between; margin-top: 45px; padding-top: 23px; border-top: 1px solid rgba(255,255,255,.09); color: #77928a; font-size: 9px; }
 .mobile-nav { display: none; }
 
+/* Instalação do app */
+.pwa-install { position: fixed; z-index: 900; right: 22px; bottom: 22px; width: min(440px, calc(100vw - 32px)); display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 13px; padding: 15px 40px 15px 16px; border: 1px solid rgba(23,63,53,.14); border-radius: 18px; color: var(--ink); background: rgba(255,254,250,.97); box-shadow: 0 22px 55px rgba(17,52,43,.2); backdrop-filter: blur(16px); animation: pwa-install-enter .32s ease-out both; }
+.pwa-install__icon { width: 54px; height: 54px; flex: 0 0 auto; border-radius: 14px; box-shadow: 0 7px 17px rgba(23,63,53,.12); }
+.pwa-install__content { min-width: 0; display: flex; flex-direction: column; gap: 3px; padding-right: 4px; }
+.pwa-install__content strong { font-size: 13px; line-height: 1.25; }
+.pwa-install__content span { color: var(--muted); font-size: 9px; line-height: 1.45; }
+.pwa-install__button { min-height: 41px; padding: 0 14px; border: 0; border-radius: 11px; color: white; background: var(--ink); font-size: 10px; font-weight: 900; white-space: nowrap; transition: transform .2s, background .2s; }
+.pwa-install__button:hover { transform: translateY(-1px); background: #0f3129; }
+.pwa-install__button:disabled { cursor: wait; opacity: .72; transform: none; }
+.pwa-install__close { position: absolute; right: 7px; top: 5px; width: 25px; height: 25px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; color: var(--muted); background: transparent; font-size: 20px; line-height: 1; }
+@keyframes pwa-install-enter { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
 /* Autenticação e área da conta */
 .user-avatar { display: grid; place-items: center; flex: 0 0 auto; overflow: hidden; width: 34px; height: 34px; border-radius: 50%; color: white; background: var(--green-dark); font-size: 11px; font-weight: 900; }
 .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -331,6 +343,11 @@ button { cursor: pointer; }
   .publish-banner { min-height: 310px; display: flex; align-items: flex-start; flex-direction: column; justify-content: center; gap: 22px; margin-bottom: 48px; padding: 35px 27px; border-radius: 20px; }.publish-banner h2 { font-size: 31px; }.publish-banner p { max-width: 300px; font-size: 11px; line-height: 1.55; }.publish-banner .button { width: 100%; }.publish-banner__art { right: -8%; bottom: 9%; opacity: .6; }
   .site-footer { padding: 45px 0 90px; }.footer-grid { grid-template-columns: 1fr 1fr; gap: 35px 25px; }.footer-grid > div:first-child { grid-column: 1 / -1; }.footer-bottom { flex-direction: column; gap: 7px; }
   .mobile-nav { position: fixed; z-index: 50; inset: auto 0 0; height: 70px; display: grid; grid-template-columns: repeat(5, 1fr); align-items: center; padding: 5px max(7px, env(safe-area-inset-right)) max(5px, env(safe-area-inset-bottom)); border-top: 1px solid #dce4df; background: rgba(255,255,255,.96); box-shadow: 0 -8px 25px rgba(24,60,52,.08); backdrop-filter: blur(14px); }
+  .pwa-install { right: 14px; bottom: calc(83px + env(safe-area-inset-bottom)); width: calc(100vw - 28px); grid-template-columns: auto minmax(0, 1fr); gap: 11px; padding: 14px 38px 14px 13px; border-radius: 16px; }
+  .pwa-install__icon { width: 48px; height: 48px; border-radius: 13px; }
+  .pwa-install__content strong { font-size: 12px; }.pwa-install__content span { font-size: 8px; }
+  .pwa-install__button { grid-column: 1 / -1; width: 100%; min-height: 42px; font-size: 10px; }
+  .pwa-install__close { display: grid; }
   .mobile-nav__item { height: 53px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 2px; color: #788a84; font-size: 8px; font-weight: 700; }.mobile-nav__item.is-active { color: var(--green-dark); }.mobile-nav__publish { place-self: center; display: grid; place-items: center; width: 51px; height: 51px; margin-top: -25px; border: 5px solid #f7f8f5; border-radius: 50%; color: white; background: var(--ink); box-shadow: 0 8px 20px rgba(23,63,53,.3); }
   .user-menu summary span, .user-menu summary > svg { display: none; }.user-menu__panel { right: -65px; }
   .auth-page { min-height: calc(100vh - 64px); padding: 28px 14px; }.auth-card { padding: 32px 23px; border-radius: 20px; }.auth-card h1 { font-size: 28px; }
