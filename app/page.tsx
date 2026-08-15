@@ -2,6 +2,7 @@ import Link from "next/link";
 import { freighters, properties } from "@/data/home";
 import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { Logo } from "@/components/logo";
 import {
   ArrowIcon,
@@ -32,7 +33,7 @@ export default function HomePage() {
               <form className="main-search" action="/buscar">
                 <SearchIcon size={22}/>
                 <input name="q" aria-label="O que você procura?" placeholder="Ex: casa para alugar no Centro" />
-                <button type="submit" aria-label="Buscar"><SearchIcon size={20}/><span>Buscar</span></button>
+                <PendingSubmitButton aria-label="Buscar" pendingText="Buscando..."><SearchIcon size={20}/><span>Buscar</span></PendingSubmitButton>
               </form>
 
               <div className="quick-searches" aria-label="Buscas populares">

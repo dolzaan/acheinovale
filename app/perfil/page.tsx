@@ -1,6 +1,7 @@
 import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
 import { PhoneInput } from "@/components/phone-input";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { ProfilePhotoInput } from "@/components/profile-photo-input";
 import { UserAvatar } from "@/components/user-avatar";
 import { requireCurrentUser } from "@/lib/auth/current-user";
@@ -57,7 +58,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
               <label><span>Email</span><input value={user.email} disabled /><small>O email é gerenciado pela sua conta Google.</small></label>
               <label><span>Cidade</span><select name="cityId" defaultValue={user.cityId || ""} required><option value="" disabled>Selecione sua cidade</option>{cities.map((city) => <option key={city.id} value={city.id}>{city.name} — {city.stateCode}</option>)}</select></label>
               <label><span>WhatsApp</span><PhoneInput defaultValue={user.phone || ""} /><small>Usado como contato somente nos anúncios em que você decidir divulgá-lo.</small></label>
-              <button className="button button--primary" type="submit">Salvar perfil</button>
+              <PendingSubmitButton className="button button--primary" pendingText="Salvando perfil...">Salvar perfil</PendingSubmitButton>
             </form>
           </section>
         </div>

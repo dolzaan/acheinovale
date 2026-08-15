@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ContentStatus } from "@prisma/client";
 import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { BuildingIcon, ShieldIcon, TruckIcon } from "@/components/icons";
 import { requireAdmin } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
@@ -52,14 +53,14 @@ function ActionForms({ id, status, action }: { id: string; status: ContentStatus
         <form action={action}>
           <input type="hidden" name="id" value={id} />
           <input type="hidden" name="intent" value="approve" />
-          <button className="moderation-button moderation-button--approve" type="submit">Aprovar e publicar</button>
+          <PendingSubmitButton className="moderation-button moderation-button--approve" pendingText="Publicando...">Aprovar e publicar</PendingSubmitButton>
         </form>
       ) : (
         <form action={action}>
           <input type="hidden" name="id" value={id} />
           <input type="hidden" name="intent" value="pause" />
           <input name="note" maxLength={500} aria-label="Motivo da pausa" placeholder="Motivo da pausa (opcional)" />
-          <button className="moderation-button" type="submit">Pausar</button>
+          <PendingSubmitButton className="moderation-button" pendingText="Pausando...">Pausar</PendingSubmitButton>
         </form>
       )}
       {status !== "REJECTED" && status !== "ACTIVE" ? (
@@ -67,7 +68,7 @@ function ActionForms({ id, status, action }: { id: string; status: ContentStatus
           <input type="hidden" name="id" value={id} />
           <input type="hidden" name="intent" value="reject" />
           <input name="note" minLength={5} maxLength={500} required aria-label="Motivo da reprovação" placeholder="Explique o que precisa ser corrigido" />
-          <button className="moderation-button moderation-button--reject" type="submit">Reprovar</button>
+          <PendingSubmitButton className="moderation-button moderation-button--reject" pendingText="Reprovando...">Reprovar</PendingSubmitButton>
         </form>
       ) : null}
     </div>

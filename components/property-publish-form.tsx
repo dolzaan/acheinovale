@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "r
 import { Upload } from "tus-js-client";
 import { createProperty } from "@/app/publicar/imovel/actions";
 import { MoneyInput } from "@/components/money-input";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { PhoneInput } from "@/components/phone-input";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -226,7 +227,7 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
       </section>
 
       {mediaError ? <p className="property-photo-error field-wide" role="alert">{mediaError}</p> : null}
-      <button className="button button--primary field-wide" type="submit" disabled={uploading}>{uploading ? progressLabel : "Enviar para análise"}</button>
+      <PendingSubmitButton className="button button--primary field-wide" pendingText={uploading ? progressLabel : "Finalizando publicação..."} busy={uploading}>Enviar para análise</PendingSubmitButton>
     </form>
   );
 }

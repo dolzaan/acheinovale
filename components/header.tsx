@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { ChevronDownIcon, PlusIcon } from "./icons";
 import { Logo } from "./logo";
+import { NavigationProgress } from "./navigation-progress";
+import { PendingSubmitButton } from "./pending-submit-button";
 import { UserAvatar } from "./user-avatar";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { signOut } from "@/app/auth/actions";
@@ -8,7 +11,7 @@ import { signOut } from "@/app/auth/actions";
 export async function Header() {
   const user = await getCurrentUser();
   return (
-    <header className="site-header">
+    <><Suspense fallback={null}><NavigationProgress /></Suspense><header className="site-header">
       <div className="container header-inner">
         <Logo />
         <nav className="desktop-nav" aria-label="Navegação principal">
@@ -28,7 +31,7 @@ export async function Header() {
                 <Link href="/meus-anuncios">Meus anúncios</Link>
                 {user.role === "ADMIN" ? <Link href="/admin/anuncios">Moderar anúncios</Link> : null}
                 <Link href="/favoritos">Favoritos <small>em breve</small></Link>
-                <form action={signOut}><button type="submit">Sair</button></form>
+                <form action={signOut}><PendingSubmitButton pendingText="Saindo...">Sair</PendingSubmitButton></form>
               </div>
             </details>
           ) : (
@@ -39,6 +42,6 @@ export async function Header() {
           </Link>
         </div>
       </div>
-    </header>
+    </header></>
   );
 }

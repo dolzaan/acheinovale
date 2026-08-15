@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
 import { freighterUrl, propertyUrl } from "@/lib/listings/urls";
@@ -44,8 +45,8 @@ export default async function MyListingsPage() {
                   </div>
                   <div className="manager-card__actions">
                     <Link href={propertyUrl(property)}>Visualizar</Link>
-                    {property.status === "ACTIVE" || property.status === "PAUSED" ? <form action={pauseProperty}><input type="hidden" name="id" value={property.id} /><button>{property.status === "PAUSED" ? "Reativar" : "Pausar"}</button></form> : null}
-                    <form action={archiveProperty}><input type="hidden" name="id" value={property.id} /><button>Arquivar</button></form>
+                    {property.status === "ACTIVE" || property.status === "PAUSED" ? <form action={pauseProperty}><input type="hidden" name="id" value={property.id} /><PendingSubmitButton pendingText={property.status === "PAUSED" ? "Reativando..." : "Pausando..."}>{property.status === "PAUSED" ? "Reativar" : "Pausar"}</PendingSubmitButton></form> : null}
+                    <form action={archiveProperty}><input type="hidden" name="id" value={property.id} /><PendingSubmitButton pendingText="Arquivando...">Arquivar</PendingSubmitButton></form>
                   </div>
                 </article>
               ))}
@@ -60,7 +61,7 @@ export default async function MyListingsPage() {
                   </div>
                   <div className="manager-card__actions">
                     <Link href={freighterUrl(freighter)}>Visualizar</Link>
-                    {freighter.status === "ACTIVE" || freighter.status === "PAUSED" ? <form action={pauseFreighter}><input type="hidden" name="id" value={freighter.id} /><button>{freighter.status === "PAUSED" ? "Reativar" : "Pausar"}</button></form> : null}
+                    {freighter.status === "ACTIVE" || freighter.status === "PAUSED" ? <form action={pauseFreighter}><input type="hidden" name="id" value={freighter.id} /><PendingSubmitButton pendingText={freighter.status === "PAUSED" ? "Reativando..." : "Pausando..."}>{freighter.status === "PAUSED" ? "Reativar" : "Pausar"}</PendingSubmitButton></form> : null}
                   </div>
                 </article>
               ) : null}

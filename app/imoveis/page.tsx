@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { Prisma, PropertyType } from "@prisma/client";
 import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { BathIcon, BedIcon, FilterIcon, HomeIcon, PinIcon, SearchIcon } from "@/components/icons";
 import { prisma } from "@/lib/db";
 import { propertyUrl } from "@/lib/listings/urls";
@@ -169,10 +170,10 @@ export default async function PropertiesPage({ searchParams }: Props) {
           <label className="catalog-filter-section"><strong>Vagas</strong><select name="vagas" defaultValue={minimumParkingSpots ?? ""}><option value="">Qualquer</option><option value="1">1 ou mais</option><option value="2">2 ou mais</option><option value="3">3 ou mais</option><option value="4">4 ou mais</option></select></label>
           <label className="catalog-filter-section"><strong>Área mínima</strong><div className="catalog-area-input"><input name="areaMin" type="number" min="0" step="1" defaultValue={minimumArea ?? ""} placeholder="Ex: 80"/><small>m²</small></div></label>
           <div className="catalog-filter-section catalog-filter-section--checks"><strong>Comodidades</strong><label><input type="checkbox" name="pets" value="1" defaultChecked={params.pets === "1"}/><span>Aceita pets</span></label><label><input type="checkbox" name="mobiliado" value="1" defaultChecked={params.mobiliado === "1"}/><span>Mobiliado</span></label></div>
-          <div className="catalog-filter-actions">{hasFilters ? <Link href="/imoveis">Limpar tudo</Link> : <span/>}<button className="button button--primary" type="submit">Mostrar resultados</button></div>
+          <div className="catalog-filter-actions">{hasFilters ? <Link href="/imoveis">Limpar tudo</Link> : <span/>}<PendingSubmitButton className="button button--primary" pendingText="Aplicando filtros...">Mostrar resultados</PendingSubmitButton></div>
         </div>
       </details>
-      <button className="button button--primary catalog-search-button" type="submit">Buscar</button>
+      <PendingSubmitButton className="button button--primary catalog-search-button" pendingText="Buscando...">Buscar</PendingSubmitButton>
       <input type="hidden" name="ordem" value={order}/>
     </form>
     <nav className="catalog-quick-filters" aria-label="Filtros rápidos">
@@ -183,7 +184,7 @@ export default async function PropertiesPage({ searchParams }: Props) {
       <Link className={params.pets === "1" ? "is-active" : ""} href={buildFilterUrl(params, { pets: params.pets === "1" ? undefined : "1" })}>Aceita pets</Link>
       <Link className={params.mobiliado === "1" ? "is-active" : ""} href={buildFilterUrl(params, { mobiliado: params.mobiliado === "1" ? undefined : "1" })}>Mobiliado</Link>
     </nav>
-    <div className="catalog-results-bar"><p><strong>{resultCount}</strong> {resultCount === 1 ? "imóvel encontrado" : "imóveis encontrados"}</p><form action="/imoveis">{sortFields.map(([name, value]) => <input key={name} type="hidden" name={name} value={value}/>) }<label><span>Ordenar por</span><select name="ordem" defaultValue={order}><option value="recentes">Mais recentes</option><option value="preco-menor">Menor preço</option><option value="preco-maior">Maior preço</option></select></label><button type="submit">Ordenar</button></form></div>
+    <div className="catalog-results-bar"><p><strong>{resultCount}</strong> {resultCount === 1 ? "imóvel encontrado" : "imóveis encontrados"}</p><form action="/imoveis">{sortFields.map(([name, value]) => <input key={name} type="hidden" name={name} value={value}/>) }<label><span>Ordenar por</span><select name="ordem" defaultValue={order}><option value="recentes">Mais recentes</option><option value="preco-menor">Menor preço</option><option value="preco-maior">Maior preço</option></select></label><PendingSubmitButton pendingText="Ordenando...">Ordenar</PendingSubmitButton></form></div>
     {properties.length ? <div className="property-grid catalog-grid">{properties.map(property => <article className="property-card" key={property.id}><Link className={property.images[0] ? "catalog-property-image" : "catalog-image-placeholder"} href={propertyUrl(property)} aria-label={`Ver ${property.title}`}>{property.images[0] ? <Image src={propertyImagePublicUrl(property.images[0].storageKey)} alt={property.images[0].altText || property.title} fill sizes="(max-width: 680px) 82vw, 33vw" /> : <><HomeIcon size={42}/><span>Ver imóvel</span></>}</Link><div className="property-card__body"><span className="property-card__purpose">{property.purpose === "RENT" ? "Aluguel" : "Venda"} · {propertyTypeLabels.get(property.type)}</span><span className="property-card__location"><PinIcon size={15}/>{property.neighborhood.name}, {property.city.name}</span><h3><Link href={propertyUrl(property)}>{property.title}</Link></h3><div className="property-card__features">{property.bedrooms !== null ? <span><BedIcon/>{property.bedrooms} quartos</span> : null}{property.bathrooms !== null ? <span><BathIcon/>{property.bathrooms} banh.</span> : null}{property.areaM2 ? <span>{property.areaM2.toString()} m²</span> : null}</div><div className="property-card__price"><strong>{formatPrice(property.priceCents)}</strong><span>{property.purpose === "RENT" ? "/mês" : ""}</span></div><small className="catalog-code">{property.publicCode.toUpperCase()}</small></div></article>)}</div> : <div className="empty-state catalog-empty"><strong>Nenhum imóvel encontrado.</strong><p>{hasFilters ? "Tente remover alguns filtros para ampliar a busca." : "Os anúncios aprovados aparecerão aqui. Publique o primeiro imóvel."}</p>{hasFilters ? <Link className="button button--secondary" href="/imoveis">Limpar filtros</Link> : <Link className="button button--primary" href="/publicar/imovel">Publicar imóvel</Link>}</div>}
   </div></main><MobileNav/></>;
 }
