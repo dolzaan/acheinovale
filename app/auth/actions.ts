@@ -1,8 +1,10 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { getAppUrl } from "@/lib/supabase/config";
+import { OAUTH_NEXT_COOKIE, oauthNextCookieOptions } from "@/lib/auth/oauth-flow";
 import { syncAuthUser } from "@/lib/auth/sync-user";
 import { safeInternalPath } from "@/lib/validation/profile";
 
@@ -13,11 +15,14 @@ function stringValue(formData: FormData, key: string) {
 
 export async function signInWithGoogle(formData: FormData) {
   const next = safeInternalPath(stringValue(formData, "next"), "/perfil");
+  const cookieStore = await cookies();
+  cookieStore.set(OAUTH_NEXT_COOKIE, next, oauthNextCookieOptions());
+
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${getAppUrl()}/auth/callback?next=${encodeURIComponent(next)}`,
+      redirectTo: `${getAppUrl()}/auth/callback`,
       queryParams: {
         access_type: "offline",
         prompt: "select_account",
