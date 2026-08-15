@@ -33,7 +33,7 @@ export default function HomePage() {
               <form className="main-search" action="/buscar">
                 <SearchIcon size={22}/>
                 <input name="q" aria-label="O que você procura?" placeholder="Ex: casa para alugar no Centro" />
-                <PendingSubmitButton aria-label="Buscar" pendingText="Buscando..."><SearchIcon size={20}/><span>Buscar</span></PendingSubmitButton>
+                <PendingSubmitButton aria-label="Buscar" pendingText="Buscando..." navigation><SearchIcon size={20}/><span>Buscar</span></PendingSubmitButton>
               </form>
 
               <div className="quick-searches" aria-label="Buscas populares">
