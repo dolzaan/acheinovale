@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "prisma generate && prisma db execute --file prisma/migrations/202608150002_public_listing_codes/migration.sql --url \"$POSTGRES_URL_NON_POOLING\" && next build",
     "postinstall": "prisma generate",
     "start": "next start",
     "lint": "eslint .",

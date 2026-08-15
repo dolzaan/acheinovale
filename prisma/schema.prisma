@@ -98,7 +98,8 @@ model Neighborhood {
 
 model Property {
   id                 String          @id @default(cuid())
-  slug               String          @unique
+  publicCode         String          @unique
+  slug               String
   ownerId            String
   owner              User            @relation(fields: [ownerId], references: [id])
   cityId             String
@@ -130,6 +131,7 @@ model Property {
 
   @@index([cityId, status, purpose, createdAt])
   @@index([neighborhoodId, type, priceCents])
+  @@index([slug])
 }
 
 model PropertyImage {
@@ -145,7 +147,8 @@ model PropertyImage {
 
 model FreighterProfile {
   id              String             @id @default(cuid())
-  slug            String             @unique
+  publicCode      String             @unique
+  slug            String
   userId          String             @unique
   user            User               @relation(fields: [userId], references: [id])
   cityId          String
@@ -166,6 +169,7 @@ model FreighterProfile {
   reports         Report[]
 
   @@index([cityId, status, availableToday])
+  @@index([slug])
 }
 
 model FreighterService {
