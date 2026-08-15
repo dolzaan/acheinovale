@@ -27,5 +27,6 @@ export function freighterSlug(displayName: string, city: string) {
 export function parseMoneyToCents(value: string) {
   const normalized = value.replace(/\s/g, "").replace(/\./g, "").replace(",", ".");
   const amount = Number(normalized);
-  return Number.isFinite(amount) && amount > 0 ? Math.round(amount * 100) : null;
+  const cents = Math.round(amount * 100);
+  return Number.isSafeInteger(cents) && cents > 0 && cents <= 2_000_000_000 ? cents : null;
 }

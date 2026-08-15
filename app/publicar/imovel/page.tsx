@@ -1,4 +1,5 @@
 import { Header } from "@/components/header";
+import { MoneyInput } from "@/components/money-input";
 import { MobileNav } from "@/components/mobile-nav";
 import { PhoneInput } from "@/components/phone-input";
 import { requireCurrentUser } from "@/lib/auth/current-user";
@@ -23,7 +24,7 @@ export default async function NewPropertyPage({ searchParams }: Props) {
     <label><span>Tipo</span><select name="type" required><option value="HOUSE">Casa</option><option value="APARTMENT">Apartamento</option><option value="STUDIO">Kitnet / Studio</option><option value="LAND">Terreno</option><option value="COMMERCIAL_ROOM">Sala comercial</option><option value="WAREHOUSE">Galpão</option><option value="OTHER">Outro</option></select></label>
     <label><span>Cidade</span><select name="cityId" defaultValue={user.cityId || ""} required>{cities.map(c => <option key={c.id} value={c.id}>{c.name} — {c.stateCode}</option>)}</select></label>
     <label><span>Bairro</span><select name="neighborhoodId" required><option value="">Selecione</option>{cities.flatMap(c => c.neighborhoods.map(n => <option key={n.id} value={n.id}>{n.name} — {c.name}</option>))}</select></label>
-    <label><span>Preço (R$)</span><input name="price" inputMode="decimal" placeholder="1.500,00" required/></label>
+    <label><span>Preço</span><MoneyInput/></label>
     <label><span>WhatsApp do anúncio</span><PhoneInput name="whatsapp" defaultValue={user.phone || ""}/></label>
     <label><span>Quartos</span><input name="bedrooms" type="number" min="0" max="30"/></label><label><span>Banheiros</span><input name="bathrooms" type="number" min="0" max="30"/></label><label><span>Vagas</span><input name="parkingSpots" type="number" min="0" max="30"/></label>
     <label className="field-wide"><span>Descrição</span><textarea name="description" minLength={30} maxLength={3000} rows={7} placeholder="Conte os principais detalhes do imóvel..." required/></label>
