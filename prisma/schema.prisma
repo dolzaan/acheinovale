@@ -45,27 +45,29 @@ enum UserRole {
 }
 
 model User {
-  id               String            @id @default(cuid())
-  authUserId       String?           @unique @db.Uuid
-  authProvider     String?
-  providerId       String?
-  email            String            @unique
-  emailVerifiedAt  DateTime?
-  name             String?
-  image            String?
-  phone            String?
-  cityId           String?
-  city             City?             @relation(fields: [cityId], references: [id])
-  role             UserRole          @default(USER)
-  isBlocked        Boolean           @default(false)
-  lastLoginAt      DateTime?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  properties       Property[]
-  freighterProfile FreighterProfile?
-  favorites        Favorite[]
-  reviews          Review[]
-  reports          Report[]
+  id                         String             @id @default(cuid())
+  authUserId                 String?            @unique @db.Uuid
+  authProvider               String?
+  providerId                 String?
+  email                      String             @unique
+  emailVerifiedAt            DateTime?
+  name                       String?
+  image                      String?
+  phone                      String?
+  cityId                     String?
+  city                       City?              @relation(fields: [cityId], references: [id])
+  role                       UserRole           @default(USER)
+  isBlocked                  Boolean            @default(false)
+  lastLoginAt                DateTime?
+  createdAt                  DateTime           @default(now())
+  updatedAt                  DateTime           @updatedAt
+  properties                 Property[]
+  freighterProfile           FreighterProfile?
+  favorites                  Favorite[]
+  reviews                    Review[]
+  reports                    Report[]
+  moderatedProperties        Property[]         @relation("PropertyModerator")
+  moderatedFreighterProfiles FreighterProfile[] @relation("FreighterModerator")
 
   @@unique([authProvider, providerId])
   @@index([cityId])
@@ -123,6 +125,10 @@ model Property {
   approximateLng     Decimal?        @db.Decimal(9, 6)
   privateAddressData Json?
   publishedAt        DateTime?
+  moderationNote     String?
+  moderatedAt        DateTime?
+  moderatedById      String?
+  moderatedBy        User?           @relation("PropertyModerator", fields: [moderatedById], references: [id], onDelete: SetNull)
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
   images             PropertyImage[]
@@ -131,6 +137,8 @@ model Property {
 
   @@index([cityId, status, purpose, createdAt])
   @@index([neighborhoodId, type, priceCents])
+  @@index([status, createdAt])
+  @@index([moderatedById])
   @@index([slug])
 }
 
@@ -160,6 +168,11 @@ model FreighterProfile {
   serviceRadiusKm Int?
   availableToday  Boolean            @default(false)
   priceNote       String?
+  publishedAt     DateTime?
+  moderationNote  String?
+  moderatedAt     DateTime?
+  moderatedById   String?
+  moderatedBy     User?              @relation("FreighterModerator", fields: [moderatedById], references: [id], onDelete: SetNull)
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
   services        FreighterService[]
@@ -169,6 +182,8 @@ model FreighterProfile {
   reports         Report[]
 
   @@index([cityId, status, availableToday])
+  @@index([status, createdAt])
+  @@index([moderatedById])
   @@index([slug])
 }
 

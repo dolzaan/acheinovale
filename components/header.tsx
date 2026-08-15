@@ -26,6 +26,7 @@ export async function Header() {
                 <div className="user-menu__identity"><strong>{user.name || "Usuário"}</strong><small>{user.email}</small></div>
                 <Link href="/perfil">Meu perfil</Link>
                 <Link href="/meus-anuncios">Meus anúncios</Link>
+                {user.role === "ADMIN" ? <Link href="/admin/anuncios">Moderar anúncios</Link> : null}
                 <Link href="/favoritos">Favoritos <small>em breve</small></Link>
                 <form action={signOut}><button type="submit">Sair</button></form>
               </div>

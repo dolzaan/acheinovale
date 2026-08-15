@@ -33,8 +33,8 @@ export async function requireCurrentUser(nextPath = "/perfil") {
   return user;
 }
 
-export async function requireAdmin() {
-  const user = await requireCurrentUser();
+export async function requireAdmin(nextPath = "/admin/anuncios") {
+  const user = await requireCurrentUser(nextPath);
 
   if (user.role !== "ADMIN") {
     redirect("/");
