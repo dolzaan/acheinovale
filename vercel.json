@@ -1,6 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "prisma db execute --file prisma/migrations/202608150003_listing_moderation/migration.sql --schema prisma/schema.prisma && npm run build",
   "outputDirectory": ".next"
 }
