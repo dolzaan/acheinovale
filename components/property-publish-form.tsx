@@ -1,13 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
-import { Upload } from "tus-js-client";
 import { createProperty } from "@/app/publicar/imovel/actions";
 import { MoneyInput } from "@/components/money-input";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { PhoneInput } from "@/components/phone-input";
+import { PropertyMediaOrganizer, type PropertyOrganizerItem } from "@/components/property-media-organizer";
 import { createClient } from "@/lib/supabase/client";
+import { uploadPropertyVideo } from "@/lib/supabase/property-video-upload";
 import {
   createPropertyImagePath,
   createPropertyVideoPath,
@@ -16,7 +16,6 @@ import {
   PROPERTY_IMAGE_MIME_TYPES,
   PROPERTY_VIDEO_MAX_BYTES,
   PROPERTY_VIDEO_MIME_TYPES,
-  propertyVideoUploadEndpoint,
   STORAGE_BUCKETS,
 } from "@/lib/supabase/storage";
 
@@ -29,38 +28,11 @@ type CityOption = {
 
 type SelectedMedia = { id: string; file: File; preview: string };
 
-function uploadVideo(file: File, storageKey: string, accessToken: string, onProgress: (percentage: number) => void) {
-  return new Promise<void>((resolve, reject) => {
-    const upload = new Upload(file, {
-      endpoint: propertyVideoUploadEndpoint(),
-      retryDelays: [0, 3000, 5000, 10000, 20000],
-      headers: { authorization: `Bearer ${accessToken}` },
-      uploadDataDuringCreation: true,
-      removeFingerprintOnSuccess: true,
-      chunkSize: 6 * 1024 * 1024,
-      metadata: {
-        bucketName: STORAGE_BUCKETS.properties,
-        objectName: storageKey,
-        contentType: file.type,
-        cacheControl: "31536000",
-      },
-      onError: reject,
-      onProgress: (uploaded, total) => onProgress(Math.round((uploaded / total) * 100)),
-      onSuccess: () => resolve(),
-    });
-
-    upload.findPreviousUploads()
-      .then(previousUploads => {
-        if (previousUploads.length) upload.resumeFromPreviousUpload(previousUploads[0]);
-        upload.start();
-      })
-      .catch(reject);
-  });
-}
-
 export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { authUserId: string; cityId: string; phone: string; cities: CityOption[] }) {
   const [photos, setPhotos] = useState<SelectedMedia[]>([]);
   const [video, setVideo] = useState<SelectedMedia | null>(null);
+  const [mediaOrder, setMediaOrder] = useState<string[]>([]);
+  const [coverPhotoId, setCoverPhotoId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [photoProgress, setPhotoProgress] = useState(0);
   const [videoProgress, setVideoProgress] = useState(0);
@@ -69,6 +41,7 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
   const videoRef = useRef(video);
   const imageKeysRef = useRef<HTMLInputElement>(null);
   const videoKeyRef = useRef<HTMLInputElement>(null);
+  const mediaOrderRef = useRef<HTMLInputElement>(null);
   const readyToSubmit = useRef(false);
 
   useEffect(() => { photosRef.current = photos; }, [photos]);
@@ -97,7 +70,14 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
       setMediaError(`A foto “${oversized.name}” ultrapassa o limite de 6 MB.`);
       return;
     }
-    setPhotos(current => [...current, ...selected.map(file => ({ id: crypto.randomUUID(), file, preview: URL.createObjectURL(file) }))]);
+    const newPhotos = selected.map(file => ({ id: crypto.randomUUID(), file, preview: URL.createObjectURL(file) }));
+    setPhotos(current => [...current, ...newPhotos]);
+    setMediaOrder(current => {
+      const ids = newPhotos.map(photo => photo.id);
+      if (!coverPhotoId && ids.length) return [ids[0], ...current, ...ids.slice(1)];
+      return [...current, ...ids];
+    });
+    if (!coverPhotoId && newPhotos.length) setCoverPhotoId(newPhotos[0].id);
   }
 
   function selectVideo(event: ChangeEvent<HTMLInputElement>) {
@@ -113,9 +93,12 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
       setMediaError(`O vídeo “${file.name}” ultrapassa o limite de 50 MB.`);
       return;
     }
+    const next = { id: crypto.randomUUID(), file, preview: URL.createObjectURL(file) };
     setVideo(current => {
       if (current) URL.revokeObjectURL(current.preview);
-      return { id: crypto.randomUUID(), file, preview: URL.createObjectURL(file) };
+      if (current) setMediaOrder(order => order.map(id => id === current.id ? next.id : id));
+      else setMediaOrder(order => [...order, next.id]);
+      return next;
     });
   }
 
@@ -125,13 +108,50 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
       if (removed) URL.revokeObjectURL(removed.preview);
       return current.filter(photo => photo.id !== id);
     });
+    setMediaOrder(current => current.filter(mediaId => mediaId !== id));
+    if (coverPhotoId === id) {
+      const nextCover = photos.find(photo => photo.id !== id)?.id ?? null;
+      setCoverPhotoId(nextCover);
+      if (nextCover) setMediaOrder(current => [nextCover, ...current.filter(mediaId => mediaId !== nextCover)]);
+    }
   }
 
   function removeVideo() {
     setVideo(current => {
       if (current) URL.revokeObjectURL(current.preview);
+      if (current) setMediaOrder(order => order.filter(id => id !== current.id));
       return null;
     });
+  }
+
+  function reorderMedia(sourceId: string, targetId: string) {
+    setMediaOrder(current => {
+      const sourceIndex = current.indexOf(sourceId);
+      const targetIndex = current.indexOf(targetId);
+      if (sourceIndex < 0 || targetIndex < 0) return current;
+      const next = [...current];
+      next.splice(sourceIndex, 1);
+      next.splice(targetIndex, 0, sourceId);
+      if (coverPhotoId) return [coverPhotoId, ...next.filter(id => id !== coverPhotoId)];
+      return next;
+    });
+  }
+
+  function moveMedia(id: string, direction: -1 | 1) {
+    setMediaOrder(current => {
+      const index = current.indexOf(id);
+      const targetIndex = index + direction;
+      if (index < 0 || targetIndex < 0 || targetIndex >= current.length) return current;
+      const next = [...current];
+      [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+      if (coverPhotoId) return [coverPhotoId, ...next.filter(mediaId => mediaId !== coverPhotoId)];
+      return next;
+    });
+  }
+
+  function setCover(id: string) {
+    setCoverPhotoId(id);
+    setMediaOrder(current => [id, ...current.filter(mediaId => mediaId !== id)]);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -161,7 +181,8 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
         throw new Error("Sua sessão expirou. Entre novamente.");
       }
 
-      const imageResults = await Promise.all(photos.map(async photo => {
+      const orderedPhotos = mediaOrder.map(id => photos.find(photo => photo.id === id)).filter((photo): photo is SelectedMedia => Boolean(photo));
+      const imageResults = await Promise.all(orderedPhotos.map(async photo => {
         const storageKey = createPropertyImagePath(authUserId, photo.file.type);
         const { error } = await supabase.storage.from(STORAGE_BUCKETS.properties).upload(storageKey, photo.file, {
           contentType: photo.file.type,
@@ -169,7 +190,7 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
           upsert: false,
         });
         setPhotoProgress(current => current + 1);
-        return { storageKey, error };
+        return { id: photo.id, storageKey, error };
       }));
 
       const failedPhoto = imageResults.find(result => result.error);
@@ -179,12 +200,20 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
       let uploadedVideoKey = "";
       if (video) {
         uploadedVideoKey = createPropertyVideoPath(authUserId, video.file.type);
-        await uploadVideo(video.file, uploadedVideoKey, sessionData.session.access_token, setVideoProgress);
+        await uploadPropertyVideo(video.file, uploadedVideoKey, sessionData.session.access_token, setVideoProgress);
         uploadedKeys.push(uploadedVideoKey);
       }
 
       if (imageKeysRef.current) imageKeysRef.current.value = JSON.stringify(imageResults.map(result => result.storageKey));
       if (videoKeyRef.current) videoKeyRef.current.value = uploadedVideoKey;
+      if (mediaOrderRef.current) {
+        const keysById = new Map(imageResults.map(result => [result.id, result.storageKey]));
+        if (video && uploadedVideoKey) keysById.set(video.id, uploadedVideoKey);
+        mediaOrderRef.current.value = JSON.stringify(mediaOrder.map(id => ({
+          kind: video?.id === id ? "video" : "image",
+          storageKey: keysById.get(id),
+        })));
+      }
       readyToSubmit.current = true;
       form.requestSubmit();
     } catch (error) {
@@ -198,10 +227,18 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
     ? `Enviando vídeo ${videoProgress}%...`
     : `Enviando fotos ${photoProgress}/${photos.length}...`;
 
+  const mediaItems = mediaOrder.reduce<PropertyOrganizerItem[]>((result, id) => {
+    const photo = photos.find(item => item.id === id);
+    if (photo) result.push({ id, kind: "image", preview: photo.preview, label: photo.file.name });
+    else if (video?.id === id) result.push({ id, kind: "video", preview: video.preview, label: video.file.name });
+    return result;
+  }, []);
+
   return (
     <form className="listing-form" action={createProperty} onSubmit={handleSubmit}>
       <input ref={imageKeysRef} type="hidden" name="imageKeys" defaultValue="[]" />
       <input ref={videoKeyRef} type="hidden" name="videoKey" defaultValue="" />
+      <input ref={mediaOrderRef} type="hidden" name="mediaOrder" defaultValue="[]" />
       <label className="field-wide"><span>Título</span><input name="title" minLength={8} maxLength={120} placeholder="Ex: Casa com 3 quartos no Centro" required /></label>
       <label><span>Finalidade</span><select name="purpose" required><option value="RENT">Aluguel</option><option value="SALE">Venda</option></select></label>
       <label><span>Tipo</span><select name="type" required><option value="HOUSE">Casa</option><option value="APARTMENT">Apartamento</option><option value="STUDIO">Kitnet / Studio</option><option value="LAND">Terreno</option><option value="COMMERCIAL_ROOM">Sala comercial</option><option value="WAREHOUSE">Galpão</option><option value="OTHER">Outro</option></select></label>
@@ -218,13 +255,17 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
         <div className="property-photo-field__heading"><div><strong id="property-photo-title">Fotos do imóvel</strong><span>A primeira foto será a capa do anúncio.</span></div><b>{photos.length}/{PROPERTY_IMAGE_LIMIT}</b></div>
         <label className="property-photo-picker" htmlFor="property-photos"><span>Adicionar fotos</span><small>JPG, PNG, WebP ou AVIF · até 6 MB cada</small></label>
         <input id="property-photos" className="property-photo-input" type="file" accept={PROPERTY_IMAGE_MIME_TYPES.join(",")} multiple onChange={selectPhotos} disabled={uploading || photos.length >= PROPERTY_IMAGE_LIMIT} />
-        {photos.length ? <div className="property-photo-previews">{photos.map((photo, index) => <div className="property-photo-preview" key={photo.id}><Image src={photo.preview} alt={`Prévia da foto ${index + 1}`} fill sizes="(max-width: 680px) 45vw, 150px" unoptimized />{index === 0 ? <span>Capa</span> : null}<button type="button" onClick={() => removePhoto(photo.id)} disabled={uploading} aria-label={`Remover foto ${index + 1}`}>×</button></div>)}</div> : <p className="property-photo-empty">Você pode publicar sem fotos, mas anúncios com boas imagens costumam receber mais contatos.</p>}
+        {!photos.length ? <p className="property-photo-empty">Você pode publicar sem fotos, mas anúncios com boas imagens costumam receber mais contatos.</p> : null}
       </section>
 
       <section className="property-photo-field property-video-field field-wide" aria-labelledby="property-video-title">
         <div className="property-photo-field__heading"><div><strong id="property-video-title">Vídeo do imóvel</strong><span>Mostre os ambientes em um passeio rápido.</span></div><b>{video ? "1/1" : "0/1"}</b></div>
-        {!video ? <><label className="property-photo-picker" htmlFor="property-video"><span>Adicionar vídeo</span><small>MP4, WebM, MOV ou M4V · até 50 MB</small></label><input id="property-video" className="property-photo-input" type="file" accept={PROPERTY_VIDEO_MIME_TYPES.join(",")} onChange={selectVideo} disabled={uploading} /></> : <div className="property-video-preview"><video src={video.preview} controls playsInline preload="metadata" /><button type="button" onClick={removeVideo} disabled={uploading}>Remover vídeo</button></div>}
+        {!video ? <><label className="property-photo-picker" htmlFor="property-video"><span>Adicionar vídeo</span><small>MP4, WebM, MOV ou M4V · até 50 MB</small></label><input id="property-video" className="property-photo-input" type="file" accept={PROPERTY_VIDEO_MIME_TYPES.join(",")} onChange={selectVideo} disabled={uploading} /></> : <p className="property-photo-empty">O vídeo já está junto às fotos abaixo. Você pode mudar a posição ou removê-lo.</p>}
       </section>
+
+      <div className="field-wide">
+        <PropertyMediaOrganizer items={mediaItems} coverId={coverPhotoId} disabled={uploading} onMove={moveMedia} onReorder={reorderMedia} onRemove={id => video?.id === id ? removeVideo() : removePhoto(id)} onSetCover={setCover} />
+      </div>
 
       {mediaError ? <p className="property-photo-error field-wide" role="alert">{mediaError}</p> : null}
       <PendingSubmitButton className="button button--primary field-wide" pendingText={uploading ? progressLabel : "Finalizando publicação..."} busy={uploading}>Enviar para análise</PendingSubmitButton>

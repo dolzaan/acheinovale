@@ -45,6 +45,7 @@ export default async function MyListingsPage() {
                   </div>
                   <div className="manager-card__actions">
                     <Link href={propertyUrl(property)}>Visualizar</Link>
+                    <Link href={`/meus-anuncios/${property.id}/midias`}>Editar mídias</Link>
                     {property.status === "ACTIVE" || property.status === "PAUSED" ? <form action={pauseProperty}><input type="hidden" name="id" value={property.id} /><PendingSubmitButton pendingText={property.status === "PAUSED" ? "Reativando..." : "Pausando..."}>{property.status === "PAUSED" ? "Reativar" : "Pausar"}</PendingSubmitButton></form> : null}
                     <form action={archiveProperty}><input type="hidden" name="id" value={property.id} /><PendingSubmitButton pendingText="Arquivando...">Arquivar</PendingSubmitButton></form>
                   </div>
