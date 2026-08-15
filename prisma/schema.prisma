@@ -15,11 +15,15 @@ enum ContentStatus {
   PAUSED
   REJECTED
   ARCHIVED
+
+  @@map("status_conteudo")
 }
 
 enum PropertyPurpose {
   RENT
   SALE
+
+  @@map("finalidade_imovel")
 }
 
 enum PropertyType {
@@ -30,6 +34,8 @@ enum PropertyType {
   COMMERCIAL_ROOM
   WAREHOUSE
   OTHER
+
+  @@map("tipo_imovel")
 }
 
 enum ReportStatus {
@@ -37,30 +43,34 @@ enum ReportStatus {
   REVIEWING
   RESOLVED
   DISMISSED
+
+  @@map("status_denuncia")
 }
 
 enum UserRole {
   USER
   ADMIN
+
+  @@map("funcao_usuario")
 }
 
 model User {
   id                         String             @id @default(cuid())
-  authUserId                 String?            @unique @db.Uuid
-  authProvider               String?
-  providerId                 String?
+  authUserId                 String?            @unique @map("id_usuario_auth") @db.Uuid
+  authProvider               String?            @map("provedor_autenticacao")
+  providerId                 String?            @map("id_provedor")
   email                      String             @unique
-  emailVerifiedAt            DateTime?
-  name                       String?
-  image                      String?
-  phone                      String?
-  cityId                     String?
+  emailVerifiedAt            DateTime?          @map("email_verificado_em")
+  name                       String?            @map("nome")
+  image                      String?            @map("imagem")
+  phone                      String?            @map("telefone")
+  cityId                     String?            @map("id_cidade")
   city                       City?              @relation(fields: [cityId], references: [id])
-  role                       UserRole           @default(USER)
-  isBlocked                  Boolean            @default(false)
-  lastLoginAt                DateTime?
-  createdAt                  DateTime           @default(now())
-  updatedAt                  DateTime           @updatedAt
+  role                       UserRole           @default(USER) @map("funcao")
+  isBlocked                  Boolean            @default(false) @map("bloqueado")
+  lastLoginAt                DateTime?          @map("ultimo_login_em")
+  createdAt                  DateTime           @default(now()) @map("criado_em")
+  updatedAt                  DateTime           @updatedAt @map("atualizado_em")
   properties                 Property[]
   freighterProfile           FreighterProfile?
   favorites                  Favorite[]
@@ -71,66 +81,69 @@ model User {
 
   @@unique([authProvider, providerId])
   @@index([cityId])
+  @@map("usuarios")
 }
 
 model City {
   id                String             @id @default(cuid())
-  name              String
-  slug              String             @unique
-  stateCode         String             @default("SC")
-  isActive          Boolean            @default(false)
+  name              String             @map("nome")
+  slug              String             @unique @map("identificador_url")
+  stateCode         String             @default("SC") @map("sigla_estado")
+  isActive          Boolean            @default(false) @map("ativa")
   neighborhoods     Neighborhood[]
   properties        Property[]
   freighterProfiles FreighterProfile[]
   users             User[]
 
   @@index([isActive])
+  @@map("cidades")
 }
 
 model Neighborhood {
   id         String     @id @default(cuid())
-  name       String
-  slug       String
-  cityId     String
+  name       String     @map("nome")
+  slug       String     @map("identificador_url")
+  cityId     String     @map("id_cidade")
   city       City       @relation(fields: [cityId], references: [id])
   properties Property[]
 
   @@unique([cityId, slug])
+  @@map("bairros")
 }
 
 model Property {
   id                 String          @id @default(cuid())
-  publicCode         String          @unique
-  slug               String
-  ownerId            String
+  publicCode         String          @unique @map("codigo_publico")
+  slug               String          @map("identificador_url")
+  ownerId            String          @map("id_proprietario")
   owner              User            @relation(fields: [ownerId], references: [id])
-  cityId             String
+  cityId             String          @map("id_cidade")
   city               City            @relation(fields: [cityId], references: [id])
-  neighborhoodId     String
+  neighborhoodId     String          @map("id_bairro")
   neighborhood       Neighborhood    @relation(fields: [neighborhoodId], references: [id])
   status             ContentStatus   @default(PENDING)
-  purpose            PropertyPurpose
-  type               PropertyType
-  title              String
-  description        String
-  priceCents         Int
-  bedrooms           Int?
-  bathrooms          Int?
-  parkingSpots       Int?
-  areaM2             Decimal?        @db.Decimal(10, 2)
-  acceptsPets        Boolean?
-  furnished          Boolean?
+  purpose            PropertyPurpose @map("finalidade")
+  type               PropertyType    @map("tipo")
+  title              String          @map("titulo")
+  description        String          @map("descricao")
+  priceCents         Int             @map("preco_centavos")
+  bedrooms           Int?            @map("quartos")
+  bathrooms          Int?            @map("banheiros")
+  parkingSpots       Int?            @map("vagas_garagem")
+  areaM2             Decimal?        @map("area_m2") @db.Decimal(10, 2)
+  acceptsPets        Boolean?        @map("aceita_animais")
+  furnished          Boolean?        @map("mobiliado")
   whatsapp           String
-  approximateLat     Decimal?        @db.Decimal(9, 6)
-  approximateLng     Decimal?        @db.Decimal(9, 6)
-  privateAddressData Json?
-  publishedAt        DateTime?
-  moderationNote     String?
-  moderatedAt        DateTime?
-  moderatedById      String?
+  approximateLat     Decimal?        @map("latitude_aproximada") @db.Decimal(9, 6)
+  approximateLng     Decimal?        @map("longitude_aproximada") @db.Decimal(9, 6)
+  privateAddressData Json?           @map("dados_endereco_privado")
+  publishedAt        DateTime?       @map("publicado_em")
+  moderationNote     String?         @map("observacao_moderacao")
+  moderatedAt        DateTime?       @map("moderado_em")
+  moderatedById      String?         @map("id_moderador")
   moderatedBy        User?           @relation("PropertyModerator", fields: [moderatedById], references: [id], onDelete: SetNull)
-  createdAt          DateTime        @default(now())
-  updatedAt          DateTime        @updatedAt
+  createdAt          DateTime        @default(now()) @map("criado_em")
+  updatedAt          DateTime        @updatedAt @map("atualizado_em")
   images             PropertyImage[]
   videos             PropertyVideo[]
   favorites          Favorite[]
@@ -141,52 +154,55 @@ model Property {
   @@index([status, createdAt])
   @@index([moderatedById])
   @@index([slug])
+  @@map("imoveis")
 }
 
 model PropertyImage {
   id         String   @id @default(cuid())
-  propertyId String
+  propertyId String   @map("id_imovel")
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  storageKey String   @unique
-  altText    String?
-  position   Int      @default(0)
+  storageKey String   @unique @map("chave_armazenamento")
+  altText    String?  @map("texto_alternativo")
+  position   Int      @default(0) @map("posicao")
 
   @@index([propertyId, position])
+  @@map("imagens_imoveis")
 }
 
 model PropertyVideo {
   id         String   @id @default(cuid())
-  propertyId String
+  propertyId String   @map("id_imovel")
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  storageKey String   @unique
-  mimeType   String
-  position   Int      @default(0)
+  storageKey String   @unique @map("chave_armazenamento")
+  mimeType   String   @map("tipo_mime")
+  position   Int      @default(0) @map("posicao")
 
   @@index([propertyId, position])
+  @@map("videos_imoveis")
 }
 
 model FreighterProfile {
   id              String             @id @default(cuid())
-  publicCode      String             @unique
-  slug            String
-  userId          String             @unique
+  publicCode      String             @unique @map("codigo_publico")
+  slug            String             @map("identificador_url")
+  userId          String             @unique @map("id_usuario")
   user            User               @relation(fields: [userId], references: [id])
-  cityId          String
+  cityId          String             @map("id_cidade")
   city            City               @relation(fields: [cityId], references: [id])
   status          ContentStatus      @default(PENDING)
-  displayName     String
-  description     String
+  displayName     String             @map("nome_exibicao")
+  description     String             @map("descricao")
   whatsapp        String
-  serviceRadiusKm Int?
-  availableToday  Boolean            @default(false)
-  priceNote       String?
-  publishedAt     DateTime?
-  moderationNote  String?
-  moderatedAt     DateTime?
-  moderatedById   String?
+  serviceRadiusKm Int?               @map("raio_servico_km")
+  availableToday  Boolean            @default(false) @map("disponivel_hoje")
+  priceNote       String?            @map("observacao_preco")
+  publishedAt     DateTime?          @map("publicado_em")
+  moderationNote  String?            @map("observacao_moderacao")
+  moderatedAt     DateTime?          @map("moderado_em")
+  moderatedById   String?            @map("id_moderador")
   moderatedBy     User?              @relation("FreighterModerator", fields: [moderatedById], references: [id], onDelete: SetNull)
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
+  createdAt       DateTime           @default(now()) @map("criado_em")
+  updatedAt       DateTime           @updatedAt @map("atualizado_em")
   services        FreighterService[]
   images          FreighterImage[]
   reviews         Review[]
@@ -197,73 +213,79 @@ model FreighterProfile {
   @@index([status, createdAt])
   @@index([moderatedById])
   @@index([slug])
+  @@map("perfis_freteiros")
 }
 
 model FreighterService {
   id        String           @id @default(cuid())
-  profileId String
+  profileId String           @map("id_perfil")
   profile   FreighterProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  name      String
-  slug      String
+  name      String           @map("nome")
+  slug      String           @map("identificador_url")
 
   @@unique([profileId, slug])
   @@index([slug])
+  @@map("servicos_freteiros")
 }
 
 model FreighterImage {
   id         String           @id @default(cuid())
-  profileId  String
+  profileId  String           @map("id_perfil")
   profile    FreighterProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  storageKey String
-  altText    String?
-  position   Int              @default(0)
+  storageKey String           @map("chave_armazenamento")
+  altText    String?          @map("texto_alternativo")
+  position   Int              @default(0) @map("posicao")
 
   @@index([profileId, position])
+  @@map("imagens_freteiros")
 }
 
 model Review {
   id        String           @id @default(cuid())
-  authorId  String
+  authorId  String           @map("id_autor")
   author    User             @relation(fields: [authorId], references: [id])
-  profileId String
+  profileId String           @map("id_perfil_freteiro")
   profile   FreighterProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  rating    Int
-  comment   String?
-  isVisible Boolean          @default(true)
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
+  rating    Int              @map("nota")
+  comment   String?          @map("comentario")
+  isVisible Boolean          @default(true) @map("visivel")
+  createdAt DateTime         @default(now()) @map("criado_em")
+  updatedAt DateTime         @updatedAt @map("atualizado_em")
 
   @@unique([authorId, profileId])
   @@index([profileId, isVisible, createdAt])
+  @@map("avaliacoes")
 }
 
 model Favorite {
   id                 String            @id @default(cuid())
-  userId             String
+  userId             String            @map("id_usuario")
   user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  propertyId         String?
+  propertyId         String?           @map("id_imovel")
   property           Property?         @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  freighterProfileId String?
+  freighterProfileId String?           @map("id_perfil_freteiro")
   freighterProfile   FreighterProfile? @relation(fields: [freighterProfileId], references: [id], onDelete: Cascade)
-  createdAt          DateTime          @default(now())
+  createdAt          DateTime          @default(now()) @map("criado_em")
 
   @@unique([userId, propertyId])
   @@unique([userId, freighterProfileId])
+  @@map("favoritos")
 }
 
 model Report {
   id                 String            @id @default(cuid())
-  reporterId         String
+  reporterId         String            @map("id_denunciante")
   reporter           User              @relation(fields: [reporterId], references: [id])
-  propertyId         String?
+  propertyId         String?           @map("id_imovel")
   property           Property?         @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  freighterProfileId String?
+  freighterProfileId String?           @map("id_perfil_freteiro")
   freighterProfile   FreighterProfile? @relation(fields: [freighterProfileId], references: [id], onDelete: Cascade)
-  reason             String
-  details            String?
+  reason             String            @map("motivo")
+  details            String?           @map("detalhes")
   status             ReportStatus      @default(OPEN)
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
+  createdAt          DateTime          @default(now()) @map("criado_em")
+  updatedAt          DateTime          @updatedAt @map("atualizado_em")
 
   @@index([status, createdAt])
+  @@map("denuncias")
 }
