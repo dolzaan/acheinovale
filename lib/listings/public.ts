@@ -10,6 +10,7 @@ export const getPublicProperty = cache(async (publicCode: string) => {
       neighborhood: true,
       owner: { select: { id: true, name: true, image: true } },
       images: { orderBy: { position: "asc" } },
+      videos: { orderBy: { position: "asc" } },
     },
   });
 });

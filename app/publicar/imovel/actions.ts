@@ -8,6 +8,8 @@ import {
   PROPERTY_IMAGE_LIMIT,
   PROPERTY_IMAGE_MAX_BYTES,
   PROPERTY_IMAGE_MIME_TYPES,
+  PROPERTY_VIDEO_MAX_BYTES,
+  PROPERTY_VIDEO_MIME_TYPES,
   STORAGE_BUCKETS,
 } from "@/lib/supabase/storage";
 import { normalizeBrazilianPhone } from "@/lib/validation/profile";
@@ -29,13 +31,26 @@ function parseImageKeys(value: string, authUserId: string) {
   }
 }
 
-async function removeUploadedImages(keys: string[]) {
+function parseVideoKey(value: string, authUserId: string) {
+  if (!value) return "";
+  const validKey = new RegExp(`^${authUserId}/properties/[a-f0-9-]+\\.(mp4|webm|mov|m4v)$`, "i");
+  return validKey.test(value) ? value : null;
+}
+
+function videoMimeTypeFromKey(key: string) {
+  if (key.toLowerCase().endsWith(".webm")) return "video/webm";
+  if (key.toLowerCase().endsWith(".mov")) return "video/quicktime";
+  if (key.toLowerCase().endsWith(".m4v")) return "video/x-m4v";
+  return "video/mp4";
+}
+
+async function removeUploadedMedia(keys: string[]) {
   if (!keys.length) return;
   try {
     const { error } = await createAdminClient().storage.from(STORAGE_BUCKETS.properties).remove(keys);
     if (error) throw error;
   } catch (error) {
-    console.warn("[publicar/imovel] Não foi possível limpar fotos enviadas.", { message: error instanceof Error ? error.message : String(error) });
+    console.warn("[publicar/imovel] Não foi possível limpar mídias enviadas.", { message: error instanceof Error ? error.message : String(error) });
   }
 }
 
@@ -54,11 +69,28 @@ async function verifyUploadedImages(keys: string[], authUserId: string) {
   return checks.every(Boolean);
 }
 
+async function verifyUploadedVideo(key: string, authUserId: string) {
+  if (!key) return true;
+  const folder = `${authUserId}/properties`;
+  const name = key.slice(folder.length + 1);
+  const { data, error } = await createAdminClient().storage.from(STORAGE_BUCKETS.properties).list(folder, { limit: 2, search: name });
+  if (error) return false;
+  const file = data?.find(candidate => candidate.name === name);
+  const metadata = file?.metadata as { size?: number; mimetype?: string } | undefined;
+  return Boolean(
+    file &&
+    metadata?.size && metadata.size <= PROPERTY_VIDEO_MAX_BYTES &&
+    metadata.mimetype && PROPERTY_VIDEO_MIME_TYPES.includes(metadata.mimetype as (typeof PROPERTY_VIDEO_MIME_TYPES)[number])
+  );
+}
+
 export async function createProperty(formData: FormData) {
   const user = await requireCurrentUser("/publicar/imovel");
   if (!user.authUserId) redirect("/entrar?next=%2Fpublicar%2Fimovel");
   const imageKeys = parseImageKeys(field(formData, "imageKeys"), user.authUserId);
-  if (!imageKeys) redirect("/publicar/imovel?erro=fotos");
+  const videoKey = parseVideoKey(field(formData, "videoKey"), user.authUserId);
+  if (!imageKeys || videoKey === null) redirect("/publicar/imovel?erro=fotos");
+  const uploadedMediaKeys = [...imageKeys, ...(videoKey ? [videoKey] : [])];
   const title = field(formData, "title");
   const description = field(formData, "description");
   const cityId = field(formData, "cityId");
@@ -83,18 +115,22 @@ export async function createProperty(formData: FormData) {
       hasCity: Boolean(cityId),
       hasNeighborhood: Boolean(neighborhoodId),
     });
-    await removeUploadedImages(imageKeys);
+    await removeUploadedMedia(uploadedMediaKeys);
     redirect("/publicar/imovel?erro=dados");
   }
 
   const neighborhood = await prisma.neighborhood.findFirst({ where: { id: neighborhoodId, cityId, city: { isActive: true } }, include: { city: true } });
   if (!neighborhood) {
-    await removeUploadedImages(imageKeys);
+    await removeUploadedMedia(uploadedMediaKeys);
     redirect("/publicar/imovel?erro=local");
   }
 
-  if (!await verifyUploadedImages(imageKeys, user.authUserId)) {
-    await removeUploadedImages(imageKeys);
+  const [imagesAreValid, videoIsValid] = await Promise.all([
+    verifyUploadedImages(imageKeys, user.authUserId),
+    verifyUploadedVideo(videoKey, user.authUserId),
+  ]);
+  if (!imagesAreValid || !videoIsValid) {
+    await removeUploadedMedia(uploadedMediaKeys);
     redirect("/publicar/imovel?erro=fotos");
   }
 
@@ -110,9 +146,10 @@ export async function createProperty(formData: FormData) {
       parkingSpots: Number(field(formData, "parkingSpots")) || null,
       status: "PENDING",
       images: imageKeys.length ? { create: imageKeys.map((storageKey, position) => ({ storageKey, position, altText: `${title} — foto ${position + 1}` })) } : undefined,
+      videos: videoKey ? { create: { storageKey: videoKey, mimeType: videoMimeTypeFromKey(videoKey) } } : undefined,
     }});
   } catch (error) {
-    await removeUploadedImages(imageKeys);
+    await removeUploadedMedia(uploadedMediaKeys);
     console.error("[publicar/imovel] Falha ao salvar anúncio.", {
       message: error instanceof Error ? error.message : String(error),
     });

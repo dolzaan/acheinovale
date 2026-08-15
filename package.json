@@ -20,12 +20,12 @@
     "@prisma/client": "^6.19.1",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.3",
-    "@vercel/analytics": "^2.0.1",
     "next": "16.0.10",
     "prisma": "^6.19.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "server-only": "^0.0.1"
+    "server-only": "^0.0.1",
+    "tus-js-client": "4.3.1"
   },
   "devDependencies": {
     "@types/node": "^24.10.4",

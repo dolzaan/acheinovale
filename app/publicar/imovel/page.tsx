@@ -10,7 +10,7 @@ type Props = { searchParams: Promise<{ erro?: string }> };
 const errorMessages: Record<string, string> = {
   dados: "Confira o título, a descrição, o preço e o WhatsApp informados.",
   local: "O bairro selecionado não pertence à cidade escolhida. Selecione a localização novamente.",
-  fotos: "Não foi possível validar as fotos. Selecione-as novamente e tente publicar.",
+  fotos: "Não foi possível validar as fotos ou o vídeo. Selecione as mídias novamente e tente publicar.",
   salvar: "Não foi possível salvar o anúncio agora. Tente novamente em alguns instantes.",
 };
 
@@ -29,7 +29,7 @@ export default async function NewPropertyPage({ searchParams }: Props) {
       <Header />
       <main className="account-page">
         <div className="container form-page">
-          <div className="account-heading"><span className="section-kicker">Novo anúncio</span><h1>Publicar imóvel</h1><p>Preencha os dados e adicione até 10 fotos para apresentar melhor o imóvel.</p></div>
+          <div className="account-heading"><span className="section-kicker">Novo anúncio</span><h1>Publicar imóvel</h1><p>Preencha os dados e adicione até 10 fotos e um vídeo para apresentar melhor o imóvel.</p></div>
           {params.erro ? <p className="form-alert">{errorMessages[params.erro] || "Revise os campos informados."}</p> : null}
           <PropertyPublishForm
             authUserId={user.authUserId}

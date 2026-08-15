@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "npm run build",
+  "buildCommand": "node scripts/configure-property-media-bucket.mjs && prisma db execute --file prisma/migrations/202608150005_property_videos/migration.sql --schema prisma/schema.prisma && npm run build",
   "outputDirectory": ".next"
 }

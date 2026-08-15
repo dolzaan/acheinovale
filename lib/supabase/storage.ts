@@ -7,6 +7,8 @@ export const STORAGE_BUCKETS = {
 export const PROFILE_IMAGE_MAX_BYTES = 4 * 1024 * 1024;
 export const PROPERTY_IMAGE_MAX_BYTES = 6 * 1024 * 1024;
 export const PROPERTY_IMAGE_LIMIT = 10;
+export const PROPERTY_VIDEO_MAX_BYTES = 50 * 1024 * 1024;
+export const PROPERTY_VIDEO_LIMIT = 1;
 export const PROFILE_IMAGE_MIME_TYPES = [
   "image/jpeg",
   "image/png",
@@ -14,12 +16,25 @@ export const PROFILE_IMAGE_MIME_TYPES = [
   "image/avif",
 ] as const;
 export const PROPERTY_IMAGE_MIME_TYPES = PROFILE_IMAGE_MIME_TYPES;
+export const PROPERTY_VIDEO_MIME_TYPES = [
+  "video/mp4",
+  "video/webm",
+  "video/quicktime",
+  "video/x-m4v",
+] as const;
 
 const PROFILE_IMAGE_EXTENSIONS: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
   "image/webp": "webp",
   "image/avif": "avif",
+};
+
+const PROPERTY_VIDEO_EXTENSIONS: Record<string, string> = {
+  "video/mp4": "mp4",
+  "video/webm": "webm",
+  "video/quicktime": "mov",
+  "video/x-m4v": "m4v",
 };
 
 export function createStoragePath(userId: string, originalName: string) {
@@ -38,11 +53,32 @@ export function createPropertyImagePath(authUserId: string, mimeType: string) {
   return `${authUserId}/properties/${crypto.randomUUID()}.${extension}`;
 }
 
-export function propertyImagePublicUrl(storageKey: string) {
+export function createPropertyVideoPath(authUserId: string, mimeType: string) {
+  const extension = PROPERTY_VIDEO_EXTENSIONS[mimeType] ?? "mp4";
+  return `${authUserId}/properties/${crypto.randomUUID()}.${extension}`;
+}
+
+export function propertyMediaPublicUrl(storageKey: string) {
   const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
   if (!baseUrl) return "";
   const encodedPath = storageKey.split("/").map(encodeURIComponent).join("/");
   return `${baseUrl}/storage/v1/object/public/${STORAGE_BUCKETS.properties}/${encodedPath}`;
+}
+
+export function propertyImagePublicUrl(storageKey: string) {
+  return propertyMediaPublicUrl(storageKey);
+}
+
+export function propertyVideoPublicUrl(storageKey: string) {
+  return propertyMediaPublicUrl(storageKey);
+}
+
+export function propertyVideoUploadEndpoint() {
+  const configuredUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!configuredUrl) throw new Error("Supabase não configurado.");
+  const projectRef = new URL(configuredUrl).hostname.split(".")[0];
+  if (!projectRef) throw new Error("Projeto Supabase inválido.");
+  return `https://${projectRef}.storage.supabase.co/storage/v1/upload/resumable`;
 }
 
 export function isSupportedProfileImage(bytes: Uint8Array, mimeType: string) {

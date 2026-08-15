@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { notFound, permanentRedirect } from "next/navigation";
 import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
+import { PropertyGallery } from "@/components/property-gallery";
 import { UserAvatar } from "@/components/user-avatar";
 import { BathIcon, BedIcon, HomeIcon, PinIcon } from "@/components/icons";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { getPublicProperty } from "@/lib/listings/public";
 import { propertyUrl } from "@/lib/listings/urls";
-import { propertyImagePublicUrl } from "@/lib/supabase/storage";
+import { propertyImagePublicUrl, propertyVideoPublicUrl } from "@/lib/supabase/storage";
 import { formatBrazilianPhone } from "@/lib/validation/profile";
 
 type Props = {
@@ -74,10 +74,12 @@ export default async function PropertyPage({ params }: Props) {
             </div>
           ) : null}
 
-          {property.images.length ? (
-            <div className={`listing-gallery ${property.images.length === 1 ? "listing-gallery--single" : ""}`}>
-              {property.images.map((photo, index) => <div className={index === 0 ? "listing-gallery__photo listing-gallery__photo--cover" : "listing-gallery__photo"} key={photo.id}><Image src={propertyImagePublicUrl(photo.storageKey)} alt={photo.altText || `${property.title} — foto ${index + 1}`} fill priority={index === 0} sizes={index === 0 ? "(max-width: 680px) 100vw, 65vw" : "(max-width: 680px) 50vw, 25vw"} /></div>)}
-            </div>
+          {property.images.length || property.videos.length ? (
+            <PropertyGallery
+              title={property.title}
+              images={property.images.map((photo, index) => ({ id: photo.id, src: propertyImagePublicUrl(photo.storageKey), alt: photo.altText || `${property.title} — foto ${index + 1}` }))}
+              videos={property.videos.map(video => ({ id: video.id, src: propertyVideoPublicUrl(video.storageKey), mimeType: video.mimeType }))}
+            />
           ) : (
             <div className="listing-detail__hero listing-detail__hero--property"><HomeIcon size={58} /><span>Este anúncio ainda não possui fotos.</span></div>
           )}

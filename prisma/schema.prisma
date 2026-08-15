@@ -132,6 +132,7 @@ model Property {
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
   images             PropertyImage[]
+  videos             PropertyVideo[]
   favorites          Favorite[]
   reports            Report[]
 
@@ -148,6 +149,17 @@ model PropertyImage {
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   storageKey String   @unique
   altText    String?
+  position   Int      @default(0)
+
+  @@index([propertyId, position])
+}
+
+model PropertyVideo {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  storageKey String   @unique
+  mimeType   String
   position   Int      @default(0)
 
   @@index([propertyId, position])
