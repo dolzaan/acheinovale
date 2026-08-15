@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "prisma db execute --file prisma/migrations/202608150004_unique_property_image_keys/migration.sql --schema prisma/schema.prisma && npm run build",
+  "buildCommand": "npm run build",
   "outputDirectory": ".next"
 }
