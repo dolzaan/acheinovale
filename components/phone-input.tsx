@@ -3,13 +3,18 @@
 import { useState } from "react";
 import { formatBrazilianPhone } from "@/lib/validation/profile";
 
-export function PhoneInput({ defaultValue = "" }: { defaultValue?: string }) {
+type PhoneInputProps = {
+  defaultValue?: string;
+  name?: string;
+};
+
+export function PhoneInput({ defaultValue = "", name = "phone" }: PhoneInputProps) {
   const [value, setValue] = useState(formatBrazilianPhone(defaultValue));
 
   return (
     <input
-      id="phone"
-      name="phone"
+      id={name}
+      name={name}
       type="tel"
       inputMode="tel"
       autoComplete="tel"
