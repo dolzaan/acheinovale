@@ -36,6 +36,12 @@ type SearchParams = {
 
 type Props = { searchParams: Promise<SearchParams> };
 
+type RankedPropertyRow = {
+  id: string;
+  relevancia: number;
+  total_resultados: bigint;
+};
+
 const propertyTypes: Array<{ value: PropertyType; label: string }> = [
   { value: "HOUSE", label: "Casa" },
   { value: "APARTMENT", label: "Apartamento" },
@@ -88,24 +94,28 @@ export default async function PropertiesPage({ searchParams }: Props) {
   const explicitType = validPropertyTypes.has(params.tipo as PropertyType) ? params.tipo as PropertyType : undefined;
   const purpose = explicitPurpose || searchIntent.purpose;
   const type = explicitType || searchIntent.type;
-  const minimumPrice = parseMoney(params.precoMin);
-  const maximumPrice = parseMoney(params.precoMax);
+  const explicitMinimumPrice = parseMoney(params.precoMin);
+  const explicitMaximumPrice = parseMoney(params.precoMax);
+  const minimumPrice = explicitMinimumPrice ?? searchIntent.minimumPriceCents;
+  const maximumPrice = explicitMaximumPrice ?? searchIntent.maximumPriceCents;
   const explicitMinimumBedrooms = parseNatural(params.quartos, 30);
   const minimumBedrooms = explicitMinimumBedrooms ?? searchIntent.minimumBedrooms;
-  const minimumBathrooms = parseNatural(params.banheiros, 30);
-  const minimumParkingSpots = parseNatural(params.vagas, 30);
-  const minimumArea = parseNatural(params.areaMin, 100_000);
+  const explicitMinimumBathrooms = parseNatural(params.banheiros, 30);
+  const minimumBathrooms = explicitMinimumBathrooms ?? searchIntent.minimumBathrooms;
+  const explicitMinimumParkingSpots = parseNatural(params.vagas, 30);
+  const minimumParkingSpots = explicitMinimumParkingSpots ?? searchIntent.minimumParkingSpots;
+  const explicitMinimumArea = parseNatural(params.areaMin, 100_000);
+  const minimumArea = explicitMinimumArea ?? searchIntent.minimumAreaM2;
+  const acceptsPets = params.pets === "1" || searchIntent.acceptsPets === true;
+  const furnished = params.mobiliado === "1" || searchIntent.furnished === true;
+  const explicitNeighborhoodId = params.bairro
+    ? neighborhoods.find(neighborhood => neighborhood.slug === params.bairro)?.id
+    : undefined;
+  const neighborhoodId = explicitNeighborhoodId || searchIntent.neighborhoodIds.at(0);
   const order = params.ordem === "preco-menor" || params.ordem === "preco-maior" ? params.ordem : "recentes";
   const priceFilter = minimumPrice !== undefined || maximumPrice !== undefined
     ? { ...(minimumPrice !== undefined ? { gte: minimumPrice } : {}), ...(maximumPrice !== undefined ? { lte: maximumPrice } : {}) }
     : undefined;
-  const textFilters: Prisma.PropertyWhereInput[] = searchIntent.freeTerms.map(term => ({
-    OR: [
-      { title: { contains: term, mode: "insensitive" } },
-      { description: { contains: term, mode: "insensitive" } },
-      { neighborhood: { name: { contains: term, mode: "insensitive" } } },
-    ],
-  }));
   const where: Prisma.PropertyWhereInput = {
     status: "ACTIVE",
     city: { slug: "rio-do-sul", isActive: true },
@@ -121,33 +131,74 @@ export default async function PropertiesPage({ searchParams }: Props) {
     ...(minimumBathrooms !== undefined ? { bathrooms: { gte: minimumBathrooms } } : {}),
     ...(minimumParkingSpots !== undefined ? { parkingSpots: { gte: minimumParkingSpots } } : {}),
     ...(minimumArea !== undefined ? { areaM2: { gte: minimumArea } } : {}),
-    ...(params.pets === "1" ? { acceptsPets: true } : {}),
-    ...(params.mobiliado === "1" ? { furnished: true } : {}),
-    ...(textFilters.length ? { AND: textFilters } : {}),
+    ...(acceptsPets ? { acceptsPets: true } : {}),
+    ...(furnished ? { furnished: true } : {}),
   };
   const orderBy: Prisma.PropertyOrderByWithRelationInput[] = order === "preco-menor"
     ? [{ priceCents: "asc" }, { createdAt: "desc" }]
     : order === "preco-maior"
       ? [{ priceCents: "desc" }, { createdAt: "desc" }]
       : [{ publishedAt: "desc" }, { createdAt: "desc" }];
-  const [properties, resultCount] = await Promise.all([
-    prisma.property.findMany({
-      where,
-      include: { city: true, neighborhood: true, images: { orderBy: { position: "asc" }, take: 1 } },
-      orderBy,
-      take: 48,
-    }),
-    prisma.property.count({ where }),
-  ]);
+  const [properties, resultCount] = query
+    ? await (async () => {
+      const rankedRows = await prisma.$queryRaw<RankedPropertyRow[]>`
+        SELECT id, relevancia, total_resultados
+        FROM private.buscar_imoveis(
+          ${searchIntent.freeTerms.join(" ")}::text,
+          ${purpose ?? null}::text,
+          ${type ?? null}::text,
+          ${neighborhoodId ?? null}::text,
+          ${minimumPrice ?? null}::integer,
+          ${maximumPrice ?? null}::integer,
+          ${minimumBedrooms ?? null}::integer,
+          ${minimumBathrooms ?? null}::integer,
+          ${minimumParkingSpots ?? null}::integer,
+          ${minimumArea ?? null}::numeric,
+          ${acceptsPets ? true : null}::boolean,
+          ${furnished ? true : null}::boolean,
+          200::integer
+        )
+      `;
+      const rankedIds = rankedRows.map(row => row.id);
+      const rankedPosition = new Map(rankedIds.map((id, index) => [id, index]));
+      const items = rankedIds.length
+        ? await prisma.property.findMany({
+          where: { id: { in: rankedIds } },
+          include: { city: true, neighborhood: true, images: { orderBy: { position: "asc" }, take: 1 } },
+        })
+        : [];
+
+      items.sort((first, second) => {
+        if (order === "preco-menor") {
+          return first.priceCents - second.priceCents || second.createdAt.getTime() - first.createdAt.getTime();
+        }
+        if (order === "preco-maior") {
+          return second.priceCents - first.priceCents || second.createdAt.getTime() - first.createdAt.getTime();
+        }
+        return (rankedPosition.get(first.id) ?? Number.MAX_SAFE_INTEGER)
+          - (rankedPosition.get(second.id) ?? Number.MAX_SAFE_INTEGER);
+      });
+
+      return [items.slice(0, 48), Number(rankedRows[0]?.total_resultados ?? 0)] as const;
+    })()
+    : await Promise.all([
+      prisma.property.findMany({
+        where,
+        include: { city: true, neighborhood: true, images: { orderBy: { position: "asc" }, take: 1 } },
+        orderBy,
+        take: 48,
+      }),
+      prisma.property.count({ where }),
+    ]);
   const advancedFilterCount = [
     explicitType,
     params.bairro,
-    minimumPrice !== undefined,
-    maximumPrice !== undefined,
+    explicitMinimumPrice !== undefined,
+    explicitMaximumPrice !== undefined,
     explicitMinimumBedrooms !== undefined,
-    minimumBathrooms !== undefined,
-    minimumParkingSpots !== undefined,
-    minimumArea !== undefined,
+    explicitMinimumBathrooms !== undefined,
+    explicitMinimumParkingSpots !== undefined,
+    explicitMinimumArea !== undefined,
     params.pets === "1",
     params.mobiliado === "1",
   ].filter(Boolean).length;
@@ -157,12 +208,12 @@ export default async function PropertiesPage({ searchParams }: Props) {
     ["finalidade", params.finalidade],
     ["tipo", explicitType],
     ["bairro", params.bairro],
-    ["precoMin", minimumPrice !== undefined ? String(minimumPrice / 100) : undefined],
-    ["precoMax", maximumPrice !== undefined ? String(maximumPrice / 100) : undefined],
+    ["precoMin", explicitMinimumPrice !== undefined ? String(explicitMinimumPrice / 100) : undefined],
+    ["precoMax", explicitMaximumPrice !== undefined ? String(explicitMaximumPrice / 100) : undefined],
     ["quartos", explicitMinimumBedrooms !== undefined ? String(explicitMinimumBedrooms) : undefined],
-    ["banheiros", minimumBathrooms !== undefined ? String(minimumBathrooms) : undefined],
-    ["vagas", minimumParkingSpots !== undefined ? String(minimumParkingSpots) : undefined],
-    ["areaMin", minimumArea !== undefined ? String(minimumArea) : undefined],
+    ["banheiros", explicitMinimumBathrooms !== undefined ? String(explicitMinimumBathrooms) : undefined],
+    ["vagas", explicitMinimumParkingSpots !== undefined ? String(explicitMinimumParkingSpots) : undefined],
+    ["areaMin", explicitMinimumArea !== undefined ? String(explicitMinimumArea) : undefined],
     ["pets", params.pets === "1" ? "1" : undefined],
     ["mobiliado", params.mobiliado === "1" ? "1" : undefined],
   ].filter((field): field is [string, string] => Boolean(field[1]));
@@ -182,7 +233,7 @@ export default async function PropertiesPage({ searchParams }: Props) {
           <label className="catalog-filter-section"><strong>Banheiros</strong><select name="banheiros" defaultValue={minimumBathrooms ?? ""}><option value="">Qualquer</option><option value="1">1 ou mais</option><option value="2">2 ou mais</option><option value="3">3 ou mais</option><option value="4">4 ou mais</option></select></label>
           <label className="catalog-filter-section"><strong>Vagas</strong><select name="vagas" defaultValue={minimumParkingSpots ?? ""}><option value="">Qualquer</option><option value="1">1 ou mais</option><option value="2">2 ou mais</option><option value="3">3 ou mais</option><option value="4">4 ou mais</option></select></label>
           <label className="catalog-filter-section"><strong>Área mínima</strong><div className="catalog-area-input"><input name="areaMin" type="number" min="0" step="1" defaultValue={minimumArea ?? ""} placeholder="Ex: 80"/><small>m²</small></div></label>
-          <div className="catalog-filter-section catalog-filter-section--checks"><strong>Comodidades</strong><label><input type="checkbox" name="pets" value="1" defaultChecked={params.pets === "1"}/><span>Aceita pets</span></label><label><input type="checkbox" name="mobiliado" value="1" defaultChecked={params.mobiliado === "1"}/><span>Mobiliado</span></label></div>
+          <div className="catalog-filter-section catalog-filter-section--checks"><strong>Comodidades</strong><label><input type="checkbox" name="pets" value="1" defaultChecked={acceptsPets}/><span>Aceita pets</span></label><label><input type="checkbox" name="mobiliado" value="1" defaultChecked={furnished}/><span>Mobiliado</span></label></div>
           <div className="catalog-filter-actions">{hasFilters ? <Link href="/imoveis">Limpar tudo</Link> : <span/>}<PendingSubmitButton className="button button--primary" pendingText="Aplicando filtros..." navigation>Mostrar resultados</PendingSubmitButton></div>
         </div>
       </details>
