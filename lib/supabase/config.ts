@@ -20,10 +20,11 @@ export function getPublicSupabaseConfig() {
 }
 
 export function getSupabaseServiceRoleKey() {
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const serviceRoleKey =
+    process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!serviceRoleKey) {
-    throw new Error("Defina SUPABASE_SERVICE_ROLE_KEY somente no ambiente do servidor.");
+    throw new Error("Defina SUPABASE_SECRET_KEY somente no ambiente do servidor.");
   }
 
   return serviceRoleKey;

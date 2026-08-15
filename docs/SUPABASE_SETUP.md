@@ -17,23 +17,23 @@ Crie um projeto no Supabase e guarde a senha do banco. No painel, abra **Connect
 - Transaction pooler, porta `6543`.
 - Direct connection ou Session pooler, porta `5432`.
 
-Para Vercel/serverless, use o transaction pooler em `DATABASE_URL` com `connection_limit=1`. Use a conexão direta ou o session pooler em `DATABASE_URL_NON_POOLING` para migrations.
+Para Vercel/serverless, use o transaction pooler em `POSTGRES_PRISMA_URL` com `connection_limit=1`. Use a conexão direta ou o session pooler em `POSTGRES_URL_NON_POOLING` para migrations.
 
 ## 2. Variáveis locais
 
 Copie `.env.example` para `.env.local` e substitua os valores:
 
 ```env
-DATABASE_URL="postgresql://...:6543/postgres?pgbouncer=true&connection_limit=1"
-DATABASE_URL_NON_POOLING="postgresql://...:5432/postgres"
+POSTGRES_PRISMA_URL="postgresql://...:6543/postgres?pgbouncer=true&connection_limit=1"
+POSTGRES_URL_NON_POOLING="postgresql://...:5432/postgres"
 NEXT_PUBLIC_SUPABASE_URL="https://SEU_PROJECT_REF.supabase.co"
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="sb_publishable_..."
-SUPABASE_SERVICE_ROLE_KEY="sb_secret_..."
+SUPABASE_SECRET_KEY="sb_secret_..."
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 SUPABASE_PROJECT_REF="SEU_PROJECT_REF"
 ```
 
-Nunca coloque `SUPABASE_SERVICE_ROLE_KEY` em variável iniciada por `NEXT_PUBLIC_`.
+Nunca coloque `SUPABASE_SECRET_KEY` em variável iniciada por `NEXT_PUBLIC_`.
 
 ## 3. Criar as tabelas
 
