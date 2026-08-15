@@ -32,8 +32,10 @@ export function PendingSubmitButton({
   function handleClick(event: React.MouseEvent<HTMLButtonElement>) {
     onClick?.(event);
     if (!navigation || event.defaultPrevented || !event.currentTarget.form?.checkValidity()) return;
-    setNavigationPending(true);
-    timeoutRef.current = setTimeout(() => setNavigationPending(false), 12000);
+    timeoutRef.current = setTimeout(() => {
+      setNavigationPending(true);
+      timeoutRef.current = setTimeout(() => setNavigationPending(false), 12000);
+    }, 0);
   }
 
   return (
