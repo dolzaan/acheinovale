@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Form from "next/form";
 import { freighters, properties } from "@/data/home";
 import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
@@ -30,11 +31,11 @@ export default function HomePage() {
               <h1>O que você procura<br/><em>em Rio do Sul?</em></h1>
               <p>Imóveis e fretes da nossa região, reunidos em um só lugar. Simples, local e direto pelo WhatsApp.</p>
 
-              <form className="main-search" action="/buscar">
+              <Form className="main-search" action="/buscar">
                 <SearchIcon size={22}/>
                 <input name="q" aria-label="O que você procura?" placeholder="Ex: casa para alugar no Centro" />
                 <PendingSubmitButton aria-label="Buscar" pendingText="Buscando..." navigation><SearchIcon size={20}/><span>Buscar</span></PendingSubmitButton>
-              </form>
+              </Form>
 
               <div className="quick-searches" aria-label="Buscas populares">
                 <span>Buscas populares:</span>
