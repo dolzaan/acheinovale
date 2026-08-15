@@ -5,12 +5,15 @@ export const STORAGE_BUCKETS = {
 } as const;
 
 export const PROFILE_IMAGE_MAX_BYTES = 4 * 1024 * 1024;
+export const PROPERTY_IMAGE_MAX_BYTES = 6 * 1024 * 1024;
+export const PROPERTY_IMAGE_LIMIT = 10;
 export const PROFILE_IMAGE_MIME_TYPES = [
   "image/jpeg",
   "image/png",
   "image/webp",
   "image/avif",
 ] as const;
+export const PROPERTY_IMAGE_MIME_TYPES = PROFILE_IMAGE_MIME_TYPES;
 
 const PROFILE_IMAGE_EXTENSIONS: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -28,6 +31,18 @@ export function createStoragePath(userId: string, originalName: string) {
 export function createProfileImagePath(authUserId: string, mimeType: string) {
   const extension = PROFILE_IMAGE_EXTENSIONS[mimeType] ?? "jpg";
   return `${authUserId}/profile/${crypto.randomUUID()}.${extension}`;
+}
+
+export function createPropertyImagePath(authUserId: string, mimeType: string) {
+  const extension = PROFILE_IMAGE_EXTENSIONS[mimeType] ?? "jpg";
+  return `${authUserId}/properties/${crypto.randomUUID()}.${extension}`;
+}
+
+export function propertyImagePublicUrl(storageKey: string) {
+  const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
+  if (!baseUrl) return "";
+  const encodedPath = storageKey.split("/").map(encodeURIComponent).join("/");
+  return `${baseUrl}/storage/v1/object/public/${STORAGE_BUCKETS.properties}/${encodedPath}`;
 }
 
 export function isSupportedProfileImage(bytes: Uint8Array, mimeType: string) {

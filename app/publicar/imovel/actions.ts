@@ -3,13 +3,62 @@
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireCurrentUser } from "@/lib/auth/current-user";
+import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  PROPERTY_IMAGE_LIMIT,
+  PROPERTY_IMAGE_MAX_BYTES,
+  PROPERTY_IMAGE_MIME_TYPES,
+  STORAGE_BUCKETS,
+} from "@/lib/supabase/storage";
 import { normalizeBrazilianPhone } from "@/lib/validation/profile";
 import { createPublicCode, parseMoneyToCents, propertySlug } from "@/lib/validation/listing";
 
 function field(data: FormData, name: string) { const value = data.get(name); return typeof value === "string" ? value.trim() : ""; }
 
+function parseImageKeys(value: string, authUserId: string) {
+  try {
+    const parsed: unknown = JSON.parse(value || "[]");
+    if (!Array.isArray(parsed) || parsed.length > PROPERTY_IMAGE_LIMIT) return null;
+    const keys = parsed.filter((key): key is string => typeof key === "string");
+    const prefix = `${authUserId}/properties/`;
+    const validKey = new RegExp(`^${authUserId}/properties/[a-f0-9-]+\\.(jpg|png|webp|avif)$`, "i");
+    if (keys.length !== parsed.length || new Set(keys).size !== keys.length || keys.some(key => !key.startsWith(prefix) || !validKey.test(key))) return null;
+    return keys;
+  } catch {
+    return null;
+  }
+}
+
+async function removeUploadedImages(keys: string[]) {
+  if (!keys.length) return;
+  try {
+    const { error } = await createAdminClient().storage.from(STORAGE_BUCKETS.properties).remove(keys);
+    if (error) throw error;
+  } catch (error) {
+    console.warn("[publicar/imovel] Não foi possível limpar fotos enviadas.", { message: error instanceof Error ? error.message : String(error) });
+  }
+}
+
+async function verifyUploadedImages(keys: string[], authUserId: string) {
+  if (!keys.length) return true;
+  const folder = `${authUserId}/properties`;
+  const storage = createAdminClient().storage.from(STORAGE_BUCKETS.properties);
+  const checks = await Promise.all(keys.map(async key => {
+    const name = key.slice(folder.length + 1);
+    const { data, error } = await storage.list(folder, { limit: 2, search: name });
+    if (error) return false;
+    const file = data?.find(candidate => candidate.name === name);
+    const metadata = file?.metadata as { size?: number; mimetype?: string } | undefined;
+    return Boolean(file && metadata?.size && metadata.size <= PROPERTY_IMAGE_MAX_BYTES && metadata.mimetype && PROPERTY_IMAGE_MIME_TYPES.includes(metadata.mimetype as (typeof PROPERTY_IMAGE_MIME_TYPES)[number]));
+  }));
+  return checks.every(Boolean);
+}
+
 export async function createProperty(formData: FormData) {
   const user = await requireCurrentUser("/publicar/imovel");
+  if (!user.authUserId) redirect("/entrar?next=%2Fpublicar%2Fimovel");
+  const imageKeys = parseImageKeys(field(formData, "imageKeys"), user.authUserId);
+  if (!imageKeys) redirect("/publicar/imovel?erro=fotos");
   const title = field(formData, "title");
   const description = field(formData, "description");
   const cityId = field(formData, "cityId");
@@ -34,11 +83,20 @@ export async function createProperty(formData: FormData) {
       hasCity: Boolean(cityId),
       hasNeighborhood: Boolean(neighborhoodId),
     });
+    await removeUploadedImages(imageKeys);
     redirect("/publicar/imovel?erro=dados");
   }
 
   const neighborhood = await prisma.neighborhood.findFirst({ where: { id: neighborhoodId, cityId, city: { isActive: true } }, include: { city: true } });
-  if (!neighborhood) redirect("/publicar/imovel?erro=local");
+  if (!neighborhood) {
+    await removeUploadedImages(imageKeys);
+    redirect("/publicar/imovel?erro=local");
+  }
+
+  if (!await verifyUploadedImages(imageKeys, user.authUserId)) {
+    await removeUploadedImages(imageKeys);
+    redirect("/publicar/imovel?erro=fotos");
+  }
 
   try {
     await prisma.property.create({ data: {
@@ -51,8 +109,10 @@ export async function createProperty(formData: FormData) {
       bathrooms: Number(field(formData, "bathrooms")) || null,
       parkingSpots: Number(field(formData, "parkingSpots")) || null,
       status: "PENDING",
+      images: imageKeys.length ? { create: imageKeys.map((storageKey, position) => ({ storageKey, position, altText: `${title} — foto ${position + 1}` })) } : undefined,
     }});
   } catch (error) {
+    await removeUploadedImages(imageKeys);
     console.error("[publicar/imovel] Falha ao salvar anúncio.", {
       message: error instanceof Error ? error.message : String(error),
     });

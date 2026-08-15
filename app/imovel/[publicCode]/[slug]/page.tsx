@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound, permanentRedirect } from "next/navigation";
 import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
@@ -7,6 +8,7 @@ import { BathIcon, BedIcon, HomeIcon, PinIcon } from "@/components/icons";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { getPublicProperty } from "@/lib/listings/public";
 import { propertyUrl } from "@/lib/listings/urls";
+import { propertyImagePublicUrl } from "@/lib/supabase/storage";
 import { formatBrazilianPhone } from "@/lib/validation/profile";
 
 type Props = {
@@ -72,10 +74,13 @@ export default async function PropertyPage({ params }: Props) {
             </div>
           ) : null}
 
-          <div className="listing-detail__hero listing-detail__hero--property">
-            <HomeIcon size={58} />
-            <span>As fotos poderão ser adicionadas na edição do anúncio.</span>
-          </div>
+          {property.images.length ? (
+            <div className={`listing-gallery ${property.images.length === 1 ? "listing-gallery--single" : ""}`}>
+              {property.images.map((photo, index) => <div className={index === 0 ? "listing-gallery__photo listing-gallery__photo--cover" : "listing-gallery__photo"} key={photo.id}><Image src={propertyImagePublicUrl(photo.storageKey)} alt={photo.altText || `${property.title} — foto ${index + 1}`} fill priority={index === 0} sizes={index === 0 ? "(max-width: 680px) 100vw, 65vw" : "(max-width: 680px) 50vw, 25vw"} /></div>)}
+            </div>
+          ) : (
+            <div className="listing-detail__hero listing-detail__hero--property"><HomeIcon size={58} /><span>Este anúncio ainda não possui fotos.</span></div>
+          )}
 
           <div className="listing-detail__grid">
             <article className="listing-detail__content">

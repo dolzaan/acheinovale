@@ -146,7 +146,7 @@ model PropertyImage {
   id         String   @id @default(cuid())
   propertyId String
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  storageKey String
+  storageKey String   @unique
   altText    String?
   position   Int      @default(0)
 
