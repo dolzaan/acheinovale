@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { Header } from "@/components/header";
 import { Logo } from "@/components/logo";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
@@ -36,7 +37,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             </PendingSubmitButton>
           </form>
 
-          <small>Ao continuar, você concorda com os termos e a política de privacidade da plataforma.</small>
+          <small>Ao continuar, você concorda com os <Link href="/termos">Termos de Uso</Link> e a <Link href="/privacidade">Política de Privacidade</Link>.</small>
         </section>
       </main>
     </>
