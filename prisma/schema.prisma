@@ -88,6 +88,7 @@ model City {
   id                String             @id @default(cuid())
   name              String             @map("nome")
   slug              String             @unique @map("identificador_url")
+  ibgeCode          String?            @unique @map("codigo_ibge")
   stateCode         String             @default("SC") @map("sigla_estado")
   isActive          Boolean            @default(false) @map("ativa")
   neighborhoods     Neighborhood[]

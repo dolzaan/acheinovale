@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
-import { createProperty } from "@/app/publicar/imovel/actions";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { createProperty, lookupPropertyCep } from "@/app/publicar/imovel/actions";
 import { MoneyInput } from "@/components/money-input";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { PhoneInput } from "@/components/phone-input";
@@ -29,6 +29,14 @@ type CityOption = {
 type SelectedMedia = { id: string; file: File; preview: string };
 
 export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { authUserId: string; cityId: string; phone: string; cities: CityOption[] }) {
+  const [selectedCityId, setSelectedCityId] = useState(cityId);
+  const [selectedNeighborhoodId, setSelectedNeighborhoodId] = useState("");
+  const [cep, setCep] = useState("");
+  const [street, setStreet] = useState("");
+  const [addressComplement, setAddressComplement] = useState("");
+  const [resolvedNeighborhood, setResolvedNeighborhood] = useState<{ id: string; name: string; cityId: string } | null>(null);
+  const [cepLoading, setCepLoading] = useState(false);
+  const [cepStatus, setCepStatus] = useState<{ kind: "success" | "error"; message: string } | null>(null);
   const [photos, setPhotos] = useState<SelectedMedia[]>([]);
   const [video, setVideo] = useState<SelectedMedia | null>(null);
   const [mediaOrder, setMediaOrder] = useState<string[]>([]);
@@ -43,6 +51,14 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
   const videoKeyRef = useRef<HTMLInputElement>(null);
   const mediaOrderRef = useRef<HTMLInputElement>(null);
   const readyToSubmit = useRef(false);
+  const cepRequestInFlight = useRef(false);
+
+  const neighborhoods = useMemo(() => {
+    const stored = cities.find(city => city.id === selectedCityId)?.neighborhoods ?? [];
+    if (!resolvedNeighborhood || resolvedNeighborhood.cityId !== selectedCityId || stored.some(item => item.id === resolvedNeighborhood.id)) return stored;
+    return [...stored, { id: resolvedNeighborhood.id, name: resolvedNeighborhood.name }]
+      .sort((first, second) => first.name.localeCompare(second.name, "pt-BR"));
+  }, [cities, resolvedNeighborhood, selectedCityId]);
 
   useEffect(() => { photosRef.current = photos; }, [photos]);
   useEffect(() => { videoRef.current = video; }, [video]);
@@ -154,6 +170,41 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
     setMediaOrder(current => [id, ...current.filter(mediaId => mediaId !== id)]);
   }
 
+  async function consultCep() {
+    if (cepRequestInFlight.current) return;
+    cepRequestInFlight.current = true;
+    setCepLoading(true);
+    setCepStatus(null);
+    let result: Awaited<ReturnType<typeof lookupPropertyCep>>;
+    try {
+      result = await lookupPropertyCep(cep);
+    } catch {
+      setCepStatus({ kind: "error", message: "Não foi possível consultar o CEP agora. Tente novamente." });
+      return;
+    } finally {
+      cepRequestInFlight.current = false;
+      setCepLoading(false);
+    }
+
+    if (!result.ok) {
+      setCepStatus({ kind: "error", message: result.message });
+      return;
+    }
+
+    setCep(result.cep.replace(/^(\d{5})(\d{3})$/, "$1-$2"));
+    setSelectedCityId(result.city.id);
+    setStreet(result.street);
+    setAddressComplement(result.complement);
+    if (result.neighborhood) {
+      setResolvedNeighborhood({ ...result.neighborhood, cityId: result.city.id });
+      setSelectedNeighborhoodId(result.neighborhood.id);
+    } else {
+      setResolvedNeighborhood(null);
+      setSelectedNeighborhoodId("");
+    }
+    setCepStatus({ kind: "success", message: result.message });
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     if (readyToSubmit.current) return;
     event.preventDefault();
@@ -242,8 +293,17 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
       <label className="field-wide"><span>Título</span><input name="title" minLength={8} maxLength={120} placeholder="Ex: Casa com 3 quartos no Centro" required /></label>
       <label><span>Finalidade</span><select name="purpose" required><option value="RENT">Aluguel</option><option value="SALE">Venda</option></select></label>
       <label><span>Tipo</span><select name="type" required><option value="HOUSE">Casa</option><option value="APARTMENT">Apartamento</option><option value="STUDIO">Kitnet / Studio</option><option value="LAND">Terreno</option><option value="COMMERCIAL_ROOM">Sala comercial</option><option value="WAREHOUSE">Galpão</option><option value="OTHER">Outro</option></select></label>
-      <label><span>Cidade</span><select name="cityId" defaultValue={cityId} required>{cities.map(city => <option key={city.id} value={city.id}>{city.name} — {city.stateCode}</option>)}</select></label>
-      <label><span>Bairro</span><select name="neighborhoodId" required><option value="">Selecione</option>{cities.flatMap(city => city.neighborhoods.map(neighborhood => <option key={neighborhood.id} value={neighborhood.id}>{neighborhood.name} — {city.name}</option>))}</select></label>
+      <div className="field-wide property-address-heading">
+        <strong>Localização do imóvel</strong>
+        <span>Informe o CEP para preencher cidade, bairro e rua. O endereço completo não será exibido no anúncio.</span>
+      </div>
+      <label className="property-cep-field"><span>CEP</span><div><input name="cep" value={cep} inputMode="numeric" autoComplete="postal-code" maxLength={9} placeholder="00000-000" onChange={event => { const digits = event.target.value.replace(/\D/g, "").slice(0, 8); setCep(digits.replace(/^(\d{5})(\d)/, "$1-$2")); setCepStatus(null); }} onBlur={() => { if (cep.replace(/\D/g, "").length === 8 && !cepStatus) void consultCep(); }} /><button type="button" onClick={() => void consultCep()} disabled={cepLoading}>{cepLoading ? "Consultando..." : "Buscar CEP"}</button></div></label>
+      <label><span>Cidade</span><select name="cityId" value={selectedCityId} onChange={event => { setSelectedCityId(event.target.value); setSelectedNeighborhoodId(""); setResolvedNeighborhood(null); setCepStatus(null); }} required><option value="">Selecione a cidade</option>{cities.map(city => <option key={city.id} value={city.id}>{city.name} — {city.stateCode}</option>)}</select></label>
+      <label><span>Bairro</span><select name="neighborhoodId" value={selectedNeighborhoodId} onChange={event => setSelectedNeighborhoodId(event.target.value)} disabled={!selectedCityId} required><option value="">{selectedCityId ? "Selecione o bairro" : "Selecione a cidade primeiro"}</option>{neighborhoods.map(neighborhood => <option key={neighborhood.id} value={neighborhood.id}>{neighborhood.name}</option>)}</select></label>
+      <label><span>Rua</span><input name="street" value={street} onChange={event => setStreet(event.target.value)} maxLength={160} autoComplete="address-line1" placeholder="Preenchida pelo CEP" /></label>
+      <label><span>Número</span><input name="addressNumber" maxLength={20} autoComplete="address-line2" placeholder="Ex: 120 ou S/N" /></label>
+      <label className="field-wide"><span>Complemento</span><input name="addressComplement" value={addressComplement} onChange={event => setAddressComplement(event.target.value)} maxLength={120} placeholder="Apartamento, bloco ou ponto de referência (opcional)" /></label>
+      {cepStatus ? <p className={`property-cep-status property-cep-status--${cepStatus.kind} field-wide`} role="status">{cepStatus.message}</p> : null}
       <label><span>Preço</span><MoneyInput /></label>
       <label><span>WhatsApp do anúncio</span><PhoneInput name="whatsapp" defaultValue={phone} /></label>
       <label><span>Quartos</span><input name="bedrooms" type="number" min="0" max="30" /></label>

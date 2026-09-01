@@ -10,6 +10,7 @@ type Props = { searchParams: Promise<{ erro?: string }> };
 const errorMessages: Record<string, string> = {
   dados: "Confira o título, a descrição, o preço e o WhatsApp informados.",
   local: "O bairro selecionado não pertence à cidade escolhida. Selecione a localização novamente.",
+  cep: "Não foi possível confirmar o CEP e a cidade. Consulte o CEP novamente antes de publicar.",
   fotos: "Não foi possível validar as fotos ou o vídeo. Selecione as mídias novamente e tente publicar.",
   salvar: "Não foi possível salvar o anúncio agora. Tente novamente em alguns instantes.",
 };
