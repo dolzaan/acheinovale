@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ChevronDownIcon, PlusIcon } from "./icons";
 import { Logo } from "./logo";
+import { HeaderCitySwitcher } from "./header-city-switcher";
 import { HeaderSearch } from "./header-search";
 import { NavigationProgress } from "./navigation-progress";
 import { PendingSubmitButton } from "./pending-submit-button";
@@ -18,9 +19,9 @@ export async function Header() {
         <nav className="desktop-nav" aria-label="Navegação principal">
           <Link href="/imoveis">Imóveis</Link>
           <Link href="/freteiros">Freteiros</Link>
-          <button className="city-switcher" type="button">
-            Rio do Sul <ChevronDownIcon />
-          </button>
+          <Suspense fallback={<span className="city-switcher">Rio do Sul <ChevronDownIcon /></span>}>
+            <HeaderCitySwitcher />
+          </Suspense>
         </nav>
         <div className="header-actions">
           <HeaderSearch />
