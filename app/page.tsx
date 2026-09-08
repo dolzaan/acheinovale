@@ -28,7 +28,7 @@ export default function HomePage() {
           <div className="container hero__inner">
             <div className="hero__content">
               <div className="eyebrow"><PinIcon size={16}/> Feito para Rio do Sul e região</div>
-              <h1>O que você procura<br/><em>em Rio do Sul?</em></h1>
+              <h1>Encontre perto.<br/><em>Resolva no Vale.</em></h1>
               <p>Imóveis e fretes da nossa região, reunidos em um só lugar. Simples, local e direto pelo WhatsApp.</p>
 
               <Form className="main-search" action="/buscar">
