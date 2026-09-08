@@ -23,6 +23,6 @@ Referência: Manual de marca, Isabelly Carmo, fornecido em 08/09/2026.
 
 Os logotipos preservam as cores, letras e proporções dos PNGs entregues pela designer. A tipografia do logotipo está incorporada à imagem. A interface mantém Plus Jakarta Sans, pois o manual não especifica uma fonte de interface nem inclui arquivo de fonte.
 
-O favicon usa o símbolo oficial em PNG de 64 × 64 com fundo transparente. Apple Touch Icon e ícones PWA usam o símbolo oficial proporcionalmente sobre creme. O ícone maskable possui margem adicional de proteção. Ao substituir ativos, atualizar também a versão do cache em `public/sw.js`.
+O favicon usa a versão branca do símbolo oficial em PNG de 64 × 64 com fundo transparente. Apple Touch Icon e ícones PWA usam o símbolo oficial proporcionalmente sobre creme. O ícone maskable possui margem adicional de proteção. Ao substituir ativos, atualizar também a versão do cache em `public/sw.js`.
 
-O verde é a cor principal dos botões, título de abertura, preços, links e navegação ativa. O dourado destaca elementos sobre fundos escuros; creme é o fundo principal. Terracota fica restrito a elementos de apoio, fretes e avisos.
+O verde é a cor principal dos botões, destaque do nome da cidade na abertura, preços, links e navegação ativa. O dourado destaca elementos sobre fundos escuros; creme é o fundo principal. Terracota fica restrito a elementos de apoio, fretes e avisos.
