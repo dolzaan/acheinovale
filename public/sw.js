@@ -1,4 +1,4 @@
-const CACHE_NAME = "acheinovale-static-v4-transparent-favicon";
+const CACHE_NAME = "acheinovale-static-v5-white-favicon";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
