@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { SearchIcon } from "./icons";
 import { PendingSubmitButton } from "./pending-submit-button";
 
-export function HeaderSearch() {
+export function HeaderSearch({ citySlug }: { citySlug?: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -50,6 +50,7 @@ export function HeaderSearch() {
       {isOpen ? (
         <div className="header-search__panel" id="header-search-panel">
           <Form className="header-search__form" action="/buscar" role="search">
+            {citySlug ? <input type="hidden" name="cidade" value={citySlug} /> : null}
             <SearchIcon size={20} />
             <input
               ref={inputRef}

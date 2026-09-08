@@ -10,21 +10,21 @@ import { UserAvatar } from "./user-avatar";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { signOut } from "@/app/auth/actions";
 
-export async function Header() {
+export async function Header({ citySlug }: { citySlug?: string } = {}) {
   const user = await getCurrentUser();
   return (
     <><Suspense fallback={null}><NavigationProgress /></Suspense><header className="site-header">
       <div className="container header-inner">
         <Logo />
         <nav className="desktop-nav" aria-label="Navegação principal">
-          <Link href="/imoveis">Imóveis</Link>
+          <Link href={citySlug ? `/imoveis?cidade=${encodeURIComponent(citySlug)}` : "/imoveis"}>Imóveis</Link>
           <Link href="/freteiros">Freteiros</Link>
           <Suspense fallback={<span className="city-switcher">Rio do Sul <ChevronDownIcon /></span>}>
             <HeaderCitySwitcher />
           </Suspense>
         </nav>
         <div className="header-actions">
-          <HeaderSearch />
+          <HeaderSearch citySlug={citySlug} />
           {user ? (
             <details className="user-menu">
               <summary><UserAvatar image={user.image} name={user.name} /><span>{user.name?.split(" ")[0] || "Minha conta"}</span><ChevronDownIcon /></summary>
