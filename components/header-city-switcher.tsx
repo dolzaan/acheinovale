@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDownIcon, PinIcon } from "./icons";
 
@@ -17,8 +17,9 @@ export function HeaderCitySwitcher() {
   const [cities, setCities] = useState<CityOption[]>([]);
   const [loadFailed, setLoadFailed] = useState(false);
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const selectedSlug = searchParams.get("cidade") || "rio-do-sul";
-  const selectedCity = cities.find(city => city.slug === selectedSlug) ?? cities.find(city => city.slug === "rio-do-sul");
+  const selectedCity = cities.find(city => city.slug === selectedSlug);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -53,7 +54,7 @@ export function HeaderCitySwitcher() {
           {loadFailed ? <span className="city-menu__status">Não foi possível carregar. Tente novamente.</span> : null}
           {cities.map(city => (
             <Link
-              href={`/imoveis?cidade=${city.slug}`}
+              href={`${pathname === "/" ? "/" : "/imoveis"}?cidade=${encodeURIComponent(city.slug)}`}
               key={city.id}
               aria-current={city.slug === selectedSlug ? "page" : undefined}
               onClick={() => { if (detailsRef.current) detailsRef.current.open = false; }}

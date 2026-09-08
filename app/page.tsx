@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { prisma } from "@/lib/db";
 import Form from "next/form";
 import { freighters, properties } from "@/data/home";
 import { Header } from "@/components/header";
@@ -19,19 +20,35 @@ import {
   TruckIcon,
 } from "@/components/icons";
 
-export default function HomePage() {
+type Props = { searchParams: Promise<{ cidade?: string | string[] }> };
+
+export default async function HomePage({ searchParams }: Props) {
+  const params = await searchParams;
+  const requestedSlug = typeof params.cidade === "string" ? params.cidade : undefined;
+  const city = requestedSlug
+    ? await prisma.city.findFirst({
+        where: { slug: requestedSlug, isActive: true },
+        select: { name: true, slug: true },
+      })
+    : { name: "Rio do Sul", slug: "rio-do-sul" };
+  const cityName = city?.name ?? "sua cidade";
+  const cityQuery = city ? `cidade=${encodeURIComponent(city.slug)}` : "";
+  const propertiesHref = cityQuery ? `/imoveis?${cityQuery}` : "/imoveis";
+  const rentalsHref = `${propertiesHref}${cityQuery ? "&" : "?"}finalidade=aluguel`;
+
   return (
     <>
-      <Header />
+      <Header citySlug={city?.slug} />
       <main>
         <section className="hero">
           <div className="container hero__inner">
             <div className="hero__content">
-              <div className="eyebrow"><PinIcon size={16}/> Feito para Rio do Sul e região</div>
-              <h1>O que você procura<br/><em>em Rio do Sul?</em></h1>
+              <div className="eyebrow"><PinIcon size={16}/> Feito para {cityName} e região</div>
+              <h1>O que você procura<br/><em>em {cityName}?</em></h1>
               <p>Imóveis e fretes da nossa região, reunidos em um só lugar. Simples, local e direto pelo WhatsApp.</p>
 
               <Form className="main-search" action="/buscar">
+                {city ? <input type="hidden" name="cidade" value={city.slug} /> : null}
                 <SearchIcon size={22}/>
                 <input name="q" aria-label="O que você procura?" placeholder="Ex: casa para alugar no Centro" />
                 <PendingSubmitButton aria-label="Buscar" pendingText="Buscando..." navigation><SearchIcon size={20}/><span>Buscar</span></PendingSubmitButton>
@@ -39,7 +56,7 @@ export default function HomePage() {
 
               <div className="quick-searches" aria-label="Buscas populares">
                 <span>Buscas populares:</span>
-                <Link href="/imoveis?finalidade=aluguel">Imóveis para alugar</Link>
+                <Link href={rentalsHref}>Imóveis para alugar</Link>
                 <Link href="/freteiros?disponivel=hoje">Frete hoje</Link>
               </div>
             </div>
@@ -56,13 +73,13 @@ export default function HomePage() {
                 <div className="visual-pin visual-pin--home"><HomeIcon size={18}/></div>
                 <div className="visual-pin visual-pin--truck"><TruckIcon size={18}/></div>
               </div>
-              <div className="local-proof"><span>✓</span><div><strong>100% local</strong><small>Anúncios de Rio do Sul</small></div></div>
+              <div className="local-proof"><span>✓</span><div><strong>100% local</strong><small>Encontre na sua região</small></div></div>
             </div>
           </div>
 
           <div className="container category-wrap">
             <div className="category-grid">
-              <Link className="category-card category-card--property" href="/imoveis">
+              <Link className="category-card category-card--property" href={propertiesHref}>
                 <span className="category-card__icon"><HomeIcon size={31}/></span>
                 <span className="category-card__copy"><small>Quero encontrar</small><strong>Um imóvel</strong><span>Casas, apartamentos e terrenos</span></span>
                 <span className="category-card__arrow"><ArrowIcon/></span>
@@ -80,13 +97,13 @@ export default function HomePage() {
           <div className="container">
             <div className="section-heading">
               <div><span className="section-kicker">Novidades por perto</span><h2>Imóveis recentes</h2><p>Boas oportunidades publicadas em Rio do Sul.</p></div>
-              <Link className="text-link" href="/imoveis">Ver todos <ArrowIcon/></Link>
+              <Link className="text-link" href={propertiesHref}>Ver todos <ArrowIcon/></Link>
             </div>
             <div className="property-grid">
               {properties.map((property) => (
                 <article className="property-card" key={property.id}>
                   <div className="property-card__image">
-                    <Link href="/imoveis" aria-label="Ver imóveis disponíveis">
+                    <Link href={propertiesHref} aria-label="Ver imóveis disponíveis">
                       {/* A URL é de uma fonte de demonstração e será substituída por Supabase Storage. */}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={property.image} alt={property.title}/>
@@ -96,7 +113,7 @@ export default function HomePage() {
                   </div>
                   <div className="property-card__body">
                     <span className="property-card__location"><PinIcon size={15}/>{property.location}</span>
-                    <h3><Link href="/imoveis">{property.title}</Link></h3>
+                    <h3><Link href={propertiesHref}>{property.title}</Link></h3>
                     <div className="property-card__features">
                       <span><BedIcon/>{property.beds} quartos</span><span><BathIcon/>{property.baths} banh.</span><span>{property.area}</span>
                     </div>
@@ -105,7 +122,7 @@ export default function HomePage() {
                 </article>
               ))}
             </div>
-            <Link className="mobile-more-button" href="/imoveis">Ver todos os imóveis <ArrowIcon/></Link>
+            <Link className="mobile-more-button" href={propertiesHref}>Ver todos os imóveis <ArrowIcon/></Link>
           </div>
         </section>
 
