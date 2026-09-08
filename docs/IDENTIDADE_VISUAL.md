@@ -1,7 +1,6 @@
 # Identidade visual — Achei no Vale
 
 Referência: Manual de marca, Isabelly Carmo, fornecido em 08/09/2026.
-Materiais oficiais: https://drive.google.com/drive/folders/1_Q_R1SwyJykPmYLKeqgXildFfWegJgCE
 
 ## Paleta
 
