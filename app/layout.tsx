@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "@fontsource-variable/plus-jakarta-sans";
 import "./globals.css";
 import "./city-menu.css";
+import "./brand-manual.css";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
@@ -31,7 +32,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#f4f0e7",
+  themeColor: "#fff9ec",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
