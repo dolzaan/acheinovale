@@ -8,21 +8,21 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 
 export const metadata: Metadata = {
-  title: "AcheiNoVale — Imóveis e fretes em Rio do Sul",
+  title: "Achei no Vale — Imóveis e fretes em Rio do Sul",
   description:
     "Encontre imóveis para vender ou alugar e freteiros de confiança em Rio do Sul e região.",
   metadataBase: new URL("https://acheinovale.com.br"),
   openGraph: {
-    title: "AcheiNoVale",
-    description: "Imóveis e fretes perto de você.",
+    title: "Achei no Vale",
+    description: "Encontre perto. Resolva no Vale. Imóveis e fretes em Rio do Sul e região.",
     locale: "pt_BR",
     type: "website",
   },
-  applicationName: "AcheiNoVale",
+  applicationName: "Achei no Vale",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "AcheiNoVale",
+    title: "Achei no Vale",
   },
   formatDetection: {
     telephone: false,

@@ -2,15 +2,15 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "AcheiNoVale — Imóveis e fretes",
-    short_name: "AcheiNoVale",
+    name: "Achei no Vale — Imóveis e fretes",
+    short_name: "Achei no Vale",
     description:
       "Encontre imóveis para vender ou alugar e freteiros de confiança em Rio do Sul e região.",
     start_url: "/",
     scope: "/",
     display: "standalone",
-    background_color: "#fffefa",
-    theme_color: "#173f35",
+    background_color: "#fff9ec",
+    theme_color: "#1d402d",
     orientation: "any",
     categories: ["lifestyle", "business"],
     lang: "pt-BR",
