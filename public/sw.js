@@ -1,4 +1,4 @@
-const CACHE_NAME = "acheinovale-static-v2-brand";
+const CACHE_NAME = "acheinovale-static-v3-green";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
