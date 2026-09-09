@@ -154,8 +154,8 @@ export async function createProperty(formData: FormData) {
     if (neighborhoodSlug && cityIsAvailable) {
       neighborhood = await prisma.neighborhood.upsert({
         where: { cityId_slug: { cityId, slug: neighborhoodSlug } },
-        update: { name: neighborhoodName },
-        create: { cityId, name: neighborhoodName, slug: neighborhoodSlug },
+        update: { name: neighborhoodName, needsReview: true },
+        create: { cityId, name: neighborhoodName, slug: neighborhoodSlug, needsReview: true },
         include: { city: true },
       });
     }
