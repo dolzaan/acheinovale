@@ -19,10 +19,13 @@ export async function Header({ citySlug }: { citySlug?: string } = {}) {
         <nav className="desktop-nav" aria-label="Navegação principal">
           <Link href={citySlug ? `/imoveis?cidade=${encodeURIComponent(citySlug)}` : "/imoveis"}>Imóveis</Link>
           <Link href="/freteiros">Freteiros</Link>
-          <Suspense fallback={<span className="city-switcher">Rio do Sul <ChevronDownIcon /></span>}>
+        </nav>
+        <div className="header-location">
+          <span className="header-location__label">Onde você procura?</span>
+          <Suspense fallback={<span className="city-switcher">Escolher cidade <ChevronDownIcon /></span>}>
             <HeaderCitySwitcher />
           </Suspense>
-        </nav>
+        </div>
         <div className="header-actions">
           <HeaderSearch citySlug={citySlug} />
           {user ? (

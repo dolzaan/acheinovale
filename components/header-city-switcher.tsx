@@ -35,12 +35,32 @@ export function HeaderCitySwitcher() {
         setLoadFailed(true);
       });
 
-    return () => controller.abort();
+      return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    function close(event: KeyboardEvent | PointerEvent) {
+      const details = detailsRef.current;
+      if (!details?.open) return;
+      if (event instanceof KeyboardEvent && event.key === "Escape") {
+        details.open = false;
+        details.querySelector("summary")?.focus();
+      } else if (event instanceof PointerEvent && event.target instanceof Node && !details.contains(event.target)) {
+        details.open = false;
+      }
+    }
+    document.addEventListener("keydown", close);
+    document.addEventListener("pointerdown", close);
+    return () => {
+      document.removeEventListener("keydown", close);
+      document.removeEventListener("pointerdown", close);
+    };
   }, []);
 
   return (
     <details className="city-menu" ref={detailsRef}>
-      <summary className="city-switcher" aria-label="Escolher cidade">
+      <summary className="city-switcher" aria-label={`Escolher cidade: ${selectedCity?.name || (selectedSlug === "rio-do-sul" ? "Rio do Sul" : "Escolher cidade")}`}>
+        <PinIcon size={18} />
         <span>{selectedCity?.name || (selectedSlug === "rio-do-sul" ? "Rio do Sul" : "Escolher cidade")}</span>
         <ChevronDownIcon />
       </summary>

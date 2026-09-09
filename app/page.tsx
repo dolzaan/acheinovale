@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { prisma } from "@/lib/db";
 import Form from "next/form";
 import { freighters, properties } from "@/data/home";
@@ -61,19 +62,20 @@ export default async function HomePage({ searchParams }: Props) {
               </div>
             </div>
 
-            <div className="hero__visual" aria-hidden="true">
-              <div className="valley-card">
-                <div className="valley-card__sky"><span className="sun"/></div>
-                <div className="mountain mountain--back"/>
-                <div className="mountain mountain--front"/>
-                <div className="road"/>
-                <div className="mini-house mini-house--one"><i/></div>
-                <div className="mini-house mini-house--two"><i/></div>
-                <div className="mini-truck"><i/><b/><b/></div>
-                <div className="visual-pin visual-pin--home"><HomeIcon size={18}/></div>
-                <div className="visual-pin visual-pin--truck"><TruckIcon size={18}/></div>
-              </div>
-              <div className="local-proof"><span>✓</span><div><strong>100% local</strong><small>Encontre na sua região</small></div></div>
+            <div className="hero__visual regional-visual">
+              <figure className="regional-photo regional-photo--main">
+                <Image src="/brand/rio-do-sul-centro.webp" alt="Prédios, comércio e praça no centro de Rio do Sul, com morros ao fundo" fill sizes="(max-width: 680px) 100vw, 45vw" priority />
+                <figcaption><PinIcon size={17} /> Centro de Rio do Sul, SC</figcaption>
+              </figure>
+              <figure className="regional-photo regional-photo--detail">
+                <Image src="/brand/rio-do-sul-entardecer.webp" alt="Casas e morros de Rio do Sul ao entardecer" fill sizes="(max-width: 680px) 38vw, 220px" />
+              </figure>
+              <div className="regional-signature"><Image src="/brand/symbol-green.png" alt="" width={36} height={35} /><span>Encontre perto.<br/><strong>Resolva no Vale.</strong></span></div>
+              <details className="photo-credits">
+                <summary>Créditos das fotos</summary>
+                <p>Centro: <a href="https://commons.wikimedia.org/wiki/File:Centro_de_Rio_do_Sul_-_05.06.2021_07.jpg" target="_blank" rel="noreferrer">Parzeus</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noreferrer">CC BY-SA 4.0</a>.</p>
+                <p>Entardecer: <a href="https://commons.wikimedia.org/wiki/File:Entardecer_em_Rio_do_Sul_-_SC.jpeg" target="_blank" rel="noreferrer">Pedro Terres</a> · <a href="https://creativecommons.org/licenses/by-sa/2.0/" target="_blank" rel="noreferrer">CC BY-SA 2.0</a>. Fotos redimensionadas e recortadas na exibição.</p>
+              </details>
             </div>
           </div>
 
@@ -118,6 +120,7 @@ export default async function HomePage({ searchParams }: Props) {
                       <span><BedIcon/>{property.beds} quartos</span><span><BathIcon/>{property.baths} banh.</span><span>{property.area}</span>
                     </div>
                     <div className="property-card__price"><strong>{property.price}</strong><span>{property.suffix}</span></div>
+                    <Link className="button button--secondary property-card__cta" href={propertiesHref}>Explorar imóveis</Link>
                   </div>
                 </article>
               ))}
