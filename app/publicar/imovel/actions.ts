@@ -71,7 +71,7 @@ export async function lookupPropertyCep(rawCep: string) {
       neighborhood: location.neighborhood,
       message: location.neighborhood
         ? "Cidade, bairro e endereço preenchidos pelo CEP."
-        : "Cidade encontrada. Selecione o bairro para continuar.",
+        : "Cidade encontrada. Escolha um bairro da lista ou digite o nome para continuar.",
     };
   } catch (error) {
     console.warn("[publicar/imovel] Falha ao consultar CEP.", {
@@ -93,6 +93,7 @@ export async function createProperty(formData: FormData) {
   const description = field(formData, "description");
   const cityId = field(formData, "cityId");
   let neighborhoodId = field(formData, "neighborhoodId");
+  let neighborhoodName = field(formData, "neighborhoodName").replace(/\s+/g, " ");
   const cep = normalizeCep(field(formData, "cep"));
   const purpose = field(formData, "purpose");
   const type = field(formData, "type");
@@ -112,7 +113,7 @@ export async function createProperty(formData: FormData) {
       validPurpose,
       validType,
       hasCity: Boolean(cityId),
-      hasNeighborhood: Boolean(neighborhoodId),
+      hasNeighborhood: Boolean(neighborhoodId || neighborhoodName),
     });
     await removeUploadedMedia(uploadedMediaKeys);
     redirect("/publicar/imovel?erro=dados");
@@ -137,10 +138,29 @@ export async function createProperty(formData: FormData) {
       await removeUploadedMedia(uploadedMediaKeys);
       redirect("/publicar/imovel?erro=cep");
     }
-    if (verifiedAddress.neighborhood) neighborhoodId = verifiedAddress.neighborhood.id;
+    if (verifiedAddress.neighborhood && !neighborhoodName) {
+      neighborhoodId = verifiedAddress.neighborhood.id;
+      neighborhoodName = verifiedAddress.neighborhood.name;
+    }
   }
 
-  const neighborhood = await prisma.neighborhood.findFirst({ where: { id: neighborhoodId, cityId, city: { isActive: true } }, include: { city: true } });
+  let neighborhood = neighborhoodId
+    ? await prisma.neighborhood.findFirst({ where: { id: neighborhoodId, cityId, city: { isActive: true } }, include: { city: true } })
+    : null;
+
+  if (!neighborhood && neighborhoodName.length >= 2 && neighborhoodName.length <= 80) {
+    const neighborhoodSlug = slugify(neighborhoodName);
+    const cityIsAvailable = await prisma.city.findFirst({ where: { id: cityId, isActive: true }, select: { id: true } });
+    if (neighborhoodSlug && cityIsAvailable) {
+      neighborhood = await prisma.neighborhood.upsert({
+        where: { cityId_slug: { cityId, slug: neighborhoodSlug } },
+        update: { name: neighborhoodName },
+        create: { cityId, name: neighborhoodName, slug: neighborhoodSlug },
+        include: { city: true },
+      });
+    }
+  }
+
   if (!neighborhood) {
     await removeUploadedMedia(uploadedMediaKeys);
     redirect("/publicar/imovel?erro=local");
