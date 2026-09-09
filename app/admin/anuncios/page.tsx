@@ -46,23 +46,23 @@ function moderationHref(tipo: string, status: ContentStatus) {
   return `/admin/anuncios?tipo=${tipo}&status=${status}`;
 }
 
-function ActionForms({ id, status, action }: { id: string; status: ContentStatus; action: typeof moderateProperty }) {
+function ActionForms({ id, status, action, canApprove = true }: { id: string; status: ContentStatus; action: typeof moderateProperty; canApprove?: boolean }) {
   return (
     <div className="moderation-actions">
-      {status !== "ACTIVE" ? (
+      {status !== "ACTIVE" && canApprove ? (
         <form action={action}>
           <input type="hidden" name="id" value={id} />
           <input type="hidden" name="intent" value="approve" />
           <PendingSubmitButton className="moderation-button moderation-button--approve" pendingText="Publicando...">Aprovar e publicar</PendingSubmitButton>
         </form>
-      ) : (
+      ) : status === "ACTIVE" ? (
         <form action={action}>
           <input type="hidden" name="id" value={id} />
           <input type="hidden" name="intent" value="pause" />
           <input name="note" maxLength={500} aria-label="Motivo da pausa" placeholder="Motivo da pausa (opcional)" />
           <PendingSubmitButton className="moderation-button" pendingText="Pausando...">Pausar</PendingSubmitButton>
         </form>
-      )}
+      ) : <span className="moderation-location-warning">Revise o bairro antes de publicar.</span>}
       {status !== "REJECTED" && status !== "ACTIVE" ? (
         <form action={action} className="moderation-reject-form">
           <input type="hidden" name="id" value={id} />
@@ -174,7 +174,7 @@ export default async function ModerationPage({ searchParams }: Props) {
                   <p className="moderation-card__description">{property.description}</p>
                   <dl className="moderation-meta"><div><dt>Local</dt><dd>{property.neighborhood.name}, {property.city.name}</dd></div><div><dt>Valor</dt><dd>{money(property.priceCents)}</dd></div><div><dt>Anunciante</dt><dd>{property.owner.name || "Sem nome"} · {property.owner.email}</dd></div><div><dt>WhatsApp</dt><dd>{formatBrazilianPhone(property.whatsapp)}</dd></div></dl>
                   {property.moderationNote ? <p className="moderation-note"><strong>Última observação:</strong> {property.moderationNote}</p> : null}
-                  <div className="moderation-card__footer"><Link className="button button--secondary" href={propertyUrl(property)} target="_blank" rel="noreferrer">Abrir prévia</Link><ActionForms id={property.id} status={property.status} action={moderateProperty} /></div>
+                  <div className="moderation-card__footer"><Link className="button button--secondary" href={propertyUrl(property)} target="_blank" rel="noreferrer">Abrir prévia</Link><ActionForms id={property.id} status={property.status} action={moderateProperty} canApprove={!property.neighborhood.needsReview} /></div>
                 </div>
               </article>
             ))}
