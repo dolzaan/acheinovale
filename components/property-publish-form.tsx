@@ -123,7 +123,7 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
       .catch(() => undefined);
 
     return () => { cancelled = true; };
-  }, [cities, cityId]);
+  }, [authUserId, cities, cityId]);
 
   useEffect(() => { photosRef.current = photos; }, [photos]);
   useEffect(() => { videoRef.current = video; }, [video]);
