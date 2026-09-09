@@ -84,7 +84,7 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
 
   useEffect(() => {
     let cancelled = false;
-    const draft = loadPropertyDraftValues();
+    const draft = loadPropertyDraftValues(authUserId);
 
     if (draft) {
       const savedCityId = draft.values.cityId || cityId;
@@ -110,7 +110,7 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
       setDraftStatus(`Rascunho recuperado de ${restoredAt}.`);
     }
 
-    void loadPropertyDraftMedia()
+    void loadPropertyDraftMedia(authUserId)
       .then(media => {
         if (cancelled || !media) return;
         const restoredPhotos = media.photos.map(photo => ({ ...photo, preview: URL.createObjectURL(photo.file) }));
@@ -137,7 +137,7 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
     if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
     draftTimerRef.current = setTimeout(() => {
       if (!formRef.current) return;
-      savePropertyDraftValues(formRef.current);
+      savePropertyDraftValues(authUserId, formRef.current);
       setDraftStatus("Alterações salvas automaticamente neste dispositivo.");
     }, 700);
   }
@@ -145,8 +145,8 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
   async function persistDraft(showConfirmation = true) {
     if (!formRef.current) return false;
     try {
-      savePropertyDraftValues(formRef.current);
-      await savePropertyDraftMedia({
+      savePropertyDraftValues(authUserId, formRef.current);
+      await savePropertyDraftMedia(authUserId, {
         photos: photos.map(({ id, file }) => ({ id, file })),
         video: video ? { id: video.id, file: video.file } : null,
         mediaOrder,
@@ -162,7 +162,7 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
 
   async function discardStoredDraft() {
     try {
-      await clearPropertyDraft();
+      await clearPropertyDraft(authUserId);
       setDraftStatus("Rascunho salvo descartado. Os dados que estão na tela foram mantidos.");
     } catch {
       setDraftStatus("Não foi possível descartar o rascunho neste navegador.");
