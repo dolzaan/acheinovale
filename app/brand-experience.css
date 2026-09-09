@@ -150,3 +150,17 @@
   .regional-signature { bottom: 18px; left: 12px; padding: 10px 14px; font-size: .8125rem; }
   .photo-credits { margin-top: 30px; margin-bottom: -28px; }
 }
+
+/* A single verified landmark for the municipality selected in the URL. */
+.city-tourism-visual .regional-photo--main { border-top-left-radius: 72px; }
+.city-tourism-visual .regional-photo--main figcaption { bottom: 48px; align-items: flex-start; line-height: 1.45; }
+.city-tourism-visual figcaption > svg { flex: 0 0 auto; margin-top: 3px; }
+.city-tourism-visual figcaption small { display: block; margin-top: 3px; font-size: .8125rem; font-weight: 500; }
+.city-tourism-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; min-height: 350px; padding: 32px; border-radius: 28px; background: var(--brand-green-soft); color: var(--brand-green); text-align: center; }
+.city-tourism-empty strong { font-size: 1.5rem; }
+.city-tourism-empty span { font-size: 1rem; line-height: 1.6; }
+@media (max-width: 680px) {
+  .city-tourism-visual .regional-photo--main { height: 290px; border-top-left-radius: 48px; }
+  .city-tourism-visual .regional-photo--main figcaption { bottom: 48px; }
+  .city-tourism-empty { min-height: 260px; }
+}

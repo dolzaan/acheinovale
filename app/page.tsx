@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { CityTourismVisual } from "@/components/city-tourism-visual";
 import { prisma } from "@/lib/db";
 import Form from "next/form";
 import { freighters, properties } from "@/data/home";
@@ -62,21 +62,7 @@ export default async function HomePage({ searchParams }: Props) {
               </div>
             </div>
 
-            <div className="hero__visual regional-visual">
-              <figure className="regional-photo regional-photo--main">
-                <Image src="/brand/rio-do-sul-centro.webp" alt="Prédios, comércio e praça no centro de Rio do Sul, com morros ao fundo" fill sizes="(max-width: 680px) 100vw, 45vw" priority />
-                <figcaption><PinIcon size={17} /> Centro de Rio do Sul, SC</figcaption>
-              </figure>
-              <figure className="regional-photo regional-photo--detail">
-                <Image src="/brand/rio-do-sul-entardecer.webp" alt="Casas e morros de Rio do Sul ao entardecer" fill sizes="(max-width: 680px) 38vw, 220px" />
-              </figure>
-              <div className="regional-signature"><Image src="/brand/symbol-green.png" alt="" width={36} height={35} /><span>Encontre perto.<br/><strong>Resolva no Vale.</strong></span></div>
-              <details className="photo-credits">
-                <summary>Créditos das fotos</summary>
-                <p>Centro: <a href="https://commons.wikimedia.org/wiki/File:Centro_de_Rio_do_Sul_-_05.06.2021_07.jpg" target="_blank" rel="noreferrer">Parzeus</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noreferrer">CC BY-SA 4.0</a>.</p>
-                <p>Entardecer: <a href="https://commons.wikimedia.org/wiki/File:Entardecer_em_Rio_do_Sul_-_SC.jpeg" target="_blank" rel="noreferrer">Pedro Terres</a> · <a href="https://creativecommons.org/licenses/by-sa/2.0/" target="_blank" rel="noreferrer">CC BY-SA 2.0</a>. Fotos redimensionadas e recortadas na exibição.</p>
-              </details>
-            </div>
+            <CityTourismVisual citySlug={city?.slug} cityName={cityName} />
           </div>
 
           <div className="container category-wrap">

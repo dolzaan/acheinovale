@@ -1,4 +1,4 @@
-const CACHE_NAME = "acheinovale-static-v6-brand-experience";
+const CACHE_NAME = "acheinovale-static-v7-city-tourism";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
