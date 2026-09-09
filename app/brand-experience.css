@@ -248,3 +248,4 @@
   .neighborhood-review__item { grid-template-columns: 1fr; }
   .neighborhood-review__item .moderation-button { grid-column: auto; width: 100%; }
 }
+.moderation-location-warning { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 12px; border-radius: 10px; background: var(--brand-gold-soft); color: var(--brand-green); font-size: .75rem; font-weight: 800; line-height: 1.4; }
