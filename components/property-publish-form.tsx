@@ -6,6 +6,13 @@ import { MoneyInput } from "@/components/money-input";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { PhoneInput } from "@/components/phone-input";
 import { PropertyMediaOrganizer, type PropertyOrganizerItem } from "@/components/property-media-organizer";
+import {
+  clearPropertyDraft,
+  loadPropertyDraftMedia,
+  loadPropertyDraftValues,
+  savePropertyDraftMedia,
+  savePropertyDraftValues,
+} from "@/lib/forms/property-draft";
 import { createClient } from "@/lib/supabase/client";
 import { uploadPropertyVideo } from "@/lib/supabase/property-video-upload";
 import {
@@ -28,6 +35,16 @@ type CityOption = {
 
 type SelectedMedia = { id: string; file: File; preview: string };
 
+type PropertyPreview = {
+  title: string;
+  location: string;
+  purpose: string;
+  type: string;
+  price: string;
+  description: string;
+  photo: string | null;
+};
+
 export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { authUserId: string; cityId: string; phone: string; cities: CityOption[] }) {
   const [selectedCityId, setSelectedCityId] = useState(cityId);
   const [selectedNeighborhoodId, setSelectedNeighborhoodId] = useState("");
@@ -46,6 +63,10 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
   const [photoProgress, setPhotoProgress] = useState(0);
   const [videoProgress, setVideoProgress] = useState(0);
   const [mediaError, setMediaError] = useState("");
+  const [draftStatus, setDraftStatus] = useState("");
+  const [preview, setPreview] = useState<PropertyPreview | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const photosRef = useRef(photos);
   const videoRef = useRef(video);
   const imageKeysRef = useRef<HTMLInputElement>(null);
@@ -61,12 +82,120 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
       .sort((first, second) => first.name.localeCompare(second.name, "pt-BR"));
   }, [cities, resolvedNeighborhood, selectedCityId]);
 
+  useEffect(() => {
+    let cancelled = false;
+    const draft = loadPropertyDraftValues(authUserId);
+
+    if (draft) {
+      const savedCityId = draft.values.cityId || cityId;
+      const savedNeighborhoodName = draft.values.neighborhoodName || "";
+      const savedNeighborhood = cities.find(city => city.id === savedCityId)?.neighborhoods.find(neighborhood =>
+        neighborhood.name.localeCompare(savedNeighborhoodName, "pt-BR", { sensitivity: "base" }) === 0
+      );
+
+      setSelectedCityId(savedCityId);
+      setNeighborhoodName(savedNeighborhoodName);
+      setSelectedNeighborhoodId(savedNeighborhood?.id ?? "");
+      setCep(draft.values.cep || "");
+      setStreet(draft.values.street || "");
+      setAddressComplement(draft.values.addressComplement || "");
+
+      for (const [name, value] of Object.entries(draft.values)) {
+        if (["cityId", "neighborhoodName", "cep", "street", "addressComplement"].includes(name)) continue;
+        const control = formRef.current?.elements.namedItem(name);
+        if (control instanceof HTMLInputElement || control instanceof HTMLSelectElement || control instanceof HTMLTextAreaElement) control.value = value;
+      }
+
+      const restoredAt = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(new Date(draft.updatedAt));
+      setDraftStatus(`Rascunho recuperado de ${restoredAt}.`);
+    }
+
+    void loadPropertyDraftMedia(authUserId)
+      .then(media => {
+        if (cancelled || !media) return;
+        const restoredPhotos = media.photos.map(photo => ({ ...photo, preview: URL.createObjectURL(photo.file) }));
+        const restoredVideo = media.video ? { ...media.video, preview: URL.createObjectURL(media.video.file) } : null;
+        setPhotos(restoredPhotos);
+        setVideo(restoredVideo);
+        setMediaOrder(media.mediaOrder);
+        setCoverPhotoId(media.coverPhotoId);
+      })
+      .catch(() => undefined);
+
+    return () => { cancelled = true; };
+  }, [authUserId, cities, cityId]);
+
   useEffect(() => { photosRef.current = photos; }, [photos]);
   useEffect(() => { videoRef.current = video; }, [video]);
   useEffect(() => () => {
     photosRef.current.forEach(photo => URL.revokeObjectURL(photo.preview));
     if (videoRef.current) URL.revokeObjectURL(videoRef.current.preview);
+    if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
   }, []);
+
+  function scheduleDraftSave() {
+    if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    draftTimerRef.current = setTimeout(() => {
+      if (!formRef.current) return;
+      savePropertyDraftValues(authUserId, formRef.current);
+      setDraftStatus("Alterações salvas automaticamente neste dispositivo.");
+    }, 700);
+  }
+
+  async function persistDraft(showConfirmation = true) {
+    if (!formRef.current) return false;
+    try {
+      savePropertyDraftValues(authUserId, formRef.current);
+      await savePropertyDraftMedia(authUserId, {
+        photos: photos.map(({ id, file }) => ({ id, file })),
+        video: video ? { id: video.id, file: video.file } : null,
+        mediaOrder,
+        coverPhotoId,
+      });
+      if (showConfirmation) setDraftStatus("Rascunho salvo neste dispositivo, incluindo as mídias selecionadas.");
+      return true;
+    } catch {
+      setDraftStatus("Os textos foram salvos, mas o navegador não conseguiu guardar todas as mídias.");
+      return false;
+    }
+  }
+
+  async function discardStoredDraft() {
+    try {
+      await clearPropertyDraft(authUserId);
+      setDraftStatus("Rascunho salvo descartado. Os dados que estão na tela foram mantidos.");
+    } catch {
+      setDraftStatus("Não foi possível descartar o rascunho neste navegador.");
+    }
+  }
+
+  function showPropertyPreview() {
+    const form = formRef.current;
+    if (!form) return;
+    const data = new FormData(form);
+    const purpose = data.get("purpose") === "SALE" ? "Venda" : "Aluguel";
+    const typeLabels: Record<string, string> = {
+      HOUSE: "Casa",
+      APARTMENT: "Apartamento",
+      STUDIO: "Kitnet / Studio",
+      LAND: "Terreno",
+      COMMERCIAL_ROOM: "Sala comercial",
+      WAREHOUSE: "Galpão",
+      OTHER: "Outro",
+    };
+    const selectedCity = cities.find(city => city.id === selectedCityId);
+    const coverPhoto = photos.find(photo => photo.id === coverPhotoId) ?? photos[0];
+
+    setPreview({
+      title: String(data.get("title") || "Título do imóvel"),
+      location: [neighborhoodName || "Bairro", selectedCity?.name || "Cidade"].join(", "),
+      purpose,
+      type: typeLabels[String(data.get("type") || "")] || "Imóvel",
+      price: String(data.get("price") || "Preço não informado"),
+      description: String(data.get("description") || "A descrição do imóvel aparecerá aqui."),
+      photo: coverPhoto?.preview ?? null,
+    });
+  }
 
   function selectPhotos(event: ChangeEvent<HTMLInputElement>) {
     const selected = Array.from(event.currentTarget.files ?? []);
@@ -212,6 +341,7 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
     if (readyToSubmit.current) return;
     event.preventDefault();
     setMediaError("");
+    await persistDraft(false);
 
     if (!photos.length && !video) {
       readyToSubmit.current = true;
@@ -281,6 +411,10 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
     ? `Enviando vídeo ${videoProgress}%...`
     : `Enviando fotos ${photoProgress}/${photos.length}...`;
 
+  const neighborhoodIsKnown = !neighborhoodName.trim() || neighborhoods.some(neighborhood =>
+    neighborhood.name.localeCompare(neighborhoodName.trim(), "pt-BR", { sensitivity: "base" }) === 0
+  );
+
   const mediaItems = mediaOrder.reduce<PropertyOrganizerItem[]>((result, id) => {
     const photo = photos.find(item => item.id === id);
     if (photo) result.push({ id, kind: "image", preview: photo.preview, label: photo.file.name });
@@ -289,7 +423,7 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
   }, []);
 
   return (
-    <form className="listing-form" action={createProperty} onSubmit={handleSubmit}>
+    <form ref={formRef} className="listing-form" action={createProperty} onSubmit={handleSubmit} onChange={scheduleDraftSave}>
       <input ref={imageKeysRef} type="hidden" name="imageKeys" defaultValue="[]" />
       <input ref={videoKeyRef} type="hidden" name="videoKey" defaultValue="" />
       <input ref={mediaOrderRef} type="hidden" name="mediaOrder" defaultValue="[]" />
@@ -298,7 +432,7 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
       <label><span>Tipo</span><select name="type" required><option value="HOUSE">Casa</option><option value="APARTMENT">Apartamento</option><option value="STUDIO">Kitnet / Studio</option><option value="LAND">Terreno</option><option value="COMMERCIAL_ROOM">Sala comercial</option><option value="WAREHOUSE">Galpão</option><option value="OTHER">Outro</option></select></label>
       <div className="field-wide property-address-heading">
         <strong>Localização do imóvel</strong>
-        <span>Informe o CEP para preencher cidade, bairro e rua. O endereço completo não será exibido no anúncio.</span>
+        <span>Informe o CEP para preencher o que estiver disponível. Você poderá completar ou corrigir os dados manualmente.</span>
       </div>
       <label className="property-cep-field"><span>CEP</span><div><input name="cep" value={cep} inputMode="numeric" autoComplete="postal-code" maxLength={9} placeholder="00000-000" onChange={event => { const digits = event.target.value.replace(/\D/g, "").slice(0, 8); setCep(digits.replace(/^(\d{5})(\d)/, "$1-$2")); setCepStatus(null); }} onBlur={() => { if (cep.replace(/\D/g, "").length === 8 && !cepStatus) void consultCep(); }} /><button type="button" onClick={() => void consultCep()} disabled={cepLoading}>{cepLoading ? "Consultando..." : "Buscar CEP"}</button></div></label>
       <label><span>Cidade</span><select name="cityId" value={selectedCityId} onChange={event => { setSelectedCityId(event.target.value); setSelectedNeighborhoodId(""); setNeighborhoodName(""); setResolvedNeighborhood(null); setCepStatus(null); }} required><option value="">Selecione a cidade</option>{cities.map(city => <option key={city.id} value={city.id}>{city.name} — {city.stateCode}</option>)}</select></label>
@@ -326,11 +460,14 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
         <datalist id="property-neighborhood-options">
           {neighborhoods.map(neighborhood => <option key={neighborhood.id} value={neighborhood.name} />)}
         </datalist>
-        <small>Escolha uma sugestão ou digite o nome do bairro.</small>
+        <small className={!neighborhoodIsKnown ? "property-neighborhood-field__new" : undefined}>
+          {!neighborhoodIsKnown ? "Novo bairro: será enviado para revisão antes de entrar na lista oficial." : "Comece a digitar para buscar ou informe um bairro novo."}
+        </small>
       </label>
       <label><span>Rua</span><input name="street" value={street} onChange={event => setStreet(event.target.value)} maxLength={160} autoComplete="address-line1" placeholder="Preenchida pelo CEP" /></label>
       <label><span>Número</span><input name="addressNumber" maxLength={20} autoComplete="address-line2" placeholder="Ex: 120 ou S/N" /></label>
       <label className="field-wide"><span>Complemento</span><input name="addressComplement" value={addressComplement} onChange={event => setAddressComplement(event.target.value)} maxLength={120} placeholder="Apartamento, bloco ou ponto de referência (opcional)" /></label>
+      <p className="property-privacy-note field-wide"><strong>Endereço protegido:</strong> CEP, rua, número e complemento ficam privados. No anúncio público aparecem somente o bairro e a cidade.</p>
       {cepStatus ? <p className={`property-cep-status property-cep-status--${cepStatus.kind} field-wide`} role="status">{cepStatus.message}</p> : null}
       <label><span>Preço</span><MoneyInput /></label>
       <label><span>WhatsApp do anúncio</span><PhoneInput name="whatsapp" defaultValue={phone} /></label>
@@ -356,6 +493,27 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
       </div>
 
       {mediaError ? <p className="property-photo-error field-wide" role="alert">{mediaError}</p> : null}
+
+      <div className="property-form-tools field-wide">
+        <button type="button" className="outline-button" onClick={showPropertyPreview}>Pré-visualizar anúncio</button>
+        <button type="button" className="outline-button" onClick={() => void persistDraft()}>Salvar rascunho</button>
+        <button type="button" className="property-draft-discard" onClick={() => void discardStoredDraft()}>Descartar rascunho salvo</button>
+      </div>
+      {draftStatus ? <p className="property-draft-status field-wide" role="status">{draftStatus}</p> : null}
+
+      {preview ? (
+        <section className="property-preview field-wide" aria-labelledby="property-preview-title">
+          <div className="property-preview__heading"><div><small>Prévia do anúncio</small><h2 id="property-preview-title">{preview.title}</h2></div><button type="button" onClick={() => setPreview(null)} aria-label="Fechar prévia">Fechar</button></div>
+          {preview.photo ? <div className="property-preview__image" style={{ backgroundImage: `url("${preview.photo}")` }} role="img" aria-label="Foto de capa selecionada" /> : <div className="property-preview__empty">Adicione uma foto para visualizar a capa.</div>}
+          <div className="property-preview__body">
+            <span>{preview.purpose} · {preview.type}</span>
+            <strong>{preview.price}</strong>
+            <p>{preview.location}</p>
+            <small>{preview.description}</small>
+          </div>
+        </section>
+      ) : null}
+
       <PendingSubmitButton className="button button--primary field-wide" pendingText={uploading ? progressLabel : "Finalizando publicação..."} busy={uploading}>Enviar para análise</PendingSubmitButton>
     </form>
   );

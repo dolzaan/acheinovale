@@ -22,7 +22,7 @@ export default async function NewPropertyPage({ searchParams }: Props) {
 
   const [params, cities] = await Promise.all([
     searchParams,
-    prisma.city.findMany({ where: { isActive: true }, include: { neighborhoods: { orderBy: { name: "asc" } } }, orderBy: { name: "asc" } }),
+    prisma.city.findMany({ where: { isActive: true }, include: { neighborhoods: { where: { needsReview: false }, orderBy: { name: "asc" } } }, orderBy: { name: "asc" } }),
   ]);
 
   return (

@@ -105,10 +105,12 @@ model Neighborhood {
   name       String     @map("nome")
   slug       String     @map("identificador_url")
   cityId     String     @map("id_cidade")
-  city       City       @relation(fields: [cityId], references: [id])
-  properties Property[]
+  city        City       @relation(fields: [cityId], references: [id])
+  properties  Property[]
+  needsReview Boolean    @default(false) @map("precisa_revisao")
 
   @@unique([cityId, slug])
+  @@index([needsReview])
   @@map("bairros")
 }
 
