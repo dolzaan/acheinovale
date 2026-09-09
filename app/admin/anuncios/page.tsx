@@ -122,7 +122,7 @@ export default async function ModerationPage({ searchParams }: Props) {
           </div>
 
           {params.concluido && successMessages[params.concluido] ? <p className="admin-alert admin-alert--success">{successMessages[params.concluido]}</p> : null}
-          {params.erro ? <p className="admin-alert admin-alert--error">{params.erro === "motivo" ? "Informe um motivo com pelo menos 5 caracteres." : "Não foi possível concluir a ação."}</p> : null}
+          {params.erro ? <p className="admin-alert admin-alert--error">{params.erro === "motivo" ? "Informe um motivo com pelo menos 5 caracteres." : params.erro === "bairro" ? "Informe um nome de bairro válido, entre 2 e 80 caracteres." : "Não foi possível concluir a ação."}</p> : null}
 
           <section className="admin-stats admin-stats--with-neighborhoods" aria-label="Resumo da moderação">
             <div><small>Aguardando análise</small><strong>{pendingProperties + pendingFreighters}</strong><span>{pendingProperties} imóveis · {pendingFreighters} freteiros</span></div>
