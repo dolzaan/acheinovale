@@ -1,9 +1,12 @@
 "use client";
 
-const VALUES_KEY = "acheinovale:property-draft:v1";
+const VALUES_KEY_PREFIX = "acheinovale:property-draft:v1";
 const DATABASE_NAME = "acheinovale-property-drafts";
 const STORE_NAME = "drafts";
-const MEDIA_KEY = "property-media";
+const MEDIA_KEY_PREFIX = "property-media";
+
+function valuesKey(ownerKey: string) { return `${VALUES_KEY_PREFIX}:${ownerKey}`; }
+function mediaKey(ownerKey: string) { return `${MEDIA_KEY_PREFIX}:${ownerKey}`; }
 
 export type PropertyDraftValues = {
   values: Record<string, string>;
@@ -27,15 +30,15 @@ export function collectPropertyDraftValues(form: HTMLFormElement): PropertyDraft
   return { values, updatedAt: new Date().toISOString() };
 }
 
-export function savePropertyDraftValues(form: HTMLFormElement) {
+export function savePropertyDraftValues(ownerKey: string, form: HTMLFormElement) {
   const draft = collectPropertyDraftValues(form);
-  localStorage.setItem(VALUES_KEY, JSON.stringify(draft));
+  localStorage.setItem(valuesKey(ownerKey), JSON.stringify(draft));
   return draft;
 }
 
-export function loadPropertyDraftValues(): PropertyDraftValues | null {
+export function loadPropertyDraftValues(ownerKey: string): PropertyDraftValues | null {
   try {
-    const raw = localStorage.getItem(VALUES_KEY);
+    const raw = localStorage.getItem(valuesKey(ownerKey));
     if (!raw) return null;
     const parsed = JSON.parse(raw) as PropertyDraftValues;
     return parsed?.values && parsed.updatedAt ? parsed : null;
@@ -55,21 +58,21 @@ function openDraftDatabase() {
   });
 }
 
-export async function savePropertyDraftMedia(media: PropertyDraftMedia) {
+export async function savePropertyDraftMedia(ownerKey: string, media: PropertyDraftMedia) {
   const database = await openDraftDatabase();
   await new Promise<void>((resolve, reject) => {
     const transaction = database.transaction(STORE_NAME, "readwrite");
-    transaction.objectStore(STORE_NAME).put(media, MEDIA_KEY);
+    transaction.objectStore(STORE_NAME).put(media, mediaKey(ownerKey));
     transaction.oncomplete = () => resolve();
     transaction.onerror = () => reject(transaction.error);
   });
   database.close();
 }
 
-export async function loadPropertyDraftMedia(): Promise<PropertyDraftMedia | null> {
+export async function loadPropertyDraftMedia(ownerKey: string): Promise<PropertyDraftMedia | null> {
   const database = await openDraftDatabase();
   const media = await new Promise<PropertyDraftMedia | null>((resolve, reject) => {
-    const request = database.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME).get(MEDIA_KEY);
+    const request = database.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME).get(mediaKey(ownerKey));
     request.onsuccess = () => resolve((request.result as PropertyDraftMedia | undefined) ?? null);
     request.onerror = () => reject(request.error);
   });
@@ -77,12 +80,12 @@ export async function loadPropertyDraftMedia(): Promise<PropertyDraftMedia | nul
   return media;
 }
 
-export async function clearPropertyDraft() {
-  localStorage.removeItem(VALUES_KEY);
+export async function clearPropertyDraft(ownerKey: string) {
+  localStorage.removeItem(valuesKey(ownerKey));
   const database = await openDraftDatabase();
   await new Promise<void>((resolve, reject) => {
     const transaction = database.transaction(STORE_NAME, "readwrite");
-    transaction.objectStore(STORE_NAME).delete(MEDIA_KEY);
+    transaction.objectStore(STORE_NAME).delete(mediaKey(ownerKey));
     transaction.oncomplete = () => resolve();
     transaction.onerror = () => reject(transaction.error);
   });
