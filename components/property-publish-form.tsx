@@ -31,6 +31,7 @@ type SelectedMedia = { id: string; file: File; preview: string };
 export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { authUserId: string; cityId: string; phone: string; cities: CityOption[] }) {
   const [selectedCityId, setSelectedCityId] = useState(cityId);
   const [selectedNeighborhoodId, setSelectedNeighborhoodId] = useState("");
+  const [neighborhoodName, setNeighborhoodName] = useState("");
   const [cep, setCep] = useState("");
   const [street, setStreet] = useState("");
   const [addressComplement, setAddressComplement] = useState("");
@@ -198,9 +199,11 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
     if (result.neighborhood) {
       setResolvedNeighborhood({ ...result.neighborhood, cityId: result.city.id });
       setSelectedNeighborhoodId(result.neighborhood.id);
+      setNeighborhoodName(result.neighborhood.name);
     } else {
       setResolvedNeighborhood(null);
       setSelectedNeighborhoodId("");
+      setNeighborhoodName("");
     }
     setCepStatus({ kind: "success", message: result.message });
   }
@@ -298,8 +301,33 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
         <span>Informe o CEP para preencher cidade, bairro e rua. O endereço completo não será exibido no anúncio.</span>
       </div>
       <label className="property-cep-field"><span>CEP</span><div><input name="cep" value={cep} inputMode="numeric" autoComplete="postal-code" maxLength={9} placeholder="00000-000" onChange={event => { const digits = event.target.value.replace(/\D/g, "").slice(0, 8); setCep(digits.replace(/^(\d{5})(\d)/, "$1-$2")); setCepStatus(null); }} onBlur={() => { if (cep.replace(/\D/g, "").length === 8 && !cepStatus) void consultCep(); }} /><button type="button" onClick={() => void consultCep()} disabled={cepLoading}>{cepLoading ? "Consultando..." : "Buscar CEP"}</button></div></label>
-      <label><span>Cidade</span><select name="cityId" value={selectedCityId} onChange={event => { setSelectedCityId(event.target.value); setSelectedNeighborhoodId(""); setResolvedNeighborhood(null); setCepStatus(null); }} required><option value="">Selecione a cidade</option>{cities.map(city => <option key={city.id} value={city.id}>{city.name} — {city.stateCode}</option>)}</select></label>
-      <label><span>Bairro</span><select name="neighborhoodId" value={selectedNeighborhoodId} onChange={event => setSelectedNeighborhoodId(event.target.value)} disabled={!selectedCityId} required><option value="">{selectedCityId ? "Selecione o bairro" : "Selecione a cidade primeiro"}</option>{neighborhoods.map(neighborhood => <option key={neighborhood.id} value={neighborhood.id}>{neighborhood.name}</option>)}</select></label>
+      <label><span>Cidade</span><select name="cityId" value={selectedCityId} onChange={event => { setSelectedCityId(event.target.value); setSelectedNeighborhoodId(""); setNeighborhoodName(""); setResolvedNeighborhood(null); setCepStatus(null); }} required><option value="">Selecione a cidade</option>{cities.map(city => <option key={city.id} value={city.id}>{city.name} — {city.stateCode}</option>)}</select></label>
+      <label className="property-neighborhood-field">
+        <span>Bairro</span>
+        <input
+          name="neighborhoodName"
+          value={neighborhoodName}
+          list="property-neighborhood-options"
+          maxLength={80}
+          autoComplete="address-level3"
+          placeholder={selectedCityId ? "Escolha ou digite o bairro" : "Selecione a cidade primeiro"}
+          disabled={!selectedCityId}
+          onChange={event => {
+            const nextName = event.target.value;
+            const matchingNeighborhood = neighborhoods.find(neighborhood =>
+              neighborhood.name.localeCompare(nextName.trim(), "pt-BR", { sensitivity: "base" }) === 0
+            );
+            setNeighborhoodName(nextName);
+            setSelectedNeighborhoodId(matchingNeighborhood?.id ?? "");
+          }}
+          required
+        />
+        <input type="hidden" name="neighborhoodId" value={selectedNeighborhoodId} />
+        <datalist id="property-neighborhood-options">
+          {neighborhoods.map(neighborhood => <option key={neighborhood.id} value={neighborhood.name} />)}
+        </datalist>
+        <small>Escolha uma sugestão ou digite o nome do bairro.</small>
+      </label>
       <label><span>Rua</span><input name="street" value={street} onChange={event => setStreet(event.target.value)} maxLength={160} autoComplete="address-line1" placeholder="Preenchida pelo CEP" /></label>
       <label><span>Número</span><input name="addressNumber" maxLength={20} autoComplete="address-line2" placeholder="Ex: 120 ou S/N" /></label>
       <label className="field-wide"><span>Complemento</span><input name="addressComplement" value={addressComplement} onChange={event => setAddressComplement(event.target.value)} maxLength={120} placeholder="Apartamento, bloco ou ponto de referência (opcional)" /></label>
