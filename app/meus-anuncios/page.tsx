@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
+import { ClearPropertyDraft } from "@/components/clear-property-draft";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
 import { freighterUrl, propertyUrl } from "@/lib/listings/urls";
@@ -14,8 +15,10 @@ function ModerationFeedback({ note }: { note: string | null }) {
   return <p className="manager-card__feedback"><strong>Orientação da moderação:</strong> {note}</p>;
 }
 
-export default async function MyListingsPage() {
-  const user = await requireCurrentUser("/meus-anuncios");
+type Props = { searchParams: Promise<{ criado?: string }> };
+
+export default async function MyListingsPage({ searchParams }: Props) {
+  const [user, params] = await Promise.all([requireCurrentUser("/meus-anuncios"), searchParams]);
   const [properties, freighter] = await Promise.all([
     prisma.property.findMany({ where: { ownerId: user.id, status: { not: "ARCHIVED" } }, orderBy: { createdAt: "desc" }, include: { city: true } }),
     prisma.freighterProfile.findUnique({ where: { userId: user.id }, include: { city: true } }),
@@ -26,6 +29,7 @@ export default async function MyListingsPage() {
       <Header />
       <main className="account-page">
         <div className="container listings-page">
+          {params.criado === "imovel" ? <ClearPropertyDraft /> : null}
           <div className="account-heading account-heading--row">
             <div><span className="section-kicker">Sua área</span><h1>Meus anúncios</h1><p>Gerencie imóveis e serviços publicados com a sua conta.</p></div>
             <Link className="button button--primary" href="/publicar">Novo anúncio</Link>
