@@ -8,7 +8,7 @@ import { requireAdmin } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
 import { freighterUrl, propertyUrl } from "@/lib/listings/urls";
 import { formatBrazilianPhone } from "@/lib/validation/profile";
-import { moderateFreighter, moderateProperty } from "./actions";
+import { moderateFreighter, moderateProperty, reviewNeighborhood } from "./actions";
 
 type Props = {
   searchParams: Promise<{ tipo?: string; status?: string; concluido?: string; erro?: string }>;
@@ -81,7 +81,7 @@ export default async function ModerationPage({ searchParams }: Props) {
   const tipo = params.tipo === "freteiros" || params.tipo === "imoveis" ? params.tipo : "todos";
   const status = statuses.includes(params.status as ContentStatus) ? params.status as ContentStatus : "PENDING";
 
-  const [properties, freighters, pendingProperties, pendingFreighters, activeProperties, activeFreighters, rejectedProperties, rejectedFreighters] = await Promise.all([
+  const [properties, freighters, pendingProperties, pendingFreighters, activeProperties, activeFreighters, rejectedProperties, rejectedFreighters, pendingNeighborhoods] = await Promise.all([
     prisma.property.findMany({
       where: { status },
       include: { owner: { select: { name: true, email: true, phone: true } }, city: true, neighborhood: true },
@@ -100,6 +100,7 @@ export default async function ModerationPage({ searchParams }: Props) {
     prisma.freighterProfile.count({ where: { status: "ACTIVE" } }),
     prisma.property.count({ where: { status: "REJECTED" } }),
     prisma.freighterProfile.count({ where: { status: "REJECTED" } }),
+    prisma.neighborhood.findMany({ where: { needsReview: true }, include: { city: true, _count: { select: { properties: true } } }, orderBy: [{ city: { name: "asc" } }, { name: "asc" }], take: 100 }),
   ]);
 
   const visibleProperties = tipo === "freteiros" ? [] : properties;
@@ -107,7 +108,7 @@ export default async function ModerationPage({ searchParams }: Props) {
   const total = visibleProperties.length + visibleFreighters.length;
   const activeTotal = activeProperties + activeFreighters;
   const rejectedTotal = rejectedProperties + rejectedFreighters;
-  const successMessages: Record<string, string> = { approve: "Anúncio aprovado e publicado.", reject: "Anúncio reprovado e o motivo foi salvo.", pause: "Anúncio pausado." };
+  const successMessages: Record<string, string> = { approve: "Anúncio aprovado e publicado.", reject: "Anúncio reprovado e o motivo foi salvo.", pause: "Anúncio pausado.", bairro: "Bairro revisado. Registros duplicados foram unificados quando necessário." };
 
   return (
     <>
@@ -123,11 +124,31 @@ export default async function ModerationPage({ searchParams }: Props) {
           {params.concluido && successMessages[params.concluido] ? <p className="admin-alert admin-alert--success">{successMessages[params.concluido]}</p> : null}
           {params.erro ? <p className="admin-alert admin-alert--error">{params.erro === "motivo" ? "Informe um motivo com pelo menos 5 caracteres." : "Não foi possível concluir a ação."}</p> : null}
 
-          <section className="admin-stats" aria-label="Resumo da moderação">
+          <section className="admin-stats admin-stats--with-neighborhoods" aria-label="Resumo da moderação">
             <div><small>Aguardando análise</small><strong>{pendingProperties + pendingFreighters}</strong><span>{pendingProperties} imóveis · {pendingFreighters} freteiros</span></div>
             <div><small>Publicados</small><strong>{activeTotal}</strong><span>Visíveis para o público</span></div>
             <div><small>Reprovados</small><strong>{rejectedTotal}</strong><span>Com orientação para correção</span></div>
+            <div><small>Bairros para revisar</small><strong>{pendingNeighborhoods.length}</strong><span>Digitados por anunciantes</span></div>
           </section>
+
+          {pendingNeighborhoods.length ? (
+            <section className="neighborhood-review" aria-labelledby="neighborhood-review-title">
+              <div className="neighborhood-review__heading">
+                <div><span className="section-kicker">Qualidade da localização</span><h2 id="neighborhood-review-title">Bairros para revisar</h2></div>
+                <p>Corrija o nome ou use exatamente o nome de um bairro existente para mesclar os registros.</p>
+              </div>
+              <div className="neighborhood-review__list">
+                {pendingNeighborhoods.map(neighborhood => (
+                  <form action={reviewNeighborhood} className="neighborhood-review__item" key={neighborhood.id}>
+                    <input type="hidden" name="id" value={neighborhood.id} />
+                    <div><strong>{neighborhood.city.name} — {neighborhood.city.stateCode}</strong><small>{neighborhood._count.properties} {neighborhood._count.properties === 1 ? "imóvel associado" : "imóveis associados"}</small></div>
+                    <label><span>Nome do bairro</span><input name="name" defaultValue={neighborhood.name} minLength={2} maxLength={80} required /></label>
+                    <PendingSubmitButton className="moderation-button moderation-button--approve" pendingText="Salvando...">Aprovar ou mesclar</PendingSubmitButton>
+                  </form>
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           <div className="admin-toolbar">
             <nav className="admin-tabs" aria-label="Tipo de anúncio">
