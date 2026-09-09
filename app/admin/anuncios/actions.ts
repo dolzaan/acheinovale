@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
 import { freighterUrl, propertyUrl } from "@/lib/listings/urls";
+import { slugify } from "@/lib/validation/listing";
 
 type ModerationIntent = "approve" | "reject" | "pause";
 
@@ -85,4 +86,40 @@ export async function moderateFreighter(formData: FormData) {
 
   refreshModerationPages(freighterUrl(freighter));
   redirect(`/admin/anuncios?concluido=${intent}`);
+}
+
+
+export async function reviewNeighborhood(formData: FormData) {
+  await requireAdmin();
+  const id = field(formData, "id");
+  const name = field(formData, "name").replace(/\s+/g, " ");
+  if (!id || name.length < 2 || name.length > 80) redirect("/admin/anuncios?erro=bairro");
+
+  const source = await prisma.neighborhood.findUnique({ where: { id }, include: { city: true } });
+  if (!source) redirect("/admin/anuncios?erro=nao-encontrado");
+
+  const slug = slugify(name);
+  if (!slug) redirect("/admin/anuncios?erro=bairro");
+
+  const duplicate = await prisma.neighborhood.findFirst({
+    where: { cityId: source.cityId, slug, id: { not: source.id } },
+    select: { id: true },
+  });
+
+  if (duplicate) {
+    await prisma.$transaction([
+      prisma.property.updateMany({ where: { neighborhoodId: source.id }, data: { neighborhoodId: duplicate.id } }),
+      prisma.neighborhood.update({ where: { id: duplicate.id }, data: { needsReview: false } }),
+      prisma.neighborhood.delete({ where: { id: source.id } }),
+    ]);
+  } else {
+    await prisma.neighborhood.update({
+      where: { id: source.id },
+      data: { name, slug, needsReview: false },
+    });
+  }
+
+  revalidatePath("/admin/anuncios");
+  revalidatePath("/imoveis");
+  redirect("/admin/anuncios?concluido=bairro");
 }
