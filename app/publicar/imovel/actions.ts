@@ -93,7 +93,7 @@ export async function createProperty(formData: FormData) {
   const description = field(formData, "description");
   const cityId = field(formData, "cityId");
   let neighborhoodId = field(formData, "neighborhoodId");
-  let neighborhoodName = field(formData, "neighborhoodName").replace(/\\s+/g, " ");
+  let neighborhoodName = field(formData, "neighborhoodName").replace(/\s+/g, " ");
   const cep = normalizeCep(field(formData, "cep"));
   const purpose = field(formData, "purpose");
   const type = field(formData, "type");
