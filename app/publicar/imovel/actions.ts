@@ -138,7 +138,7 @@ export async function createProperty(formData: FormData) {
       await removeUploadedMedia(uploadedMediaKeys);
       redirect("/publicar/imovel?erro=cep");
     }
-    if (verifiedAddress.neighborhood) {
+    if (verifiedAddress.neighborhood && !neighborhoodName) {
       neighborhoodId = verifiedAddress.neighborhood.id;
       neighborhoodName = verifiedAddress.neighborhood.name;
     }
