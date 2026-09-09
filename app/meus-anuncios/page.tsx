@@ -29,7 +29,7 @@ export default async function MyListingsPage({ searchParams }: Props) {
       <Header />
       <main className="account-page">
         <div className="container listings-page">
-          {params.criado === "imovel" ? <ClearPropertyDraft /> : null}
+          {params.criado === "imovel" ? <ClearPropertyDraft ownerKey={user.authUserId || user.id} /> : null}
           <div className="account-heading account-heading--row">
             <div><span className="section-kicker">Sua área</span><h1>Meus anúncios</h1><p>Gerencie imóveis e serviços publicados com a sua conta.</p></div>
             <Link className="button button--primary" href="/publicar">Novo anúncio</Link>
