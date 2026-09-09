@@ -19,6 +19,7 @@ export function CityTourismVisual({ citySlug, cityName }: { citySlug?: string; c
               unoptimized={photo.src.startsWith("https://")}
             />
             <figcaption><PinIcon size={17} /><span>{photo.caption}<small>{cityName}, SC</small></span></figcaption>
+            <div className="regional-signature"><Image src="/brand/symbol-green.png" alt="" width={36} height={35} /><span>Encontre perto.<br/><strong>Resolva no Vale.</strong></span></div>
           </figure>
           <details className="photo-credits">
             <summary>Crédito da foto</summary>
@@ -32,7 +33,6 @@ export function CityTourismVisual({ citySlug, cityName }: { citySlug?: string; c
           <span>{citySlug ? "Encontre imóveis e conheça a região." : "Veja os imóveis disponíveis perto de você."}</span>
         </div>
       )}
-      <div className="regional-signature"><Image src="/brand/symbol-green.png" alt="" width={36} height={35} /><span>Encontre perto.<br/><strong>Resolva no Vale.</strong></span></div>
     </div>
   );
 }
