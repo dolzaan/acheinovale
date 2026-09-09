@@ -11,8 +11,15 @@ function run(command, args) {
 }
 
 if (process.env.VERCEL_ENV === "production") {
-  console.log("[build] Aplicando migrações pendentes no banco de produção...");
-  run("prisma", ["migrate", "deploy"]);
+  console.log("[build] Aplicando a alteração aprovada de revisão de bairros...");
+  run("prisma", [
+    "db",
+    "execute",
+    "--file",
+    "prisma/migrations/20260909195500_add_neighborhood_review/migration.sql",
+    "--schema",
+    "prisma/schema.prisma",
+  ]);
 }
 
 run("prisma", ["generate"]);
