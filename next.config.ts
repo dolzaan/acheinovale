@@ -19,11 +19,6 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "thumb.wikimedia.org",
-        pathname: "/wikipedia/commons/**",
-      },
-      {
-        protocol: "https",
         hostname: "ftagpobydhyofwsgnjfd.supabase.co",
         pathname: "/storage/v1/object/public/**",
       },
