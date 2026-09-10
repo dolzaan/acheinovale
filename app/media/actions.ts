@@ -46,13 +46,14 @@ function validRequest(request: PropertyMediaUploadRequest, authUserId: string) {
 export async function authorizePropertyMediaUploads(requests: PropertyMediaUploadRequest[]) {
   const user = await requireCurrentUser("/publicar/imovel");
   if (!user.authUserId) return { ok: false as const, message: "Sua sessão expirou. Entre novamente." };
+  const authUserId = user.authUserId;
 
   if (
     !Array.isArray(requests) ||
     requests.length < 1 ||
     requests.length > 11 ||
     new Set(requests.map(request => request.storageKey)).size !== requests.length ||
-    requests.some(request => !validRequest(request, user.authUserId))
+    requests.some(request => !validRequest(request, authUserId))
   ) {
     return { ok: false as const, message: "Os arquivos selecionados não são válidos." };
   }
@@ -67,7 +68,7 @@ export async function authorizePropertyMediaUploads(requests: PropertyMediaUploa
     return { ok: false as const, message: "Muitos envios em pouco tempo. Aguarde alguns minutos." };
   }
 
-  const folder = `${user.authUserId}/properties`;
+  const folder = `${authUserId}/properties`;
   const storage = createAdminClient().storage.from(STORAGE_BUCKETS.properties);
   const { data: storedObjects, error: storageError } = await storage.list(folder, {
     limit: 1000,
@@ -96,14 +97,14 @@ export async function authorizePropertyMediaUploads(requests: PropertyMediaUploa
         where: { expiresAt: { lte: new Date() } },
       });
       const activeGrants = await tx.mediaUploadGrant.count({
-        where: { authUserId: user.authUserId!, expiresAt: { gt: new Date() } },
+        where: { authUserId: authUserId, expiresAt: { gt: new Date() } },
       });
       if (activeGrants + requests.length > MAX_ACTIVE_GRANTS_PER_USER) {
         throw new Error("ACTIVE_GRANT_LIMIT");
       }
       await tx.mediaUploadGrant.createMany({
         data: requests.map(request => ({
-          authUserId: user.authUserId!,
+          authUserId: authUserId,
           storageKey: request.storageKey,
           mimeType: request.mimeType,
           maxBytes: request.size,
