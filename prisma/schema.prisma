@@ -292,3 +292,13 @@ model Report {
   @@index([status, createdAt])
   @@map("denuncias")
 }
+
+model RateLimitBucket {
+  key       String   @id @map("chave")
+  count     Int      @default(1) @map("quantidade")
+  resetAt   DateTime @map("reinicia_em")
+  updatedAt DateTime @updatedAt @map("atualizado_em")
+
+  @@index([resetAt])
+  @@map("limites_requisicao")
+}

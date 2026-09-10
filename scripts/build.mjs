@@ -11,15 +11,22 @@ function run(command, args) {
 }
 
 if (process.env.VERCEL_ENV === "production") {
-  console.log("[build] Aplicando a alteração aprovada de revisão de bairros...");
-  run("prisma", [
-    "db",
-    "execute",
-    "--file",
+  const productionMigrations = [
     "prisma/migrations/20260909195500_add_neighborhood_review/migration.sql",
-    "--schema",
-    "prisma/schema.prisma",
-  ]);
+    "prisma/migrations/20260910173000_security_hardening/migration.sql",
+  ];
+
+  for (const migration of productionMigrations) {
+    console.log(`[build] Aplicando migração idempotente: ${migration}`);
+    run("prisma", [
+      "db",
+      "execute",
+      "--file",
+      migration,
+      "--schema",
+      "prisma/schema.prisma",
+    ]);
+  }
 }
 
 run("prisma", ["generate"]);

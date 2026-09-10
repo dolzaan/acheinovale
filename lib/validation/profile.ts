@@ -1,4 +1,5 @@
 const BRAZIL_COUNTRY_CODE = "55";
+const INTERNAL_ORIGIN = "https://acheinovale.internal";
 
 export function normalizeBrazilianPhone(value: string) {
   let digits = value.replace(/\D/g, "");
@@ -31,5 +32,13 @@ export function formatBrazilianPhone(value: string | null | undefined) {
 
 export function safeInternalPath(value: string | null | undefined, fallback = "/perfil") {
   if (!value || !value.startsWith("/") || value.startsWith("//")) return fallback;
-  return value;
+  if (/[\\\u0000-\u001f\u007f]/.test(value) || /%5c/i.test(value)) return fallback;
+
+  try {
+    const parsed = new URL(value, INTERNAL_ORIGIN);
+    if (parsed.origin !== INTERNAL_ORIGIN) return fallback;
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return fallback;
+  }
 }
