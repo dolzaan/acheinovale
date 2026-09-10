@@ -249,3 +249,76 @@
   .neighborhood-review__item .moderation-button { grid-column: auto; width: 100%; }
 }
 .moderation-location-warning { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 12px; border-radius: 10px; background: var(--brand-gold-soft); color: var(--brand-green); font-size: .75rem; font-weight: 800; line-height: 1.4; }
+
+/* A calmer mobile header: one primary action per area and a full-width city selector. */
+@media (max-width: 680px) {
+  body { padding-bottom: 76px; }
+  .header-inner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    padding-block: 6px 8px;
+  }
+  .brand { padding-block: 4px; }
+  .brand__image { width: 124px; }
+  .header-actions { grid-column: 2; grid-row: 1; }
+  .header-actions > .button,
+  .header-actions > .login-link,
+  .header-actions > .user-menu { display: none; }
+  .header-search__trigger { width: 42px; height: 42px; }
+  .header-location {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: block;
+    padding: 6px 0 0;
+  }
+  .header-location__label { display: none; }
+  .header-location .city-menu { display: block; width: 100%; }
+  .header-location .city-switcher {
+    width: 100%;
+    max-width: none;
+    min-height: 42px;
+    justify-content: flex-start;
+    padding: 9px 12px;
+    border-radius: 14px;
+    background: rgba(255,255,255,.84);
+  }
+  .header-location .city-switcher span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .header-location .city-switcher svg:last-child { margin-left: auto; }
+  .hero { padding-top: 18px; }
+  .mobile-nav { height: 76px; }
+  .mobile-nav__publish {
+    place-self: center;
+    display: flex;
+    width: 70px;
+    height: 66px;
+    margin: 0;
+    transform: translateY(-9px);
+    align-items: center;
+    justify-content: flex-end;
+    flex-direction: column;
+    gap: 2px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--brand-green);
+    font-size: .75rem;
+    font-weight: 700;
+  }
+  .mobile-nav__publish-icon {
+    display: grid;
+    width: 51px;
+    height: 51px;
+    place-items: center;
+    border: 5px solid #f7f8f5;
+    border-radius: 50%;
+    background: var(--brand-green);
+    color: white;
+    box-shadow: 0 8px 20px rgba(23,63,53,.3);
+  }
+  .mobile-nav__publish-label { line-height: 1; }
+}
