@@ -114,3 +114,12 @@ export const cityTourismPhotos: Record<string, CityTourismPhoto> = {
     licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/",
   },
 };
+
+export const regionalTourismFallback: CityTourismPhoto = {
+  src: "/brand/rio-do-sul-entardecer.webp",
+  caption: "Paisagem regional do Alto Vale, registrada em Rio do Sul",
+  author: "Pedro Terres",
+  sourceUrl: "https://commons.wikimedia.org/wiki/File:Entardecer_em_Rio_do_Sul_-_SC.jpeg",
+  license: "CC BY-SA 2.0",
+  licenseUrl: "https://creativecommons.org/licenses/by-sa/2.0/",
+};
