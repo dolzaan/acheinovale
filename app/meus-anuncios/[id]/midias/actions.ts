@@ -8,6 +8,7 @@ import {
   isPropertyImageKey,
   isPropertyVideoKey,
   removePropertyMedia,
+  releasePropertyMediaUploadGrants,
   verifyPropertyImages,
   verifyPropertyVideo,
   videoMimeTypeFromKey,
@@ -116,6 +117,7 @@ export async function updatePropertyMedia(propertyId: string, formData: FormData
     redirect(`/meus-anuncios/${propertyId}/midias?erro=salvar`);
   }
 
+  await releasePropertyMediaUploadGrants(newKeys);
   await cleanup([...removedImages.map(item => item.storageKey), ...removedVideos.map(item => item.storageKey)]);
   revalidatePath("/meus-anuncios");
   revalidatePath("/imoveis");

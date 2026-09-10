@@ -1,7 +1,10 @@
 import "server-only";
 
+import { prisma } from "@/lib/db";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
+  isSupportedProfileImage,
+  propertyMediaPublicUrl,
   PROPERTY_IMAGE_LIMIT,
   PROPERTY_IMAGE_MAX_BYTES,
   PROPERTY_IMAGE_MIME_TYPES,
@@ -70,10 +73,49 @@ export function videoMimeTypeFromKey(key: string) {
   return "video/mp4";
 }
 
+export async function releasePropertyMediaUploadGrants(keys: string[]) {
+  if (!keys.length) return;
+  try {
+    await prisma.mediaUploadGrant.deleteMany({ where: { storageKey: { in: keys } } });
+  } catch (error) {
+    console.warn("[media/upload] Não foi possível liberar autorizações.", {
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
 export async function removePropertyMedia(keys: string[]) {
   if (!keys.length) return;
   const { error } = await createAdminClient().storage.from(STORAGE_BUCKETS.properties).remove(keys);
+  await releasePropertyMediaUploadGrants(keys);
   if (error) throw error;
+}
+
+async function readMediaHeader(key: string) {
+  const url = propertyMediaPublicUrl(key);
+  if (!url) return null;
+  try {
+    const response = await fetch(url, {
+      headers: { Range: "bytes=0-31" },
+      cache: "no-store",
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!response.ok) return null;
+    const reader = response.body?.getReader();
+    if (!reader) return null;
+    const { value } = await reader.read();
+    await reader.cancel();
+    return value ? value.slice(0, 32) : null;
+  } catch {
+    return null;
+  }
+}
+
+function isSupportedVideoHeader(bytes: Uint8Array, mimeType: string) {
+  if (mimeType === "video/webm") {
+    return bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3;
+  }
+  return new TextDecoder().decode(bytes.slice(4, 8)) === "ftyp";
 }
 
 export async function verifyPropertyImages(keys: string[], authUserId: string) {
@@ -86,7 +128,13 @@ export async function verifyPropertyImages(keys: string[], authUserId: string) {
     if (error) return false;
     const file = data?.find(candidate => candidate.name === name);
     const metadata = file?.metadata as { size?: number; mimetype?: string } | undefined;
-    return Boolean(file && metadata?.size && metadata.size <= PROPERTY_IMAGE_MAX_BYTES && metadata.mimetype && PROPERTY_IMAGE_MIME_TYPES.includes(metadata.mimetype as (typeof PROPERTY_IMAGE_MIME_TYPES)[number]));
+    const mimeType = metadata?.mimetype;
+    if (
+      !file || !metadata?.size || metadata.size > PROPERTY_IMAGE_MAX_BYTES ||
+      !mimeType || !PROPERTY_IMAGE_MIME_TYPES.includes(mimeType as (typeof PROPERTY_IMAGE_MIME_TYPES)[number])
+    ) return false;
+    const bytes = await readMediaHeader(key);
+    return Boolean(bytes && isSupportedProfileImage(bytes, mimeType));
   }));
   return checks.every(Boolean);
 }
@@ -99,5 +147,11 @@ export async function verifyPropertyVideo(key: string, authUserId: string) {
   if (error) return false;
   const file = data?.find(candidate => candidate.name === name);
   const metadata = file?.metadata as { size?: number; mimetype?: string } | undefined;
-  return Boolean(file && metadata?.size && metadata.size <= PROPERTY_VIDEO_MAX_BYTES && metadata.mimetype && PROPERTY_VIDEO_MIME_TYPES.includes(metadata.mimetype as (typeof PROPERTY_VIDEO_MIME_TYPES)[number]));
+  const mimeType = metadata?.mimetype;
+  if (
+    !file || !metadata?.size || metadata.size > PROPERTY_VIDEO_MAX_BYTES ||
+    !mimeType || !PROPERTY_VIDEO_MIME_TYPES.includes(mimeType as (typeof PROPERTY_VIDEO_MIME_TYPES)[number])
+  ) return false;
+  const bytes = await readMediaHeader(key);
+  return Boolean(bytes && isSupportedVideoHeader(bytes, mimeType));
 }

@@ -302,3 +302,17 @@ model RateLimitBucket {
   @@index([resetAt])
   @@map("limites_requisicao")
 }
+
+model MediaUploadGrant {
+  id           String   @id @default(cuid())
+  authUserId   String   @map("id_usuario_auth") @db.Uuid
+  storageKey   String   @unique @map("chave_armazenamento")
+  mimeType     String   @map("tipo_mime")
+  maxBytes     Int      @map("tamanho_maximo")
+  expiresAt    DateTime @map("expira_em")
+  createdAt    DateTime @default(now()) @map("criado_em")
+
+  @@index([authUserId, expiresAt])
+  @@index([expiresAt])
+  @@map("autorizacoes_upload_midia")
+}

@@ -9,6 +9,7 @@ import {
   parseStoredMediaOrder,
   parseVideoKey,
   removePropertyMedia,
+  releasePropertyMediaUploadGrants,
   verifyPropertyImages,
   verifyPropertyVideo,
   videoMimeTypeFromKey,
@@ -229,5 +230,6 @@ export async function createProperty(formData: FormData) {
     });
     redirect("/publicar/imovel?erro=salvar");
   }
+  await releasePropertyMediaUploadGrants(uploadedMediaKeys);
   redirect("/meus-anuncios?criado=imovel");
 }

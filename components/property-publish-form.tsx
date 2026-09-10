@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { authorizePropertyMediaUploads } from "@/app/media/actions";
 import { createProperty, lookupPropertyCep } from "@/app/publicar/imovel/actions";
 import { MoneyInput } from "@/components/money-input";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
@@ -366,24 +367,33 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
       }
 
       const orderedPhotos = mediaOrder.map(id => photos.find(photo => photo.id === id)).filter((photo): photo is SelectedMedia => Boolean(photo));
-      const imageResults = await Promise.all(orderedPhotos.map(async photo => {
-        const storageKey = createPropertyImagePath(authUserId, photo.file.type);
-        const { error } = await supabase.storage.from(STORAGE_BUCKETS.properties).upload(storageKey, photo.file, {
-          contentType: photo.file.type,
+      const plannedImages = orderedPhotos.map(photo => ({
+        id: photo.id,
+        file: photo.file,
+        storageKey: createPropertyImagePath(authUserId, photo.file.type),
+      }));
+      const uploadedVideoKey = video ? createPropertyVideoPath(authUserId, video.file.type) : "";
+      const authorization = await authorizePropertyMediaUploads([
+        ...plannedImages.map(item => ({ storageKey: item.storageKey, mimeType: item.file.type, size: item.file.size })),
+        ...(video && uploadedVideoKey ? [{ storageKey: uploadedVideoKey, mimeType: video.file.type, size: video.file.size }] : []),
+      ]);
+      if (!authorization.ok) throw new Error(authorization.message);
+
+      const imageResults = await Promise.all(plannedImages.map(async item => {
+        const { error } = await supabase.storage.from(STORAGE_BUCKETS.properties).upload(item.storageKey, item.file, {
+          contentType: item.file.type,
           cacheControl: "31536000",
           upsert: false,
         });
         setPhotoProgress(current => current + 1);
-        return { id: photo.id, storageKey, error };
+        return { id: item.id, storageKey: item.storageKey, error };
       }));
 
       const failedPhoto = imageResults.find(result => result.error);
       uploadedKeys.push(...imageResults.filter(result => !result.error).map(result => result.storageKey));
       if (failedPhoto) throw new Error(failedPhoto.error?.message || "Não foi possível enviar as fotos.");
 
-      let uploadedVideoKey = "";
-      if (video) {
-        uploadedVideoKey = createPropertyVideoPath(authUserId, video.file.type);
+      if (video && uploadedVideoKey) {
         await uploadPropertyVideo(video.file, uploadedVideoKey, sessionData.session.access_token, setVideoProgress);
         uploadedKeys.push(uploadedVideoKey);
       }
