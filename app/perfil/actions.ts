@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { checkRateLimit } from "@/lib/security/rate-limit";
 import {
   createProfileImagePath,
   isSupportedProfileImage,
@@ -22,6 +23,8 @@ function value(formData: FormData, key: string) {
 
 export async function updateProfile(formData: FormData) {
   const user = await requireCurrentUser("/perfil");
+  const rateLimit = await checkRateLimit({ scope: "perfil", identifier: user.id, limit: 20, windowSeconds: 60 * 60 });
+  if (!rateLimit.allowed) redirect("/perfil?erro=limite");
   const name = value(formData, "name");
   const cityId = value(formData, "cityId");
   const phone = normalizeBrazilianPhone(value(formData, "phone"));

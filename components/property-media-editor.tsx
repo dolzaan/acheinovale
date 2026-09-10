@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { authorizePropertyMediaUploads } from "@/app/media/actions";
 import { updatePropertyMedia } from "@/app/meus-anuncios/[id]/midias/actions";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { PropertyMediaOrganizer, type PropertyOrganizerItem } from "@/components/property-media-organizer";
@@ -117,10 +118,24 @@ export function PropertyMediaEditor({ propertyId, authUserId, initialItems }: { 
       const [{ data: auth, error: authError }, { data: sessionData }] = await Promise.all([supabase.auth.getUser(), supabase.auth.getSession()]);
       if (authError || auth.user?.id !== authUserId || !sessionData.session?.access_token) throw new Error("Sua sessão expirou. Entre novamente.");
 
+      const pendingItems = items.filter((item): item is MediaItem & { file: File } => !item.existing && Boolean(item.file));
+      const plannedUploads = pendingItems.map(item => ({
+        item,
+        storageKey: item.kind === "image"
+          ? createPropertyImagePath(authUserId, item.file.type)
+          : createPropertyVideoPath(authUserId, item.file.type),
+      }));
+      if (plannedUploads.length) {
+        const authorization = await authorizePropertyMediaUploads(plannedUploads.map(({ item, storageKey }) => ({
+          storageKey,
+          mimeType: item.file.type,
+          size: item.file.size,
+        })));
+        if (!authorization.ok) throw new Error(authorization.message);
+      }
+
       const uploaded = new Map<string, string>();
-      for (const item of items) {
-        if (item.existing || !item.file) continue;
-        const storageKey = item.kind === "image" ? createPropertyImagePath(authUserId, item.file.type) : createPropertyVideoPath(authUserId, item.file.type);
+      for (const { item, storageKey } of plannedUploads) {
         if (item.kind === "image") {
           const { error: uploadError } = await supabase.storage.from(STORAGE_BUCKETS.properties).upload(storageKey, item.file, { contentType: item.file.type, cacheControl: "31536000", upsert: false });
           if (uploadError) throw uploadError;
