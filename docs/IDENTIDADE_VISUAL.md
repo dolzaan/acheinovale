@@ -35,7 +35,9 @@ A cidade fica acessível em uma faixa própria no cabeçalho móvel. Busca e aç
 
 ### Fotografias regionais
 
-As imagens são ilustrativas da região de Rio do Sul; não representam imóveis anunciados nem mudam de localização quando outra cidade é selecionada. Os créditos também estão acessíveis no destaque da página.
+O destaque acompanha a cidade selecionada no filtro. O mapa `data/city-tourism.ts` associa cada município a uma fotografia de referência turística ou paisagística, com legenda, autoria e licença. As imagens não representam os imóveis anunciados. Enquanto uma cidade não possui foto municipal licenciada, ela recebe uma paisagem regional claramente identificada como referência do Alto Vale; a legenda nunca atribui essa foto ao município selecionado. Os créditos estão acessíveis junto à foto.
+
+As fotografias regionais abaixo permanecem no projeto. A imagem de entardecer é também a referência regional temporária das cidades que ainda não possuem fotografia municipal licenciada.
 
 - `rio-do-sul-centro.webp`: Parzeus, “Centro de Rio do Sul - 05.06.2021 07”, Wikimedia Commons, CC BY-SA 4.0. Fonte: https://commons.wikimedia.org/wiki/File:Centro_de_Rio_do_Sul_-_05.06.2021_07.jpg — Licença: https://creativecommons.org/licenses/by-sa/4.0/
 - `rio-do-sul-entardecer.webp`: Pedro Terres, “Entardecer em Rio do Sul - SC”, Wikimedia Commons, CC BY-SA 2.0. Fonte: https://commons.wikimedia.org/wiki/File:Entardecer_em_Rio_do_Sul_-_SC.jpeg — Licença: https://creativecommons.org/licenses/by-sa/2.0/
