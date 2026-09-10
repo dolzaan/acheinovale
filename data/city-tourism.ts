@@ -116,10 +116,10 @@ export const cityTourismPhotos: Record<string, CityTourismPhoto> = {
 };
 
 export const regionalTourismFallback: CityTourismPhoto = {
-  src: "/tourism/rio-do-sul.webp",
-  caption: "Morro dos Três Picos, em Rio do Sul",
-  author: "Alexandre Vicenzi",
-  sourceUrl: "https://commons.wikimedia.org/wiki/File:3_Picos_-_Rio_do_Sul.jpg",
+  src: "/tourism/santa-terezinha.webp",
+  caption: "Paisagem do Morro do Taió, em Santa Terezinha",
+  author: "Paulo Marcelo Adamek",
+  sourceUrl: "https://commons.wikimedia.org/wiki/File:Morro_do_Tai%C3%B3.jpg",
   license: "CC BY-SA 4.0",
   licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/",
 };
