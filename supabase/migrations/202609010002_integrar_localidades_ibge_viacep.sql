@@ -1,4 +1,4 @@
--- Municípios do Alto Vale conforme a API de Localidades do IBGE.
+-- Municípios do Alto Vale do Itajaí conforme a API de Localidades do IBGE.
 -- O código IBGE permite relacionar com segurança a resposta do ViaCEP à cidade interna.
 ALTER TABLE public.cidades
   ADD COLUMN IF NOT EXISTS codigo_ibge varchar(7);

@@ -59,7 +59,7 @@ export default async function FreighterPage({ params }: Props) {
 
           <div className="listing-detail__hero listing-detail__hero--freighter">
             <TruckIcon size={65} />
-            <span>Fretes, mudanças e entregas no Alto Vale.</span>
+            <span>Fretes, mudanças e entregas no Alto Vale do Itajaí.</span>
           </div>
 
           <div className="listing-detail__grid">

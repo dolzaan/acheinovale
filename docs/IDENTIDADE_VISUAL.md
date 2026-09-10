@@ -35,7 +35,7 @@ A cidade fica acessível em uma faixa própria no cabeçalho móvel. Busca e aç
 
 ### Fotografias regionais
 
-O destaque acompanha a cidade selecionada no filtro. O mapa `data/city-tourism.ts` associa cada município a uma fotografia de referência turística ou paisagística, com legenda, autoria e licença. As imagens não representam os imóveis anunciados. Enquanto uma cidade não possui foto municipal licenciada, ela recebe uma paisagem regional claramente identificada como referência do Alto Vale; a legenda nunca atribui essa foto ao município selecionado. Os créditos estão acessíveis junto à foto.
+O destaque acompanha a cidade selecionada no filtro. O mapa `data/city-tourism.ts` associa cada município a uma fotografia de referência turística ou paisagística, com legenda, autoria e licença. As imagens não representam os imóveis anunciados. Enquanto uma cidade não possui foto municipal licenciada, ela recebe uma paisagem regional claramente identificada como referência do Alto Vale do Itajaí; a legenda nunca atribui essa foto ao município selecionado. Os créditos estão acessíveis junto à foto.
 
 A imagem de entardecer em Rio do Sul é a referência regional temporária das cidades que ainda não possuem fotografia municipal licenciada.
 
