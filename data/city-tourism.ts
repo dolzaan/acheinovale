@@ -116,10 +116,10 @@ export const cityTourismPhotos: Record<string, CityTourismPhoto> = {
 };
 
 export const regionalTourismFallback: CityTourismPhoto = {
-  src: "/brand/rio-do-sul-entardecer.webp",
-  caption: "Paisagem regional do Alto Vale, registrada em Rio do Sul",
-  author: "Pedro Terres",
-  sourceUrl: "https://commons.wikimedia.org/wiki/File:Entardecer_em_Rio_do_Sul_-_SC.jpeg",
-  license: "CC BY-SA 2.0",
-  licenseUrl: "https://creativecommons.org/licenses/by-sa/2.0/",
+  src: "/tourism/rio-do-sul.webp",
+  caption: "Morro dos Três Picos, em Rio do Sul",
+  author: "Alexandre Vicenzi",
+  sourceUrl: "https://commons.wikimedia.org/wiki/File:3_Picos_-_Rio_do_Sul.jpg",
+  license: "CC BY-SA 4.0",
+  licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/",
 };
