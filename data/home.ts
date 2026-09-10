@@ -53,7 +53,7 @@ export const freighters = [
     id: "vale-mudancas",
     name: "Vale Mudanças",
     initials: "VM",
-    location: "Alto Vale",
+    location: "Alto Vale do Itajaí",
     rating: "4,8",
     reviews: 24,
     availability: "Agenda esta semana",
