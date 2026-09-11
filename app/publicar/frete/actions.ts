@@ -65,7 +65,7 @@ export async function saveFreighterProfile(formData: FormData) {
       whatsapp,
       serviceRadiusKm: radius.value,
       priceNote: priceNote || null,
-      availableToday: field(formData, "availableToday") === "on",
+      availableToday: false,
       status: "PENDING" as const,
     };
     const profile = existing

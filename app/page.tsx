@@ -37,7 +37,6 @@ export default async function HomePage({ searchParams }: Props) {
   const propertiesHref = cityQuery ? `/imoveis?${cityQuery}` : "/imoveis";
   const freightersHref = cityQuery ? `/freteiros?${cityQuery}` : "/freteiros";
   const rentalsHref = `${propertiesHref}${cityQuery ? "&" : "?"}finalidade=aluguel`;
-  const availableFreightersHref = `${freightersHref}${cityQuery ? "&" : "?"}disponivel=hoje`;
 
   return (
     <>
@@ -60,7 +59,7 @@ export default async function HomePage({ searchParams }: Props) {
               <div className="quick-searches" aria-label="Buscas populares">
                 <span>Buscas populares:</span>
                 <Link href={rentalsHref}>Imóveis para alugar</Link>
-                <Link href={availableFreightersHref}>Frete hoje</Link>
+                <Link href={freightersHref}>Encontrar freteiro</Link>
               </div>
             </div>
 
@@ -126,10 +125,7 @@ export default async function HomePage({ searchParams }: Props) {
             <div className="freighter-grid">
               {freighters.map((freighter) => (
                 <article className="freighter-card" key={freighter.id}>
-                  <div className="freighter-card__top">
-                    <div className={`freighter-avatar freighter-avatar--${freighter.tone}`}><TruckIcon size={28}/><span>{freighter.initials}</span></div>
-                    <span className={`availability ${freighter.availability.includes("hoje") ? "availability--now" : ""}`}>{freighter.availability}</span>
-                  </div>
+                  <div className="freighter-card__top"><div className={`freighter-avatar freighter-avatar--${freighter.tone}`}><TruckIcon size={28}/><span>{freighter.initials}</span></div></div>
                   <h3>{freighter.name}</h3>
                   <span className="freighter-location"><PinIcon size={15}/>{freighter.location}</span>
                   <div className="rating"><StarIcon/><strong>{freighter.rating}</strong><span>({freighter.reviews} avaliações)</span></div>
