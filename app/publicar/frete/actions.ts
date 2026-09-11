@@ -24,15 +24,6 @@ function field(data: FormData, name: string) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function optionalRadius(data: FormData) {
-  const raw = field(data, "serviceRadiusKm");
-  if (!raw) return { valid: true, value: null };
-  const value = Number(raw);
-  return Number.isInteger(value) && value >= 1 && value <= 500
-    ? { valid: true, value }
-    : { valid: false, value: null };
-}
-
 export async function saveFreighterProfile(formData: FormData) {
   const user = await requireCurrentUser("/publicar/frete");
   const rateLimit = await checkRateLimit({ scope: "publicar-frete", identifier: user.id, limit: 10, windowSeconds: 60 * 60 });
@@ -45,7 +36,6 @@ export async function saveFreighterProfile(formData: FormData) {
   const priceNote = field(formData, "priceNote");
   const vehicleTypes = formData.getAll("vehicleTypes").filter((item): item is string => typeof item === "string" && VEHICLE_TYPES.has(item));
   const requestedServiceCityIds = [...new Set(formData.getAll("serviceCityIds").filter((item): item is string => typeof item === "string" && item.length <= 80))];
-  const radius = optionalRadius(formData);
   const services = field(formData, "services")
     .split(",")
     .map(service => service.trim())
@@ -63,7 +53,7 @@ export async function saveFreighterProfile(formData: FormData) {
     prisma.city.findMany({ where: { id: { in: requestedServiceCityIds }, isActive: true }, select: { id: true, name: true, slug: true } }),
   ]);
   if (
-    !city || !whatsapp || !radius.valid || !servicesAreValid ||
+    !city || !whatsapp || !servicesAreValid ||
     displayName.length < 3 || displayName.length > 100 ||
     description.length < 30 || description.length > 2000 ||
     priceNote.length > 120 || vehicleTypes.length > 5 || serviceCities.length !== requestedServiceCityIds.length
@@ -108,7 +98,7 @@ export async function saveFreighterProfile(formData: FormData) {
         description,
         cityId,
         whatsapp,
-        serviceRadiusKm: radius.value,
+        serviceRadiusKm: null,
         priceNote: priceNote || null,
         availableToday: false,
         status: "PENDING" as const,
