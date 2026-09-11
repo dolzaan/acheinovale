@@ -20,6 +20,17 @@ export function HeaderCitySwitcher() {
   const pathname = usePathname();
   const selectedSlug = searchParams.get("cidade") || "rio-do-sul";
   const selectedCity = cities.find(city => city.slug === selectedSlug);
+  const destination = pathname === "/" || pathname.startsWith("/freteiros") || pathname.startsWith("/imoveis")
+    ? pathname
+    : "/imoveis";
+
+  function cityHref(citySlug: string) {
+    const next = new URLSearchParams(searchParams.toString());
+    next.set("cidade", citySlug);
+    next.delete("pagina");
+    if (destination.startsWith("/imoveis")) next.delete("bairro");
+    return `${destination}?${next.toString()}`;
+  }
 
   useEffect(() => {
     const controller = new AbortController();
@@ -67,14 +78,14 @@ export function HeaderCitySwitcher() {
       <div className="city-menu__panel">
         <div className="city-menu__heading">
           <PinIcon size={17} />
-          <div><strong>Escolha sua cidade</strong><small>Veja os imóveis disponíveis nela</small></div>
+          <div><strong>Escolha sua cidade</strong><small>Veja anúncios e serviços disponíveis nela</small></div>
         </div>
         <div className="city-menu__list">
           {!cities.length && !loadFailed ? <span className="city-menu__status">Carregando cidades...</span> : null}
           {loadFailed ? <span className="city-menu__status">Não foi possível carregar. Tente novamente.</span> : null}
           {cities.map(city => (
             <Link
-              href={`${pathname === "/" ? "/" : "/imoveis"}?cidade=${encodeURIComponent(city.slug)}`}
+              href={cityHref(city.slug)}
               key={city.id}
               aria-current={city.slug === selectedSlug ? "page" : undefined}
               onClick={() => { if (detailsRef.current) detailsRef.current.open = false; }}
