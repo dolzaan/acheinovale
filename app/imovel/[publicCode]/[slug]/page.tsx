@@ -61,7 +61,9 @@ export default async function PropertyPage({ params }: Props) {
 
   if (slug !== property.slug) permanentRedirect(propertyUrl(property));
 
-  const whatsappUrl = `https://wa.me/${property.whatsapp}?text=${encodeURIComponent(`Olá! Vi o imóvel ${property.publicCode.toUpperCase()} no AcheiNoVale.`)}`;
+  const whatsappUrl = `https://wa.me/${property.whatsapp}?text=${encodeURIComponent(
+  `Olá! Vi o imóvel "${property.title}" no AcheiNoVale.`
+)}`;
 
   return (
     <>
