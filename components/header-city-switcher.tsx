@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDownIcon, PinIcon } from "./icons";
+import { CITY_COOKIE_MAX_AGE, CITY_COOKIE_NAME } from "@/lib/location/city-preference";
 
 type CityOption = {
   id: string;
@@ -12,13 +13,13 @@ type CityOption = {
   stateCode: string;
 };
 
-export function HeaderCitySwitcher() {
+export function HeaderCitySwitcher({ defaultCitySlug = "rio-do-sul" }: { defaultCitySlug?: string }) {
   const detailsRef = useRef<HTMLDetailsElement>(null);
   const [cities, setCities] = useState<CityOption[]>([]);
   const [loadFailed, setLoadFailed] = useState(false);
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const selectedSlug = searchParams.get("cidade") || "rio-do-sul";
+  const selectedSlug = searchParams.get("cidade") || defaultCitySlug;
   const selectedCity = cities.find(city => city.slug === selectedSlug);
   const destination = pathname === "/" || pathname.startsWith("/freteiros") || pathname.startsWith("/imoveis")
     ? pathname
@@ -48,6 +49,12 @@ export function HeaderCitySwitcher() {
 
       return () => controller.abort();
   }, []);
+
+  useEffect(() => {
+    const queryCity = searchParams.get("cidade");
+    if (!queryCity) return;
+    document.cookie = `${CITY_COOKIE_NAME}=${encodeURIComponent(queryCity)}; Path=/; Max-Age=${CITY_COOKIE_MAX_AGE}; SameSite=Lax`;
+  }, [searchParams]);
 
   useEffect(() => {
     function close(event: KeyboardEvent | PointerEvent) {
@@ -88,7 +95,10 @@ export function HeaderCitySwitcher() {
               href={cityHref(city.slug)}
               key={city.id}
               aria-current={city.slug === selectedSlug ? "page" : undefined}
-              onClick={() => { if (detailsRef.current) detailsRef.current.open = false; }}
+              onClick={() => {
+                document.cookie = `${CITY_COOKIE_NAME}=${encodeURIComponent(city.slug)}; Path=/; Max-Age=${CITY_COOKIE_MAX_AGE}; SameSite=Lax`;
+                if (detailsRef.current) detailsRef.current.open = false;
+              }}
             >
               <span>{city.name}</span><small>{city.stateCode}</small>
             </Link>

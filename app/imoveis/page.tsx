@@ -10,7 +10,7 @@ import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { PropertyLocationFilter } from "@/components/property-location-filter";
 import { BathIcon, BedIcon, FilterIcon, HomeIcon, PinIcon, SearchIcon } from "@/components/icons";
 import { prisma } from "@/lib/db";
-import { resolveActiveCity } from "@/lib/location/selected-city";
+import { resolveRequestCity } from "@/lib/location/selected-city";
 import { propertyUrl } from "@/lib/listings/urls";
 import { parsePropertySearch } from "@/lib/search/property-search";
 import { propertyImagePublicUrl } from "@/lib/supabase/storage";
@@ -37,7 +37,7 @@ type Props = { searchParams: Promise<SearchParams> };
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const params = await searchParams;
-  const city = await resolveActiveCity(params.cidade);
+  const city = await resolveRequestCity(params.cidade);
   const description = `Casas, apartamentos e terrenos para venda ou aluguel em ${city.name} e região.`;
   return {
     title: `Imóveis em ${city.name} | AcheiNoVale`,
@@ -99,6 +99,7 @@ function formatPrice(priceCents: number) {
 
 export default async function PropertiesPage({ searchParams }: Props) {
   const params = await searchParams;
+  const requestedCity = await resolveRequestCity(params.cidade);
   const requestedPage = Math.max(1, parseNatural(params.pagina, 10_000) ?? 1);
   const resultOffset = (requestedPage - 1) * PROPERTY_PAGE_SIZE;
   const query = params.q?.trim().slice(0, 80) || "";
@@ -107,7 +108,7 @@ export default async function PropertiesPage({ searchParams }: Props) {
     include: { neighborhoods: { orderBy: { name: "asc" } } },
     orderBy: { name: "asc" },
   });
-  const selectedCity = cities.find(city => city.slug === (params.cidade || "rio-do-sul"))
+  const selectedCity = cities.find(city => city.slug === requestedCity.slug)
     ?? cities.find(city => city.slug === "rio-do-sul");
   const neighborhoods = selectedCity?.neighborhoods ?? cities.flatMap(city => city.neighborhoods);
   const selectedNeighborhood = selectedCity && params.bairro

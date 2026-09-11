@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { BuildingIcon, HomeIcon, PlusIcon, TruckIcon, UserIcon } from "./icons";
 import { getCurrentUser } from "@/lib/auth/current-user";
+import { resolveRequestCity } from "@/lib/location/selected-city";
 
 export async function MobileNav({ citySlug }: { citySlug?: string } = {}) {
-  const user = await getCurrentUser();
-  const cityQuery = citySlug ? `?cidade=${encodeURIComponent(citySlug)}` : "";
+  const [user, city] = await Promise.all([getCurrentUser(), resolveRequestCity(citySlug)]);
+  const cityQuery = `?cidade=${encodeURIComponent(city.slug)}`;
   return (
     <nav className="mobile-nav" aria-label="Navegação mobile">
       <Link className="mobile-nav__item is-active" href={`/${cityQuery}`}><HomeIcon/><span>Início</span></Link>
