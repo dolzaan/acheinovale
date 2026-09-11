@@ -12,16 +12,8 @@
 .city-menu__heading > div { display: flex; flex-direction: column; gap: 2px; }
 .city-menu__heading strong { color: var(--ink); font-size: 11px; }
 .city-menu__heading small { color: var(--muted); font-size: 8px; }
-.city-menu__location { width: 100%; display: flex; align-items: center; gap: 10px; margin-bottom: 7px; padding: 10px; border: 1px solid #dbe6df; border-radius: 11px; color: var(--green-dark); background: var(--green-soft); text-align: left; transition: background .2s, border-color .2s, transform .2s; }
-.city-menu__location:hover { border-color: #b8cec0; background: #dde9e0; transform: translateY(-1px); }
-.city-menu__location:disabled { cursor: wait; opacity: .7; transform: none; }
-.city-menu__location-icon { width: 32px; height: 32px; flex: 0 0 32px; display: grid; place-items: center; border-radius: 9px; color: white; background: var(--green-dark); }
-.city-menu__location-copy { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.city-menu__location-copy strong { font-size: 10px; font-weight: 800; line-height: 1.25; }
-.city-menu__location-copy small { color: var(--muted); font-size: 8px; line-height: 1.3; }
 .city-menu__list { max-height: min(390px, calc(100vh - 135px)); overflow-y: auto; scrollbar-width: thin; }
 .city-menu__status { display: block; padding: 18px 10px; color: var(--muted); font-size: 9px; line-height: 1.5; text-align: center; }
-.city-menu__status--location { padding: 5px 9px 10px; }
 .city-menu__list a { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 10px; border-radius: 9px; color: var(--ink-2); font-size: 10px; font-weight: 750; }
 .city-menu__list a:hover, .city-menu__list a[aria-current="page"] { color: var(--green-dark); background: var(--green-soft); }
 .city-menu__list a small { color: var(--muted); font-size: 8px; font-weight: 800; }
