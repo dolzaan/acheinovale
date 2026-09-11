@@ -17,13 +17,14 @@ type DetectedCity = {
   slug: string;
 };
 
-const GEOLOCATION_ATTEMPT_KEY = "achei_no_vale_geolocation_attempted_v2";
 const MANUAL_CITY_KEY = "achei_no_vale_manual_city";
 
 export function HeaderCitySwitcher({ defaultCitySlug = "rio-do-sul" }: { defaultCitySlug?: string }) {
   const detailsRef = useRef<HTMLDetailsElement>(null);
   const [cities, setCities] = useState<CityOption[]>([]);
   const [loadFailed, setLoadFailed] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const [locationMessage, setLocationMessage] = useState("");
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
@@ -39,6 +40,58 @@ export function HeaderCitySwitcher({ defaultCitySlug = "rio-do-sul" }: { default
     next.delete("pagina");
     if (destination.startsWith("/imoveis")) next.delete("bairro");
     return `${destination}?${next.toString()}`;
+  }
+
+  function useMyLocation() {
+    setLocationMessage("");
+
+    if (!("geolocation" in navigator)) {
+      setLocationMessage("Seu navegador não oferece suporte à localização.");
+      return;
+    }
+
+    setLocating(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async position => {
+        try {
+          const response = await fetch(
+            `/api/localizacoes/detectar?latitude=${encodeURIComponent(position.coords.latitude)}&longitude=${encodeURIComponent(position.coords.longitude)}`,
+          );
+          const detected = (await response.json()) as DetectedCity & { error?: string };
+
+          if (!response.ok || !detected.slug) {
+            setLocationMessage(detected.error || "Não foi possível identificar uma cidade disponível.");
+            return;
+          }
+
+          if (!cities.some(city => city.slug === detected.slug)) {
+            setLocationMessage("Sua cidade ainda não está disponível no Achei no Vale.");
+            return;
+          }
+
+          localStorage.removeItem(MANUAL_CITY_KEY);
+          document.cookie = `${CITY_COOKIE_NAME}=${encodeURIComponent(detected.slug)}; Path=/; Max-Age=${CITY_COOKIE_MAX_AGE}; SameSite=Lax`;
+          if (detailsRef.current) detailsRef.current.open = false;
+          router.replace(cityHref(detected.slug));
+        } catch {
+          setLocationMessage("Não foi possível detectar sua cidade. Tente novamente.");
+        } finally {
+          setLocating(false);
+        }
+      },
+      error => {
+        setLocating(false);
+        if (error.code === error.PERMISSION_DENIED) {
+          setLocationMessage("Permita o acesso à localização no navegador para usar esta opção.");
+        } else if (error.code === error.TIMEOUT) {
+          setLocationMessage("A localização demorou para responder. Tente novamente.");
+        } else {
+          setLocationMessage("Não foi possível obter sua localização.");
+        }
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 5 * 60 * 1000 },
+    );
   }
 
   useEffect(() => {
@@ -63,38 +116,6 @@ export function HeaderCitySwitcher({ defaultCitySlug = "rio-do-sul" }: { default
     if (!queryCity) return;
     document.cookie = `${CITY_COOKIE_NAME}=${encodeURIComponent(queryCity)}; Path=/; Max-Age=${CITY_COOKIE_MAX_AGE}; SameSite=Lax`;
   }, [searchParams]);
-
-  useEffect(() => {
-    if (!cities.length || !("geolocation" in navigator)) return;
-    if (localStorage.getItem(MANUAL_CITY_KEY) || sessionStorage.getItem(GEOLOCATION_ATTEMPT_KEY)) return;
-
-    sessionStorage.setItem(GEOLOCATION_ATTEMPT_KEY, "1");
-
-    navigator.geolocation.getCurrentPosition(
-      async position => {
-        try {
-          const response = await fetch(
-            `/api/localizacoes/detectar?latitude=${encodeURIComponent(position.coords.latitude)}&longitude=${encodeURIComponent(position.coords.longitude)}`,
-          );
-          if (!response.ok) return;
-
-          const detected = (await response.json()) as DetectedCity;
-          if (!cities.some(city => city.slug === detected.slug)) return;
-
-          document.cookie = `${CITY_COOKIE_NAME}=${encodeURIComponent(detected.slug)}; Path=/; Max-Age=${CITY_COOKIE_MAX_AGE}; SameSite=Lax`;
-          if (detected.slug !== selectedSlug || !searchParams.get("cidade")) {
-            router.replace(cityHref(detected.slug));
-          }
-        } catch {
-          // Mantém a cidade atual quando a detecção não estiver disponível.
-        }
-      },
-      () => {
-        // Permissão negada ou localização indisponível: mantém a cidade atual.
-      },
-      { enableHighAccuracy: false, timeout: 8000, maximumAge: 15 * 60 * 1000 },
-    );
-  }, [cities, searchParams, router, selectedSlug]);
 
   useEffect(() => {
     function close(event: KeyboardEvent | PointerEvent) {
@@ -128,6 +149,15 @@ export function HeaderCitySwitcher({ defaultCitySlug = "rio-do-sul" }: { default
           <div><strong>Escolha sua cidade</strong><small>Veja anúncios e serviços disponíveis nela</small></div>
         </div>
         <div className="city-menu__list">
+          <button
+            type="button"
+            onClick={useMyLocation}
+            disabled={locating}
+            style={{ width: "100%", border: 0, background: "transparent", font: "inherit", textAlign: "left", cursor: locating ? "wait" : "pointer" }}
+          >
+            <span>{locating ? "Localizando..." : "Usar minha localização"}</span><small>Detectar cidade automaticamente</small>
+          </button>
+          {locationMessage ? <span className="city-menu__status">{locationMessage}</span> : null}
           {!cities.length && !loadFailed ? <span className="city-menu__status">Carregando cidades...</span> : null}
           {loadFailed ? <span className="city-menu__status">Não foi possível carregar. Tente novamente.</span> : null}
           {cities.map(city => (
