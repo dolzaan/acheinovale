@@ -68,7 +68,6 @@ export default async function FreighterPage({ params }: Props) {
               <span className="listing-location"><PinIcon size={17} />{freighter.city.name} — {freighter.city.stateCode}</span>
               <h1>{freighter.displayName}</h1>
               <div className="listing-facts">
-                {freighter.availableToday ? <span className="availability availability--now">Disponível hoje</span> : null}
                 {freighter.serviceRadiusKm ? <span>Atende em um raio de {freighter.serviceRadiusKm} km</span> : null}
                 {rating ? <span><StarIcon />{rating.toFixed(1)} ({freighter.reviews.length})</span> : <span>Novo no AcheiNoVale</span>}
               </div>
