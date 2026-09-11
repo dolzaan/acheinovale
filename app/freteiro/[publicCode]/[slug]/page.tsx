@@ -44,7 +44,9 @@ export default async function FreighterPage({ params }: Props) {
   const rating = freighter.reviews.length
     ? freighter.reviews.reduce((sum, review) => sum + review.rating, 0) / freighter.reviews.length
     : null;
-  const whatsappUrl = `https://wa.me/${freighter.whatsapp}?text=${encodeURIComponent(`Olá! Encontrei seu perfil ${freighter.publicCode.toUpperCase()} no AcheiNoVale.`)}`;
+  const whatsappUrl = `https://wa.me/${property.whatsapp}?text=${encodeURIComponent(
+  `Olá! Vi o imóvel "${property.title}" no AcheiNoVale.`
+)}`;
   const services = freighter.services.filter(service => !service.name.startsWith("Veículo: ") && !service.name.startsWith("Atende: "));
   const vehicleTypes = freighter.services.filter(service => service.name.startsWith("Veículo: ")).map(service => service.name.slice(9));
   const serviceCities = freighter.services.filter(service => service.name.startsWith("Atende: ")).map(service => service.name.slice(8));
