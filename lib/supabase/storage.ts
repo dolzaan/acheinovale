@@ -5,9 +5,13 @@ export const STORAGE_BUCKETS = {
 } as const;
 
 export const PROFILE_IMAGE_MAX_BYTES = 4 * 1024 * 1024;
-export const PROPERTY_IMAGE_MAX_BYTES = 6 * 1024 * 1024;
-export const PROPERTY_IMAGE_LIMIT = 10;
-export const PROPERTY_VIDEO_MAX_BYTES = 50 * 1024 * 1024;
+export const PROPERTY_IMAGE_SOURCE_MAX_BYTES = 20 * 1024 * 1024;
+export const PROPERTY_IMAGE_MAX_BYTES = 2 * 1024 * 1024;
+export const PROPERTY_IMAGE_TARGET_BYTES = 900 * 1024;
+export const PROPERTY_IMAGE_MAX_EDGE = 1600;
+export const PROPERTY_IMAGE_LIMIT = 6;
+export const PROPERTY_IMAGE_LEGACY_LIMIT = 10;
+export const PROPERTY_VIDEO_MAX_BYTES = 20 * 1024 * 1024;
 export const PROPERTY_VIDEO_LIMIT = 1;
 export const PROFILE_IMAGE_MIME_TYPES = [
   "image/jpeg",

@@ -14,14 +14,14 @@ import {
   videoMimeTypeFromKey,
 } from "@/lib/listings/property-media";
 import { propertyUrl } from "@/lib/listings/urls";
-import { PROPERTY_IMAGE_LIMIT, PROPERTY_VIDEO_LIMIT } from "@/lib/supabase/storage";
+import { PROPERTY_IMAGE_LEGACY_LIMIT, PROPERTY_IMAGE_LIMIT, PROPERTY_VIDEO_LIMIT } from "@/lib/supabase/storage";
 
 type MediaItem = { kind: "image" | "video"; id?: string; storageKey?: string };
 
 function parseMedia(value: FormDataEntryValue | null): MediaItem[] | null {
   try {
     const parsed: unknown = JSON.parse(typeof value === "string" ? value : "[]");
-    if (!Array.isArray(parsed) || parsed.length > PROPERTY_IMAGE_LIMIT + PROPERTY_VIDEO_LIMIT) return null;
+    if (!Array.isArray(parsed) || parsed.length > PROPERTY_IMAGE_LEGACY_LIMIT + PROPERTY_VIDEO_LIMIT) return null;
     const items: MediaItem[] = [];
     for (const candidate of parsed) {
       if (!candidate || typeof candidate !== "object") return null;
@@ -57,7 +57,8 @@ export async function updatePropertyMedia(propertyId: string, formData: FormData
 
   const imageItems = items.filter(item => item.kind === "image");
   const videoItems = items.filter(item => item.kind === "video");
-  if (imageItems.length > PROPERTY_IMAGE_LIMIT || videoItems.length > PROPERTY_VIDEO_LIMIT || (imageItems.length && items[0]?.kind !== "image")) {
+  const newImageKeys = items.flatMap(item => item.storageKey && item.kind === "image" ? [item.storageKey] : []);
+  if ((imageItems.length > PROPERTY_IMAGE_LIMIT && newImageKeys.length > 0) || videoItems.length > PROPERTY_VIDEO_LIMIT || (imageItems.length && items[0]?.kind !== "image")) {
     await cleanup(newKeys);
     redirect(`/meus-anuncios/${propertyId}/midias?erro=limite`);
   }
@@ -73,7 +74,6 @@ export async function updatePropertyMedia(propertyId: string, formData: FormData
     if (!item.id) return true;
     return item.kind === "image" ? imageById.has(item.id) : videoById.has(item.id);
   });
-  const newImageKeys = items.flatMap(item => item.storageKey && item.kind === "image" ? [item.storageKey] : []);
   const newVideoKeys = items.flatMap(item => item.storageKey && item.kind === "video" ? [item.storageKey] : []);
   const keysAreValid = new Set(newKeys).size === newKeys.length
     && newImageKeys.every(key => isPropertyImageKey(key, user.authUserId!))
