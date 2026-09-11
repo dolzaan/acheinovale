@@ -45,6 +45,9 @@ export default async function FreighterPage({ params }: Props) {
     ? freighter.reviews.reduce((sum, review) => sum + review.rating, 0) / freighter.reviews.length
     : null;
   const whatsappUrl = `https://wa.me/${freighter.whatsapp}?text=${encodeURIComponent(`Olá! Encontrei seu perfil ${freighter.publicCode.toUpperCase()} no AcheiNoVale.`)}`;
+  const services = freighter.services.filter(service => !service.name.startsWith("Veículo: ") && !service.name.startsWith("Atende: "));
+  const vehicleTypes = freighter.services.filter(service => service.name.startsWith("Veículo: ")).map(service => service.name.slice(9));
+  const serviceCities = freighter.services.filter(service => service.name.startsWith("Atende: ")).map(service => service.name.slice(8));
 
   return (
     <>
@@ -65,15 +68,17 @@ export default async function FreighterPage({ params }: Props) {
           <div className="listing-detail__grid">
             <article className="listing-detail__content">
               <span className="listing-code">Código {freighter.publicCode.toUpperCase()}</span>
-              <span className="listing-location"><PinIcon size={17} />{freighter.city.name} — {freighter.city.stateCode}</span>
+              <span className="listing-location"><PinIcon size={17} />{freighter.city.name}</span>
               <h1>{freighter.displayName}</h1>
               <div className="listing-facts">
                 {freighter.serviceRadiusKm ? <span>Atende em um raio de {freighter.serviceRadiusKm} km</span> : null}
                 {rating ? <span><StarIcon />{rating.toFixed(1)} ({freighter.reviews.length})</span> : <span>Novo no AcheiNoVale</span>}
               </div>
               <div className="service-tags service-tags--detail">
-                {freighter.services.map((service) => <span key={service.id}>{service.name}</span>)}
+                {services.map((service) => <span key={service.id}>{service.name}</span>)}
+                {vehicleTypes.map(vehicle => <span key={vehicle}>{vehicle}</span>)}
               </div>
+              {serviceCities.length ? <p className="listing-service-cities"><strong>Atende também:</strong> {serviceCities.join(", ")}</p> : null}
               <section className="listing-description">
                 <h2>Sobre o serviço</h2>
                 <p>{freighter.description}</p>

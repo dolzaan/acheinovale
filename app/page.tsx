@@ -1,19 +1,22 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { CityTourismVisual } from "@/components/city-tourism-visual";
-import { resolveActiveCity } from "@/lib/location/selected-city";
+import { resolveRequestCity } from "@/lib/location/selected-city";
 import Form from "next/form";
-import { freighters, properties } from "@/data/home";
 import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { SiteFooter } from "@/components/footer";
+import { UserAvatar } from "@/components/user-avatar";
+import { prisma } from "@/lib/db";
+import { freighterUrl, propertyUrl } from "@/lib/listings/urls";
+import { propertyImagePublicUrl } from "@/lib/supabase/storage";
 import {
   ArrowIcon,
   BathIcon,
   BedIcon,
   BuildingIcon,
-  HeartIcon,
   HomeIcon,
   PinIcon,
   SearchIcon,
@@ -27,7 +30,7 @@ type Props = { searchParams: Promise<{ cidade?: string | string[] }> };
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const params = await searchParams;
   const requestedSlug = typeof params.cidade === "string" ? params.cidade : undefined;
-  const city = await resolveActiveCity(requestedSlug);
+  const city = await resolveRequestCity(requestedSlug);
   const description = `Encontre imóveis e freteiros em ${city.name} e região.`;
   return {
     title: `Achei no Vale — Imóveis e fretes em ${city.name}`,
@@ -39,7 +42,26 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 export default async function HomePage({ searchParams }: Props) {
   const params = await searchParams;
   const requestedSlug = typeof params.cidade === "string" ? params.cidade : undefined;
-  const city = await resolveActiveCity(requestedSlug);
+  const city = await resolveRequestCity(requestedSlug);
+  const [properties, freighters] = city.id ? await Promise.all([
+    prisma.property.findMany({
+      where: { status: "ACTIVE", cityId: city.id },
+      include: { city: true, neighborhood: true, images: { orderBy: { position: "asc" }, take: 1 } },
+      orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
+      take: 3,
+    }),
+    prisma.freighterProfile.findMany({
+      where: { status: "ACTIVE", cityId: city.id },
+      include: {
+        city: true,
+        user: { select: { image: true } },
+        services: { orderBy: { name: "asc" } },
+        reviews: { where: { isVisible: true }, select: { rating: true } },
+      },
+      orderBy: { updatedAt: "desc" },
+      take: 3,
+    }),
+  ]) : [[], []];
   const cityName = city.name;
   const cityQuery = `cidade=${encodeURIComponent(city.slug)}`;
   const propertiesHref = `/imoveis?${cityQuery}`;
@@ -100,26 +122,26 @@ export default async function HomePage({ searchParams }: Props) {
               {properties.map((property) => (
                 <article className="property-card" key={property.id}>
                   <div className="property-card__image">
-                    <Link href={propertiesHref} aria-label="Ver imóveis disponíveis">
-                      {/* A URL é de uma fonte de demonstração e será substituída por Supabase Storage. */}
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={property.image} alt={property.title}/>
+                    <Link href={propertyUrl(property)} aria-label={`Ver ${property.title}`}>
+                      {property.images[0] ? <Image src={propertyImagePublicUrl(property.images[0].storageKey)} alt={property.images[0].altText || property.title} fill sizes="(max-width: 680px) 88vw, 33vw" /> : <span className="catalog-image-placeholder"><HomeIcon size={42}/><span>Ver imóvel</span></span>}
                     </Link>
-                    <span className="property-card__tag">{property.tag}</span>
-                    <button className="favorite-button" type="button" aria-label={`Favoritar ${property.title}`}><HeartIcon/></button>
+                    <span className="property-card__tag">{property.purpose === "RENT" ? "Aluguel" : "Venda"}</span>
                   </div>
                   <div className="property-card__body">
-                    <span className="property-card__location"><PinIcon size={15}/>{property.location}</span>
-                    <h3><Link href={propertiesHref}>{property.title}</Link></h3>
+                    <span className="property-card__location"><PinIcon size={15}/>{property.neighborhood.name}, {property.city.name}</span>
+                    <h3><Link href={propertyUrl(property)}>{property.title}</Link></h3>
                     <div className="property-card__features">
-                      <span><BedIcon/>{property.beds} quartos</span><span><BathIcon/>{property.baths} banh.</span><span>{property.area}</span>
+                      {property.bedrooms !== null ? <span><BedIcon/>{property.bedrooms} quartos</span> : null}
+                      {property.bathrooms !== null ? <span><BathIcon/>{property.bathrooms} banh.</span> : null}
+                      {property.areaM2 ? <span>{property.areaM2.toString()} m²</span> : null}
                     </div>
-                    <div className="property-card__price"><strong>{property.price}</strong><span>{property.suffix}</span></div>
-                    <Link className="button button--secondary property-card__cta" href={propertiesHref}>Explorar imóveis</Link>
+                    <div className="property-card__price"><strong>{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(property.priceCents / 100)}</strong><span>{property.purpose === "RENT" ? "/mês" : ""}</span></div>
+                    <Link className="button button--secondary property-card__cta" href={propertyUrl(property)}>Ver imóvel</Link>
                   </div>
                 </article>
               ))}
             </div>
+            {!properties.length ? <div className="empty-state home-empty"><strong>Ainda não há imóveis em {cityName}.</strong><p>Seja a primeira pessoa a publicar uma oportunidade nesta cidade.</p><Link className="button button--primary" href="/publicar/imovel">Publicar imóvel</Link></div> : null}
             <Link className="mobile-more-button" href={propertiesHref}>Ver todos os imóveis <ArrowIcon/></Link>
           </div>
         </section>
@@ -133,15 +155,16 @@ export default async function HomePage({ searchParams }: Props) {
             <div className="freighter-grid">
               {freighters.map((freighter) => (
                 <article className="freighter-card" key={freighter.id}>
-                  <div className="freighter-card__top"><div className={`freighter-avatar freighter-avatar--${freighter.tone}`}><TruckIcon size={28}/><span>{freighter.initials}</span></div></div>
-                  <h3>{freighter.name}</h3>
-                  <span className="freighter-location"><PinIcon size={15}/>{freighter.location}</span>
-                  <div className="rating"><StarIcon/><strong>{freighter.rating}</strong><span>({freighter.reviews} avaliações)</span></div>
-                  <div className="service-tags">{freighter.services.map((service) => <span key={service}>{service}</span>)}</div>
-                  <Link className="outline-button" href={freightersHref}>Ver profissionais <ArrowIcon/></Link>
+                  <div className="freighter-card__top"><UserAvatar image={freighter.user.image} name={freighter.displayName} size="lg" /></div>
+                  <h3>{freighter.displayName}</h3>
+                  <span className="freighter-location"><PinIcon size={15}/>{freighter.city.name}</span>
+                  {(() => { const rating = freighter.reviews.length ? freighter.reviews.reduce((sum, review) => sum + review.rating, 0) / freighter.reviews.length : null; return <div className="rating"><StarIcon/><strong>{rating ? rating.toFixed(1) : "Novo"}</strong><span>{rating ? `(${freighter.reviews.length} avaliações)` : "no AcheiNoVale"}</span></div>; })()}
+                  <div className="service-tags">{freighter.services.filter(service => !service.name.startsWith("Atende: ")).slice(0, 4).map((service) => <span key={service.id}>{service.name.replace("Veículo: ", "")}</span>)}</div>
+                  <Link className="outline-button" href={freighterUrl(freighter)}>Ver perfil <ArrowIcon/></Link>
                 </article>
               ))}
             </div>
+            {!freighters.length ? <div className="empty-state home-empty"><strong>Ainda não há freteiros cadastrados em {cityName}.</strong><p>Cadastre seu serviço para começar a receber contatos da região.</p><Link className="button button--primary" href="/publicar/frete">Cadastrar como freteiro</Link></div> : null}
             <Link className="mobile-more-button" href={freightersHref}>Encontrar um freteiro <ArrowIcon/></Link>
           </div>
         </section>

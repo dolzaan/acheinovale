@@ -9,10 +9,12 @@ import { PendingSubmitButton } from "./pending-submit-button";
 import { UserAvatar } from "./user-avatar";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { signOut } from "@/app/auth/actions";
+import { resolveRequestCity } from "@/lib/location/selected-city";
 
 export async function Header({ citySlug }: { citySlug?: string } = {}) {
-  const user = await getCurrentUser();
-  const cityQuery = citySlug ? `?cidade=${encodeURIComponent(citySlug)}` : "";
+  const [user, city] = await Promise.all([getCurrentUser(), resolveRequestCity(citySlug)]);
+  const resolvedCitySlug = city.slug;
+  const cityQuery = `?cidade=${encodeURIComponent(resolvedCitySlug)}`;
   return (
     <><Suspense fallback={null}><NavigationProgress /></Suspense><header className="site-header">
       <div className="container header-inner">
@@ -24,11 +26,11 @@ export async function Header({ citySlug }: { citySlug?: string } = {}) {
         <div className="header-location">
           <span className="header-location__label">Onde você procura?</span>
           <Suspense fallback={<span className="city-switcher">Escolher cidade <ChevronDownIcon /></span>}>
-            <HeaderCitySwitcher />
+            <HeaderCitySwitcher defaultCitySlug={resolvedCitySlug} />
           </Suspense>
         </div>
         <div className="header-actions">
-          <HeaderSearch citySlug={citySlug} />
+          <HeaderSearch citySlug={resolvedCitySlug} />
           {user ? (
             <details className="user-menu">
               <summary><UserAvatar image={user.image} name={user.name} /><span>{user.name?.split(" ")[0] || "Minha conta"}</span><ChevronDownIcon /></summary>
