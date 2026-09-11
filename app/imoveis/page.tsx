@@ -10,15 +10,10 @@ import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { PropertyLocationFilter } from "@/components/property-location-filter";
 import { BathIcon, BedIcon, FilterIcon, HomeIcon, PinIcon, SearchIcon } from "@/components/icons";
 import { prisma } from "@/lib/db";
+import { resolveActiveCity } from "@/lib/location/selected-city";
 import { propertyUrl } from "@/lib/listings/urls";
 import { parsePropertySearch } from "@/lib/search/property-search";
 import { propertyImagePublicUrl } from "@/lib/supabase/storage";
-
-export const metadata: Metadata = {
-  title: "Imóveis em Rio do Sul | AcheiNoVale",
-  description: "Casas, apartamentos, terrenos e imóveis para venda ou aluguel em Rio do Sul e região.",
-  alternates: { canonical: "https://acheinovale.vercel.app/imoveis" },
-};
 
 type SearchParams = {
   q?: string;
@@ -39,6 +34,18 @@ type SearchParams = {
 };
 
 type Props = { searchParams: Promise<SearchParams> };
+
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const params = await searchParams;
+  const city = await resolveActiveCity(params.cidade);
+  const description = `Casas, apartamentos e terrenos para venda ou aluguel em ${city.name} e região.`;
+  return {
+    title: `Imóveis em ${city.name} | AcheiNoVale`,
+    description,
+    alternates: { canonical: "https://acheinovale.vercel.app/imoveis" },
+    openGraph: { title: `Imóveis em ${city.name} | AcheiNoVale`, description },
+  };
+}
 
 type RankedPropertyRow = {
   id: string;

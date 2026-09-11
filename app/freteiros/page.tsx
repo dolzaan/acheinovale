@@ -6,21 +6,27 @@ import { MobileNav } from "@/components/mobile-nav";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { PinIcon, SearchIcon, StarIcon, TruckIcon } from "@/components/icons";
 import { prisma } from "@/lib/db";
+import { resolveActiveCity } from "@/lib/location/selected-city";
 import { freighterUrl } from "@/lib/listings/urls";
 
-export const metadata: Metadata = { title: "Freteiros em Rio do Sul | AcheiNoVale", description: "Fretes, mudanças, entregas e transportes em Rio do Sul e no Alto Vale do Itajaí.", alternates: { canonical: "https://acheinovale.vercel.app/freteiros" } };
 type Props = { searchParams: Promise<{ q?: string; cidade?: string }> };
+
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const params = await searchParams;
+  const city = await resolveActiveCity(params.cidade);
+  const description = `Fretes, mudanças, entregas e transportes em ${city.name} e região.`;
+  return {
+    title: `Freteiros em ${city.name} | AcheiNoVale`,
+    description,
+    alternates: { canonical: "https://acheinovale.vercel.app/freteiros" },
+    openGraph: { title: `Freteiros em ${city.name} | AcheiNoVale`, description },
+  };
+}
 
 export default async function FreightersPage({ searchParams }: Props) {
   const params = await searchParams;
   const query = params.q?.trim().slice(0, 80) || "";
-  const selectedCity = await prisma.city.findFirst({
-    where: { slug: params.cidade || "rio-do-sul", isActive: true },
-    select: { id: true, name: true, slug: true },
-  }) ?? await prisma.city.findFirst({
-    where: { slug: "rio-do-sul", isActive: true },
-    select: { id: true, name: true, slug: true },
-  });
+  const selectedCity = await resolveActiveCity(params.cidade);
   const freighters = await prisma.freighterProfile.findMany({
     where: { status: "ACTIVE", city: { id: selectedCity?.id, isActive: true }, ...(query ? { OR: [{ displayName: { contains: query, mode: "insensitive" } }, { description: { contains: query, mode: "insensitive" } }, { services: { some: { name: { contains: query, mode: "insensitive" } } } }] } : {}) },
     include: { city: true, services: { orderBy: { name: "asc" } }, reviews: { where: { isVisible: true }, select: { rating: true } } }, orderBy: { updatedAt: "desc" }, take: 48,

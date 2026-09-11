@@ -1,6 +1,7 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { CityTourismVisual } from "@/components/city-tourism-visual";
-import { prisma } from "@/lib/db";
+import { resolveActiveCity } from "@/lib/location/selected-city";
 import Form from "next/form";
 import { freighters, properties } from "@/data/home";
 import { Header } from "@/components/header";
@@ -23,20 +24,27 @@ import {
 
 type Props = { searchParams: Promise<{ cidade?: string | string[] }> };
 
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const params = await searchParams;
+  const requestedSlug = typeof params.cidade === "string" ? params.cidade : undefined;
+  const city = await resolveActiveCity(requestedSlug);
+  const description = `Encontre imóveis e freteiros em ${city.name} e região.`;
+  return {
+    title: `Achei no Vale — Imóveis e fretes em ${city.name}`,
+    description,
+    openGraph: { title: `Achei no Vale em ${city.name}`, description },
+  };
+}
+
 export default async function HomePage({ searchParams }: Props) {
   const params = await searchParams;
   const requestedSlug = typeof params.cidade === "string" ? params.cidade : undefined;
-  const city = requestedSlug
-    ? await prisma.city.findFirst({
-        where: { slug: requestedSlug, isActive: true },
-        select: { name: true, slug: true },
-      })
-    : { name: "Rio do Sul", slug: "rio-do-sul" };
-  const cityName = city?.name ?? "sua cidade";
-  const cityQuery = city ? `cidade=${encodeURIComponent(city.slug)}` : "";
-  const propertiesHref = cityQuery ? `/imoveis?${cityQuery}` : "/imoveis";
-  const freightersHref = cityQuery ? `/freteiros?${cityQuery}` : "/freteiros";
-  const rentalsHref = `${propertiesHref}${cityQuery ? "&" : "?"}finalidade=aluguel`;
+  const city = await resolveActiveCity(requestedSlug);
+  const cityName = city.name;
+  const cityQuery = `cidade=${encodeURIComponent(city.slug)}`;
+  const propertiesHref = `/imoveis?${cityQuery}`;
+  const freightersHref = `/freteiros?${cityQuery}`;
+  const rentalsHref = `${propertiesHref}&finalidade=aluguel`;
 
   return (
     <>
