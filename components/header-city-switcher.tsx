@@ -17,7 +17,8 @@ type DetectedCity = {
   slug: string;
 };
 
-const GEOLOCATION_ATTEMPT_KEY = "achei_no_vale_geolocation_attempted";
+const GEOLOCATION_ATTEMPT_KEY = "achei_no_vale_geolocation_attempted_v2";
+const MANUAL_CITY_KEY = "achei_no_vale_manual_city";
 
 export function HeaderCitySwitcher({ defaultCitySlug = "rio-do-sul" }: { defaultCitySlug?: string }) {
   const detailsRef = useRef<HTMLDetailsElement>(null);
@@ -64,12 +65,8 @@ export function HeaderCitySwitcher({ defaultCitySlug = "rio-do-sul" }: { default
   }, [searchParams]);
 
   useEffect(() => {
-    if (!cities.length || searchParams.get("cidade") || !("geolocation" in navigator)) return;
-
-    const hasSavedCity = document.cookie
-      .split("; ")
-      .some(cookie => cookie.startsWith(`${CITY_COOKIE_NAME}=`));
-    if (hasSavedCity || sessionStorage.getItem(GEOLOCATION_ATTEMPT_KEY)) return;
+    if (!cities.length || !("geolocation" in navigator)) return;
+    if (localStorage.getItem(MANUAL_CITY_KEY) || sessionStorage.getItem(GEOLOCATION_ATTEMPT_KEY)) return;
 
     sessionStorage.setItem(GEOLOCATION_ATTEMPT_KEY, "1");
 
@@ -85,17 +82,19 @@ export function HeaderCitySwitcher({ defaultCitySlug = "rio-do-sul" }: { default
           if (!cities.some(city => city.slug === detected.slug)) return;
 
           document.cookie = `${CITY_COOKIE_NAME}=${encodeURIComponent(detected.slug)}; Path=/; Max-Age=${CITY_COOKIE_MAX_AGE}; SameSite=Lax`;
-          router.replace(cityHref(detected.slug));
+          if (detected.slug !== selectedSlug || !searchParams.get("cidade")) {
+            router.replace(cityHref(detected.slug));
+          }
         } catch {
-          // Mantém a cidade padrão quando a detecção não estiver disponível.
+          // Mantém a cidade atual quando a detecção não estiver disponível.
         }
       },
       () => {
-        // Permissão negada ou localização indisponível: mantém a cidade padrão.
+        // Permissão negada ou localização indisponível: mantém a cidade atual.
       },
       { enableHighAccuracy: false, timeout: 8000, maximumAge: 15 * 60 * 1000 },
     );
-  }, [cities, searchParams, router]);
+  }, [cities, searchParams, router, selectedSlug]);
 
   useEffect(() => {
     function close(event: KeyboardEvent | PointerEvent) {
@@ -137,6 +136,7 @@ export function HeaderCitySwitcher({ defaultCitySlug = "rio-do-sul" }: { default
               key={city.id}
               aria-current={city.slug === selectedSlug ? "page" : undefined}
               onClick={() => {
+                localStorage.setItem(MANUAL_CITY_KEY, city.slug);
                 document.cookie = `${CITY_COOKIE_NAME}=${encodeURIComponent(city.slug)}; Path=/; Max-Age=${CITY_COOKIE_MAX_AGE}; SameSite=Lax`;
                 if (detailsRef.current) detailsRef.current.open = false;
               }}
