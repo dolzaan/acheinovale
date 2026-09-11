@@ -60,7 +60,7 @@ button { cursor: pointer; }
 .button--secondary { border: 1px solid #cad7d0; color: var(--green-dark); background: white; }
 .button--secondary:hover { background: var(--green-soft); }
 
-.hero { position: relative; overflow: hidden; background: var(--cream); padding: 73px 0 0; }
+.hero { position: relative; overflow: hidden; background: var(--cream); padding: 73px 0 36px; }
 .hero::before { content: ""; position: absolute; inset: 0; opacity: .46; background: url("/brand/pattern-topografico.svg") center / cover no-repeat; mask-image: linear-gradient(to right, black, rgba(0,0,0,.42) 65%, transparent); }
 .hero__inner { position: relative; display: grid; grid-template-columns: 1.15fr .85fr; align-items: center; gap: 80px; min-height: 410px; padding-bottom: 72px; }
 .hero__content { position: relative; z-index: 2; }
