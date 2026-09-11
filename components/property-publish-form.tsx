@@ -14,14 +14,15 @@ import {
   savePropertyDraftMedia,
   savePropertyDraftValues,
 } from "@/lib/forms/property-draft";
+import { optimizePropertyImages } from "@/lib/images/optimize-property-image";
 import { createClient } from "@/lib/supabase/client";
 import { uploadPropertyVideo } from "@/lib/supabase/property-video-upload";
 import {
   createPropertyImagePath,
   createPropertyVideoPath,
   PROPERTY_IMAGE_LIMIT,
-  PROPERTY_IMAGE_MAX_BYTES,
   PROPERTY_IMAGE_MIME_TYPES,
+  PROPERTY_IMAGE_SOURCE_MAX_BYTES,
   PROPERTY_VIDEO_MAX_BYTES,
   PROPERTY_VIDEO_MIME_TYPES,
   STORAGE_BUCKETS,
@@ -60,6 +61,7 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
   const [video, setVideo] = useState<SelectedMedia | null>(null);
   const [mediaOrder, setMediaOrder] = useState<string[]>([]);
   const [coverPhotoId, setCoverPhotoId] = useState<string | null>(null);
+  const [optimizingPhotos, setOptimizingPhotos] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [photoProgress, setPhotoProgress] = useState(0);
   const [videoProgress, setVideoProgress] = useState(0);
@@ -112,9 +114,12 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
     }
 
     void loadPropertyDraftMedia(authUserId)
-      .then(media => {
+      .then(async media => {
         if (cancelled || !media) return;
-        const restoredPhotos = media.photos.map(photo => ({ ...photo, preview: URL.createObjectURL(photo.file) }));
+        const restorablePhotos = media.photos.slice(0, PROPERTY_IMAGE_LIMIT);
+        const optimizedFiles = await optimizePropertyImages(restorablePhotos.map(photo => photo.file));
+        if (cancelled) return;
+        const restoredPhotos = restorablePhotos.map((photo, index) => ({ ...photo, file: optimizedFiles[index], preview: URL.createObjectURL(optimizedFiles[index]) }));
         const restoredVideo = media.video ? { ...media.video, preview: URL.createObjectURL(media.video.file) } : null;
         setPhotos(restoredPhotos);
         setVideo(restoredVideo);
@@ -198,7 +203,7 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
     });
   }
 
-  function selectPhotos(event: ChangeEvent<HTMLInputElement>) {
+  async function selectPhotos(event: ChangeEvent<HTMLInputElement>) {
     const selected = Array.from(event.currentTarget.files ?? []);
     event.currentTarget.value = "";
     setMediaError("");
@@ -212,12 +217,22 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
       setMediaError("Use apenas imagens JPG, PNG, WebP ou AVIF.");
       return;
     }
-    const oversized = selected.find(file => file.size > PROPERTY_IMAGE_MAX_BYTES);
+    const oversized = selected.find(file => file.size > PROPERTY_IMAGE_SOURCE_MAX_BYTES);
     if (oversized) {
-      setMediaError(`A foto “${oversized.name}” ultrapassa o limite de 6 MB.`);
+      setMediaError(`A foto “${oversized.name}” ultrapassa o limite de 20 MB.`);
       return;
     }
-    const newPhotos = selected.map(file => ({ id: crypto.randomUUID(), file, preview: URL.createObjectURL(file) }));
+    setOptimizingPhotos(true);
+    let optimized: File[];
+    try {
+      optimized = await optimizePropertyImages(selected);
+    } catch (error) {
+      setMediaError(error instanceof Error ? error.message : "Não foi possível otimizar as fotos.");
+      setOptimizingPhotos(false);
+      return;
+    }
+    setOptimizingPhotos(false);
+    const newPhotos = optimized.map(file => ({ id: crypto.randomUUID(), file, preview: URL.createObjectURL(file) }));
     setPhotos(current => [...current, ...newPhotos]);
     setMediaOrder(current => {
       const ids = newPhotos.map(photo => photo.id);
@@ -237,7 +252,7 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
       return;
     }
     if (file.size > PROPERTY_VIDEO_MAX_BYTES) {
-      setMediaError(`O vídeo “${file.name}” ultrapassa o limite de 50 MB.`);
+      setMediaError(`O vídeo “${file.name}” ultrapassa o limite de 20 MB.`);
       return;
     }
     const next = { id: crypto.randomUUID(), file, preview: URL.createObjectURL(file) };
@@ -342,6 +357,10 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
     if (readyToSubmit.current) return;
     event.preventDefault();
     setMediaError("");
+    if (optimizingPhotos) {
+      setMediaError("Aguarde a otimização das fotos terminar.");
+      return;
+    }
     await persistDraft(false);
 
     if (!photos.length && !video) {
@@ -488,18 +507,18 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
 
       <section className="property-photo-field field-wide" aria-labelledby="property-photo-title">
         <div className="property-photo-field__heading"><div><strong id="property-photo-title">Fotos do imóvel</strong><span>A primeira foto será a capa do anúncio.</span></div><b>{photos.length}/{PROPERTY_IMAGE_LIMIT}</b></div>
-        <label className="property-photo-picker" htmlFor="property-photos"><span>Adicionar fotos</span><small>JPG, PNG, WebP ou AVIF · até 6 MB cada</small></label>
-        <input id="property-photos" className="property-photo-input" type="file" accept={PROPERTY_IMAGE_MIME_TYPES.join(",")} multiple onChange={selectPhotos} disabled={uploading || photos.length >= PROPERTY_IMAGE_LIMIT} />
+        <label className="property-photo-picker" htmlFor="property-photos"><span>{optimizingPhotos ? "Otimizando fotos..." : "Adicionar fotos"}</span><small>Até 20 MB por original · conversão automática para WebP</small></label>
+        <input id="property-photos" className="property-photo-input" type="file" accept={PROPERTY_IMAGE_MIME_TYPES.join(",")} multiple onChange={selectPhotos} disabled={uploading || optimizingPhotos || photos.length >= PROPERTY_IMAGE_LIMIT} />
         {!photos.length ? <p className="property-photo-empty">Você pode publicar sem fotos, mas anúncios com boas imagens costumam receber mais contatos.</p> : null}
       </section>
 
       <section className="property-photo-field property-video-field field-wide" aria-labelledby="property-video-title">
         <div className="property-photo-field__heading"><div><strong id="property-video-title">Vídeo do imóvel</strong><span>Mostre os ambientes em um passeio rápido.</span></div><b>{video ? "1/1" : "0/1"}</b></div>
-        {!video ? <><label className="property-photo-picker" htmlFor="property-video"><span>Adicionar vídeo</span><small>MP4, WebM, MOV ou M4V · até 50 MB</small></label><input id="property-video" className="property-photo-input" type="file" accept={PROPERTY_VIDEO_MIME_TYPES.join(",")} onChange={selectVideo} disabled={uploading} /></> : <p className="property-photo-empty">O vídeo já está junto às fotos abaixo. Você pode mudar a posição ou removê-lo.</p>}
+        {!video ? <><label className="property-photo-picker" htmlFor="property-video"><span>Adicionar vídeo</span><small>MP4, WebM, MOV ou M4V · até 20 MB</small></label><input id="property-video" className="property-photo-input" type="file" accept={PROPERTY_VIDEO_MIME_TYPES.join(",")} onChange={selectVideo} disabled={uploading || optimizingPhotos} /></> : <p className="property-photo-empty">O vídeo já está junto às fotos abaixo. Você pode mudar a posição ou removê-lo.</p>}
       </section>
 
       <div className="field-wide">
-        <PropertyMediaOrganizer items={mediaItems} coverId={coverPhotoId} disabled={uploading} onMove={moveMedia} onReorder={reorderMedia} onRemove={id => video?.id === id ? removeVideo() : removePhoto(id)} onSetCover={setCover} />
+        <PropertyMediaOrganizer items={mediaItems} coverId={coverPhotoId} disabled={uploading || optimizingPhotos} onMove={moveMedia} onReorder={reorderMedia} onRemove={id => video?.id === id ? removeVideo() : removePhoto(id)} onSetCover={setCover} />
       </div>
 
       {mediaError ? <p className="property-photo-error field-wide" role="alert">{mediaError}</p> : null}
@@ -524,7 +543,7 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
         </section>
       ) : null}
 
-      <PendingSubmitButton className="button button--primary field-wide" pendingText={uploading ? progressLabel : "Finalizando publicação..."} busy={uploading}>Enviar para análise</PendingSubmitButton>
+      <PendingSubmitButton className="button button--primary field-wide" pendingText={optimizingPhotos ? "Otimizando fotos..." : uploading ? progressLabel : "Finalizando publicação..."} busy={uploading || optimizingPhotos}>Enviar para análise</PendingSubmitButton>
     </form>
   );
 }

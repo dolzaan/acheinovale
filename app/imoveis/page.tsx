@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import Form from "next/form";
 import type { Prisma, PropertyType } from "@prisma/client";
 import { Header } from "@/components/header";
@@ -34,6 +35,7 @@ type SearchParams = {
   pets?: string;
   mobiliado?: string;
   ordem?: string;
+  pagina?: string;
 };
 
 type Props = { searchParams: Promise<SearchParams> };
@@ -56,6 +58,8 @@ const propertyTypes: Array<{ value: PropertyType; label: string }> = [
 
 const validPropertyTypes = new Set<PropertyType>(propertyTypes.map(({ value }) => value));
 const propertyTypeLabels = new Map<PropertyType, string>(propertyTypes.map(({ value, label }) => [value, label]));
+const PROPERTY_PAGE_SIZE = 24;
+const MAX_RANKED_SEARCH_RESULTS = 200;
 
 function parseNatural(value: string | undefined, maximum: number) {
   if (!value) return undefined;
@@ -73,7 +77,9 @@ function parseMoney(value: string | undefined) {
 
 function buildFilterUrl(params: SearchParams, changes: Partial<SearchParams>) {
   const next = new URLSearchParams();
-  Object.entries({ ...params, ...changes }).forEach(([key, value]) => {
+  const merged = { ...params, ...changes };
+  if (!Object.prototype.hasOwnProperty.call(changes, "pagina")) delete merged.pagina;
+  Object.entries(merged).forEach(([key, value]) => {
     if (value) next.set(key, value);
   });
   const query = next.toString();
@@ -86,6 +92,8 @@ function formatPrice(priceCents: number) {
 
 export default async function PropertiesPage({ searchParams }: Props) {
   const params = await searchParams;
+  const requestedPage = Math.max(1, parseNatural(params.pagina, 10_000) ?? 1);
+  const resultOffset = (requestedPage - 1) * PROPERTY_PAGE_SIZE;
   const query = params.q?.trim().slice(0, 80) || "";
   const cities = await prisma.city.findMany({
     where: { isActive: true },
@@ -163,7 +171,7 @@ export default async function PropertiesPage({ searchParams }: Props) {
           ${minimumArea ?? null}::numeric,
           ${acceptsPets ? true : null}::boolean,
           ${furnished ? true : null}::boolean,
-          200::integer
+          ${MAX_RANKED_SEARCH_RESULTS}::integer
         )
       `;
       const rankedIds = rankedRows.map(row => row.id);
@@ -186,14 +194,15 @@ export default async function PropertiesPage({ searchParams }: Props) {
           - (rankedPosition.get(second.id) ?? Number.MAX_SAFE_INTEGER);
       });
 
-      return [items.slice(0, 48), Number(rankedRows[0]?.total_resultados ?? 0)] as const;
+      return [items.slice(resultOffset, resultOffset + PROPERTY_PAGE_SIZE), Number(rankedRows[0]?.total_resultados ?? 0)] as const;
     })()
     : await Promise.all([
       prisma.property.findMany({
         where,
         include: { city: true, neighborhood: true, images: { orderBy: { position: "asc" }, take: 1 } },
         orderBy,
-        take: 48,
+        skip: resultOffset,
+        take: PROPERTY_PAGE_SIZE,
       }),
       prisma.property.count({ where }),
     ]);
@@ -211,6 +220,13 @@ export default async function PropertiesPage({ searchParams }: Props) {
     params.mobiliado === "1",
   ].filter(Boolean).length;
   const hasFilters = Boolean(query || purpose || advancedFilterCount || order !== "recentes");
+  const browsableResultCount = query ? Math.min(resultCount, MAX_RANKED_SEARCH_RESULTS) : resultCount;
+  const totalPages = Math.max(1, Math.ceil(browsableResultCount / PROPERTY_PAGE_SIZE));
+  if (requestedPage > totalPages) {
+    redirect(buildFilterUrl(params, { pagina: totalPages === 1 ? undefined : String(totalPages) }));
+  }
+  const firstVisibleResult = properties.length ? resultOffset + 1 : 0;
+  const lastVisibleResult = resultOffset + properties.length;
   const sortFields = [
     ["q", query],
     ["finalidade", params.finalidade],
@@ -257,7 +273,12 @@ export default async function PropertiesPage({ searchParams }: Props) {
       <Link className={params.pets === "1" ? "is-active" : ""} href={buildFilterUrl(params, { pets: params.pets === "1" ? undefined : "1" })}>Aceita pets</Link>
       <Link className={params.mobiliado === "1" ? "is-active" : ""} href={buildFilterUrl(params, { mobiliado: params.mobiliado === "1" ? undefined : "1" })}>Mobiliado</Link>
     </nav>
-    <div className="catalog-results-bar"><p><strong>{resultCount}</strong> {resultCount === 1 ? "imóvel encontrado" : "imóveis encontrados"}</p><Form action="/imoveis">{sortFields.map(([name, value]) => <input key={name} type="hidden" name={name} value={value}/>) }<label><span>Ordenar por</span><select name="ordem" defaultValue={order}><option value="recentes">Mais recentes</option><option value="preco-menor">Menor preço</option><option value="preco-maior">Maior preço</option></select></label><PendingSubmitButton pendingText="Ordenando..." navigation>Ordenar</PendingSubmitButton></Form></div>
+    <div className="catalog-results-bar"><p><strong>{resultCount}</strong> {resultCount === 1 ? "imóvel encontrado" : "imóveis encontrados"}{properties.length ? <small> · exibindo {firstVisibleResult}–{lastVisibleResult}</small> : null}</p><Form action="/imoveis">{sortFields.map(([name, value]) => <input key={name} type="hidden" name={name} value={value}/>) }<label><span>Ordenar por</span><select name="ordem" defaultValue={order}><option value="recentes">Mais recentes</option><option value="preco-menor">Menor preço</option><option value="preco-maior">Maior preço</option></select></label><PendingSubmitButton pendingText="Ordenando..." navigation>Ordenar</PendingSubmitButton></Form></div>
     {properties.length ? <div className="property-grid catalog-grid">{properties.map(property => <article className="property-card" key={property.id}><Link className={property.images[0] ? "catalog-property-image" : "catalog-image-placeholder"} href={propertyUrl(property)} aria-label={`Ver ${property.title}`}>{property.images[0] ? <Image src={propertyImagePublicUrl(property.images[0].storageKey)} alt={property.images[0].altText || property.title} fill sizes="(max-width: 680px) 100vw, (max-width: 1000px) 50vw, 33vw" /> : <><HomeIcon size={42}/><span>Ver imóvel</span></>}</Link><div className="property-card__body"><span className="property-card__purpose">{property.purpose === "RENT" ? "Aluguel" : "Venda"} · {propertyTypeLabels.get(property.type)}</span><span className="property-card__location"><PinIcon size={15}/>{property.neighborhood.name}, {property.city.name}</span><h3><Link href={propertyUrl(property)}>{property.title}</Link></h3><div className="property-card__features">{property.bedrooms !== null ? <span><BedIcon/>{property.bedrooms} quartos</span> : null}{property.bathrooms !== null ? <span><BathIcon/>{property.bathrooms} banh.</span> : null}{property.areaM2 ? <span>{property.areaM2.toString()} m²</span> : null}</div><div className="property-card__price"><strong>{formatPrice(property.priceCents)}</strong><span>{property.purpose === "RENT" ? "/mês" : ""}</span></div><Link className="button button--primary property-card__cta" href={propertyUrl(property)} aria-label={`Ver imóvel: ${property.title}`}>Ver imóvel</Link><small className="catalog-code">{property.publicCode.toUpperCase()}</small></div></article>)}</div> : <div className="empty-state catalog-empty"><strong>Nenhum imóvel encontrado.</strong><p>{hasFilters ? "Tente remover alguns filtros para ampliar a busca." : "Os anúncios aprovados aparecerão aqui. Publique o primeiro imóvel."}</p>{hasFilters ? <Link className="button button--secondary" href="/imoveis">Limpar filtros</Link> : <Link className="button button--primary" href="/publicar/imovel">Publicar imóvel</Link>}</div>}
+    {properties.length && totalPages > 1 ? <nav className="catalog-pagination" aria-label="Paginação dos imóveis">
+      {requestedPage > 1 ? <Link href={buildFilterUrl(params, { pagina: requestedPage === 2 ? undefined : String(requestedPage - 1) })}>← Anterior</Link> : <span aria-disabled="true">← Anterior</span>}
+      <strong>Página {requestedPage} de {totalPages}</strong>
+      {requestedPage < totalPages ? <Link href={buildFilterUrl(params, { pagina: String(requestedPage + 1) })}>Próxima →</Link> : <span aria-disabled="true">Próxima →</span>}
+    </nav> : null}
   </div></main><MobileNav/></>;
 }

@@ -5,14 +5,15 @@ import { authorizePropertyMediaUploads } from "@/app/media/actions";
 import { updatePropertyMedia } from "@/app/meus-anuncios/[id]/midias/actions";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { PropertyMediaOrganizer, type PropertyOrganizerItem } from "@/components/property-media-organizer";
+import { optimizePropertyImages } from "@/lib/images/optimize-property-image";
 import { createClient } from "@/lib/supabase/client";
 import { uploadPropertyVideo } from "@/lib/supabase/property-video-upload";
 import {
   createPropertyImagePath,
   createPropertyVideoPath,
   PROPERTY_IMAGE_LIMIT,
-  PROPERTY_IMAGE_MAX_BYTES,
   PROPERTY_IMAGE_MIME_TYPES,
+  PROPERTY_IMAGE_SOURCE_MAX_BYTES,
   PROPERTY_VIDEO_MAX_BYTES,
   PROPERTY_VIDEO_MIME_TYPES,
   STORAGE_BUCKETS,
@@ -25,6 +26,7 @@ type MediaItem = PropertyOrganizerItem & {
 
 export function PropertyMediaEditor({ propertyId, authUserId, initialItems }: { propertyId: string; authUserId: string; initialItems: MediaItem[] }) {
   const [items, setItems] = useState(initialItems);
+  const [optimizingPhotos, setOptimizingPhotos] = useState(false);
   const [saving, setSaving] = useState(false);
   const [photoProgress, setPhotoProgress] = useState(0);
   const [videoProgress, setVideoProgress] = useState(0);
@@ -42,16 +44,26 @@ export function PropertyMediaEditor({ propertyId, authUserId, initialItems }: { 
     itemsRef.current.forEach(item => { if (!item.existing) URL.revokeObjectURL(item.preview); });
   }, []);
 
-  function selectPhotos(event: ChangeEvent<HTMLInputElement>) {
+  async function selectPhotos(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.currentTarget.files ?? []);
     event.currentTarget.value = "";
     setError("");
     if (!files.length) return;
     if (images.length + files.length > PROPERTY_IMAGE_LIMIT) return setError(`Você pode manter no máximo ${PROPERTY_IMAGE_LIMIT} fotos.`);
     if (files.some(file => !PROPERTY_IMAGE_MIME_TYPES.includes(file.type as (typeof PROPERTY_IMAGE_MIME_TYPES)[number]))) return setError("Use apenas imagens JPG, PNG, WebP ou AVIF.");
-    const oversized = files.find(file => file.size > PROPERTY_IMAGE_MAX_BYTES);
-    if (oversized) return setError(`A foto “${oversized.name}” ultrapassa 6 MB.`);
-    const added: MediaItem[] = files.map(file => ({ id: crypto.randomUUID(), kind: "image", preview: URL.createObjectURL(file), label: file.name, existing: false, file }));
+    const oversized = files.find(file => file.size > PROPERTY_IMAGE_SOURCE_MAX_BYTES);
+    if (oversized) return setError(`A foto “${oversized.name}” ultrapassa 20 MB.`);
+    setOptimizingPhotos(true);
+    let optimized: File[];
+    try {
+      optimized = await optimizePropertyImages(files);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Não foi possível otimizar as fotos.");
+      setOptimizingPhotos(false);
+      return;
+    }
+    setOptimizingPhotos(false);
+    const added: MediaItem[] = optimized.map(file => ({ id: crypto.randomUUID(), kind: "image", preview: URL.createObjectURL(file), label: file.name, existing: false, file }));
     setItems(current => images.length ? [...current, ...added] : [added[0], ...current, ...added.slice(1)]);
   }
 
@@ -62,7 +74,7 @@ export function PropertyMediaEditor({ propertyId, authUserId, initialItems }: { 
     if (!file) return;
     if (videos.length) return setError("Remova o vídeo atual antes de adicionar outro.");
     if (!PROPERTY_VIDEO_MIME_TYPES.includes(file.type as (typeof PROPERTY_VIDEO_MIME_TYPES)[number])) return setError("Use um vídeo MP4, WebM, MOV ou M4V.");
-    if (file.size > PROPERTY_VIDEO_MAX_BYTES) return setError(`O vídeo “${file.name}” ultrapassa 50 MB.`);
+    if (file.size > PROPERTY_VIDEO_MAX_BYTES) return setError(`O vídeo “${file.name}” ultrapassa 20 MB.`);
     setItems(current => [...current, { id: crypto.randomUUID(), kind: "video", preview: URL.createObjectURL(file), label: file.name, existing: false, file }]);
   }
 
@@ -107,6 +119,10 @@ export function PropertyMediaEditor({ propertyId, authUserId, initialItems }: { 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     if (readyToSubmit.current) return;
     event.preventDefault();
+    if (optimizingPhotos) {
+      setError("Aguarde a otimização das fotos terminar.");
+      return;
+    }
     setSaving(true);
     setError("");
     setPhotoProgress(0);
@@ -168,17 +184,17 @@ export function PropertyMediaEditor({ propertyId, authUserId, initialItems }: { 
       <input ref={payloadRef} type="hidden" name="mediaOrder" defaultValue="[]" />
       <section className="property-photo-field field-wide">
         <div className="property-photo-field__heading"><div><strong>Fotos do imóvel</strong><span>Escolha a capa e organize a ordem da galeria.</span></div><b>{images.length}/{PROPERTY_IMAGE_LIMIT}</b></div>
-        <label className="property-photo-picker" htmlFor="edit-property-photos"><span>Adicionar ou substituir fotos</span><small>JPG, PNG, WebP ou AVIF · até 6 MB cada</small></label>
-        <input id="edit-property-photos" className="property-photo-input" type="file" accept={PROPERTY_IMAGE_MIME_TYPES.join(",")} multiple onChange={selectPhotos} disabled={saving || images.length >= PROPERTY_IMAGE_LIMIT} />
+        <label className="property-photo-picker" htmlFor="edit-property-photos"><span>{optimizingPhotos ? "Otimizando fotos..." : "Adicionar ou substituir fotos"}</span><small>Até 20 MB por original · conversão automática para WebP</small></label>
+        <input id="edit-property-photos" className="property-photo-input" type="file" accept={PROPERTY_IMAGE_MIME_TYPES.join(",")} multiple onChange={selectPhotos} disabled={saving || optimizingPhotos || images.length >= PROPERTY_IMAGE_LIMIT} />
       </section>
       <section className="property-photo-field field-wide">
         <div className="property-photo-field__heading"><div><strong>Vídeo do imóvel</strong><span>O vídeo aparece junto às fotos na posição escolhida.</span></div><b>{videos.length}/1</b></div>
-        {!videos.length ? <><label className="property-photo-picker" htmlFor="edit-property-video"><span>Adicionar vídeo</span><small>MP4, WebM, MOV ou M4V · até 50 MB</small></label><input id="edit-property-video" className="property-photo-input" type="file" accept={PROPERTY_VIDEO_MIME_TYPES.join(",")} onChange={selectVideo} disabled={saving} /></> : <p className="property-photo-empty">Para substituir, remova o vídeo atual e selecione o novo arquivo.</p>}
+        {!videos.length ? <><label className="property-photo-picker" htmlFor="edit-property-video"><span>Adicionar vídeo</span><small>MP4, WebM, MOV ou M4V · até 20 MB</small></label><input id="edit-property-video" className="property-photo-input" type="file" accept={PROPERTY_VIDEO_MIME_TYPES.join(",")} onChange={selectVideo} disabled={saving || optimizingPhotos} /></> : <p className="property-photo-empty">Para substituir, remova o vídeo atual e selecione o novo arquivo.</p>}
       </section>
-      <div className="field-wide"><PropertyMediaOrganizer items={items} coverId={coverId} disabled={saving} onMove={move} onReorder={reorder} onRemove={removeItem} onSetCover={setCover} /></div>
+      <div className="field-wide"><PropertyMediaOrganizer items={items} coverId={coverId} disabled={saving || optimizingPhotos} onMove={move} onReorder={reorder} onRemove={removeItem} onSetCover={setCover} /></div>
       {!items.length ? <p className="property-photo-empty field-wide">O anúncio ficará sem mídias. Você pode adicionar novas fotos agora ou salvar assim mesmo.</p> : null}
       {error ? <p className="property-photo-error field-wide" role="alert">{error}</p> : null}
-      <PendingSubmitButton className="button button--primary field-wide" busy={saving} pendingText={saving ? progress : "Salvando..."}>Salvar mídias</PendingSubmitButton>
+      <PendingSubmitButton className="button button--primary field-wide" busy={saving || optimizingPhotos} pendingText={optimizingPhotos ? "Otimizando fotos..." : saving ? progress : "Salvando..."}>Salvar mídias</PendingSubmitButton>
     </form>
   );
 }
