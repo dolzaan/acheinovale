@@ -35,7 +35,9 @@ export default async function HomePage({ searchParams }: Props) {
   const cityName = city?.name ?? "sua cidade";
   const cityQuery = city ? `cidade=${encodeURIComponent(city.slug)}` : "";
   const propertiesHref = cityQuery ? `/imoveis?${cityQuery}` : "/imoveis";
+  const freightersHref = cityQuery ? `/freteiros?${cityQuery}` : "/freteiros";
   const rentalsHref = `${propertiesHref}${cityQuery ? "&" : "?"}finalidade=aluguel`;
+  const availableFreightersHref = `${freightersHref}${cityQuery ? "&" : "?"}disponivel=hoje`;
 
   return (
     <>
@@ -58,7 +60,7 @@ export default async function HomePage({ searchParams }: Props) {
               <div className="quick-searches" aria-label="Buscas populares">
                 <span>Buscas populares:</span>
                 <Link href={rentalsHref}>Imóveis para alugar</Link>
-                <Link href="/freteiros?disponivel=hoje">Frete hoje</Link>
+                <Link href={availableFreightersHref}>Frete hoje</Link>
               </div>
             </div>
 
@@ -72,7 +74,7 @@ export default async function HomePage({ searchParams }: Props) {
                 <span className="category-card__copy"><small>Quero encontrar</small><strong>Um imóvel</strong><span>Casas, apartamentos e terrenos</span></span>
                 <span className="category-card__arrow"><ArrowIcon/></span>
               </Link>
-              <Link className="category-card category-card--freight" href="/freteiros">
+              <Link className="category-card category-card--freight" href={freightersHref}>
                 <span className="category-card__icon"><TruckIcon size={31}/></span>
                 <span className="category-card__copy"><small>Preciso de</small><strong>Um freteiro</strong><span>Mudanças, entregas e transportes</span></span>
                 <span className="category-card__arrow"><ArrowIcon/></span>
@@ -84,7 +86,7 @@ export default async function HomePage({ searchParams }: Props) {
         <section className="section properties-section">
           <div className="container">
             <div className="section-heading">
-              <div><span className="section-kicker">Novidades por perto</span><h2>Imóveis recentes</h2><p>Boas oportunidades publicadas em Rio do Sul.</p></div>
+              <div><span className="section-kicker">Novidades por perto</span><h2>Imóveis recentes</h2><p>Boas oportunidades publicadas em {cityName}.</p></div>
               <Link className="text-link" href={propertiesHref}>Ver todos <ArrowIcon/></Link>
             </div>
             <div className="property-grid">
@@ -118,8 +120,8 @@ export default async function HomePage({ searchParams }: Props) {
         <section className="section freighters-section">
           <div className="container">
             <div className="section-heading">
-              <div><span className="section-kicker section-kicker--orange">Quem resolve por aqui</span><h2>Freteiros em destaque</h2><p>Profissionais avaliados que atendem Rio do Sul e região.</p></div>
-              <Link className="text-link" href="/freteiros">Ver todos <ArrowIcon/></Link>
+              <div><span className="section-kicker section-kicker--orange">Quem resolve por aqui</span><h2>Freteiros em destaque</h2><p>Profissionais avaliados que atendem {cityName} e região.</p></div>
+              <Link className="text-link" href={freightersHref}>Ver todos <ArrowIcon/></Link>
             </div>
             <div className="freighter-grid">
               {freighters.map((freighter) => (
@@ -132,11 +134,11 @@ export default async function HomePage({ searchParams }: Props) {
                   <span className="freighter-location"><PinIcon size={15}/>{freighter.location}</span>
                   <div className="rating"><StarIcon/><strong>{freighter.rating}</strong><span>({freighter.reviews} avaliações)</span></div>
                   <div className="service-tags">{freighter.services.map((service) => <span key={service}>{service}</span>)}</div>
-                  <Link className="outline-button" href="/freteiros">Ver profissionais <ArrowIcon/></Link>
+                  <Link className="outline-button" href={freightersHref}>Ver profissionais <ArrowIcon/></Link>
                 </article>
               ))}
             </div>
-            <Link className="mobile-more-button" href="/freteiros">Encontrar um freteiro <ArrowIcon/></Link>
+            <Link className="mobile-more-button" href={freightersHref}>Encontrar um freteiro <ArrowIcon/></Link>
           </div>
         </section>
 
@@ -154,7 +156,7 @@ export default async function HomePage({ searchParams }: Props) {
       </main>
 
       <SiteFooter />
-      <MobileNav />
+      <MobileNav citySlug={city?.slug} />
     </>
   );
 }

@@ -12,13 +12,14 @@ import { signOut } from "@/app/auth/actions";
 
 export async function Header({ citySlug }: { citySlug?: string } = {}) {
   const user = await getCurrentUser();
+  const cityQuery = citySlug ? `?cidade=${encodeURIComponent(citySlug)}` : "";
   return (
     <><Suspense fallback={null}><NavigationProgress /></Suspense><header className="site-header">
       <div className="container header-inner">
-        <Logo />
+        <Logo href={`/${cityQuery}`} />
         <nav className="desktop-nav" aria-label="Navegação principal">
-          <Link href={citySlug ? `/imoveis?cidade=${encodeURIComponent(citySlug)}` : "/imoveis"}>Imóveis</Link>
-          <Link href="/freteiros">Freteiros</Link>
+          <Link href={`/imoveis${cityQuery}`}>Imóveis</Link>
+          <Link href={`/freteiros${cityQuery}`}>Freteiros</Link>
         </nav>
         <div className="header-location">
           <span className="header-location__label">Onde você procura?</span>
