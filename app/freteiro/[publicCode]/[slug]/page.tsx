@@ -3,10 +3,12 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
 import { UserAvatar } from "@/components/user-avatar";
+import { PropertyGallery } from "@/components/property-gallery";
 import { PinIcon, StarIcon, TruckIcon } from "@/components/icons";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { getPublicFreighter } from "@/lib/listings/public";
 import { freighterUrl } from "@/lib/listings/urls";
+import { freighterImagePublicUrl } from "@/lib/supabase/storage";
 import { formatBrazilianPhone } from "@/lib/validation/profile";
 
 type Props = {
@@ -44,9 +46,9 @@ export default async function FreighterPage({ params }: Props) {
   const rating = freighter.reviews.length
     ? freighter.reviews.reduce((sum, review) => sum + review.rating, 0) / freighter.reviews.length
     : null;
- const whatsappUrl = `https://wa.me/${freighter.whatsapp}?text=${encodeURIComponent(
-  `Olá! Encontrei "${freighter.displayName}" no AcheiNoVale e gostaria de saber mais sobre o serviço.`
-)}`;
+  const whatsappUrl = `https://wa.me/${freighter.whatsapp}?text=${encodeURIComponent(
+    `Olá! Encontrei "${freighter.displayName}" no AcheiNoVale e gostaria de saber mais sobre o serviço.`,
+  )}`;
   const services = freighter.services.filter(service => !service.name.startsWith("Veículo: ") && !service.name.startsWith("Atende: "));
   const vehicleTypes = freighter.services.filter(service => service.name.startsWith("Veículo: ")).map(service => service.name.slice(9));
   const serviceCities = freighter.services.filter(service => service.name.startsWith("Atende: ")).map(service => service.name.slice(8));
@@ -62,10 +64,18 @@ export default async function FreighterPage({ params }: Props) {
             </div>
           ) : null}
 
-          <div className="listing-detail__hero listing-detail__hero--freighter">
-            <TruckIcon size={65} />
-            <span>Fretes, mudanças e entregas no Alto Vale do Itajaí.</span>
-          </div>
+          {freighter.images.length ? (
+            <PropertyGallery
+              images={freighter.images.map(image => ({ id: image.id, src: freighterImagePublicUrl(image.storageKey), alt: image.altText || `Foto de ${freighter.displayName}`, position: image.position }))}
+              videos={[]}
+              title={freighter.displayName}
+            />
+          ) : (
+            <div className="listing-detail__hero listing-detail__hero--freighter">
+              <TruckIcon size={65} />
+              <span>Fretes, mudanças e entregas no Alto Vale do Itajaí.</span>
+            </div>
+          )}
 
           <div className="listing-detail__grid">
             <article className="listing-detail__content">
@@ -73,7 +83,6 @@ export default async function FreighterPage({ params }: Props) {
               <span className="listing-location"><PinIcon size={17} />{freighter.city.name}</span>
               <h1>{freighter.displayName}</h1>
               <div className="listing-facts">
-                {freighter.serviceRadiusKm ? <span>Atende em um raio de {freighter.serviceRadiusKm} km</span> : null}
                 {rating ? <span><StarIcon />{rating.toFixed(1)} ({freighter.reviews.length})</span> : <span>Novo no AcheiNoVale</span>}
               </div>
               <div className="service-tags service-tags--detail">

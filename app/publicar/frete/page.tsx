@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
@@ -30,6 +31,7 @@ export default async function NewFreightPage({ searchParams }: Props) {
 
   return <><Header/><main className="account-page"><div className="container form-page">
     <div className="account-heading"><span className="section-kicker">Cadastro profissional</span><h1>{profile ? "Editar cadastro de freteiro" : "Cadastrar como freteiro"}</h1><p>Apresente seu serviço com clareza para receber contatos pelo WhatsApp.</p></div>
+    {profile ? <Link className="button button--secondary" href={`/meus-anuncios/${profile.id}/freteiro-midias`}>Adicionar ou editar fotos</Link> : null}
     {params.erro && <p className="form-alert">Revise os campos informados ou tente enviar outra foto.</p>}
     <form className="listing-form" action={saveFreighterProfile} encType="multipart/form-data">
       <div className="field-wide"><span className="field-title">Foto profissional</span><ProfilePhotoInput image={user.image} name={profile?.displayName || user.name}/></div>
@@ -40,7 +42,7 @@ export default async function NewFreightPage({ searchParams }: Props) {
       <fieldset className="field-wide option-fieldset"><legend>Tipos de veículo</legend><div className="option-grid">{vehicleTypes.map(vehicle => <label className="checkbox-field" key={vehicle}><input type="checkbox" name="vehicleTypes" value={vehicle} defaultChecked={savedVehicleTypes.includes(vehicle)}/><span>{vehicle}</span></label>)}</div></fieldset>
       <fieldset className="field-wide option-fieldset"><legend>Cidades atendidas</legend><div className="option-grid option-grid--cities">{cities.map(city => <label className="checkbox-field" key={city.id}><input type="checkbox" name="serviceCityIds" value={city.id} defaultChecked={savedServiceCityIds.includes(city.id)}/><span>{city.name}</span></label>)}</div><p className="option-fieldset__hint">Marque todas as cidades onde você realiza fretes. Sem seleção, será considerada somente a cidade base.</p></fieldset>
       <label className="field-wide"><span>Serviços, separados por vírgula</span><input name="services" defaultValue={savedServices.map(service => service.name).join(", ") || "Mudanças, Entregas"} required/></label>
-      <label className="field-wide"><span>Descrição</span><textarea name="description" maxLength={2000} rows={7} defaultValue={profile?.description || ""} required/></label>
+      <label className="field-wide"><span>Descrição</span><textarea name="description" maxLength={2000} rows={7} defaultValue={profile?.description || ""} placeholder="Conte brevemente como funciona seu serviço" required/></label>
       <PendingSubmitButton className="button button--primary field-wide" pendingText="Salvando cadastro...">Salvar cadastro</PendingSubmitButton>
     </form>
   </div></main><MobileNav/></>;

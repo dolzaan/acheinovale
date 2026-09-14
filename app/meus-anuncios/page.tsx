@@ -66,6 +66,8 @@ export default async function MyListingsPage({ searchParams }: Props) {
                   </div>
                   <div className="manager-card__actions">
                     <Link href={freighterUrl(freighter)}>Visualizar</Link>
+                    <Link href="/publicar/frete">Editar cadastro</Link>
+                    <Link href={`/meus-anuncios/${freighter.id}/freteiro-midias`}>Editar fotos</Link>
                     {freighter.status === "ACTIVE" || freighter.status === "PAUSED" ? <form action={pauseFreighter}><input type="hidden" name="id" value={freighter.id} /><PendingSubmitButton pendingText={freighter.status === "PAUSED" ? "Reativando..." : "Pausando..."}>{freighter.status === "PAUSED" ? "Reativar" : "Pausar"}</PendingSubmitButton></form> : null}
                   </div>
                 </article>
