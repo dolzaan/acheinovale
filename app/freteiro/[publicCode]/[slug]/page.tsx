@@ -4,15 +4,19 @@ import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
 import { UserAvatar } from "@/components/user-avatar";
 import { PropertyGallery } from "@/components/property-gallery";
+import { FreighterTrackedContact } from "@/components/freighter-tracked-contact";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { PinIcon, StarIcon, TruckIcon } from "@/components/icons";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { getPublicFreighter } from "@/lib/listings/public";
 import { freighterUrl } from "@/lib/listings/urls";
 import { freighterImagePublicUrl } from "@/lib/supabase/storage";
 import { formatBrazilianPhone } from "@/lib/validation/profile";
+import { reportFreighter } from "../../actions";
 
 type Props = {
   params: Promise<{ publicCode: string; slug: string }>;
+  searchParams: Promise<{ denuncia?: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -29,8 +33,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function FreighterPage({ params }: Props) {
+export default async function FreighterPage({ params, searchParams }: Props) {
   const { publicCode, slug } = await params;
+  const query = await searchParams;
   const freighter = await getPublicFreighter(publicCode);
   if (!freighter) notFound();
 
@@ -99,12 +104,23 @@ export default async function FreighterPage({ params }: Props) {
             <aside className="listing-contact-card">
               <small>Informações de preço</small>
               <strong className="listing-contact-card__name">{freighter.priceNote || "Solicite um orçamento"}</strong>
-              <a className="button button--primary" href={whatsappUrl} target="_blank" rel="noreferrer">Conversar no WhatsApp</a>
+              <FreighterTrackedContact publicCode={freighter.publicCode} whatsappUrl={whatsappUrl} />
               <div className="listing-owner">
                 <UserAvatar image={freighter.user.image} name={freighter.displayName} />
                 <div><small>Responsável</small><b>{freighter.user.name || freighter.displayName}</b></div>
               </div>
               <p>WhatsApp do serviço: {formatBrazilianPhone(freighter.whatsapp)}</p>
+              {query.denuncia === "enviada" ? <p className="listing-report-success" role="status">Obrigado. A denúncia foi enviada para análise.</p> : null}
+              {query.denuncia === "limite" ? <p className="listing-report-error" role="alert">Limite diário de denúncias atingido.</p> : null}
+              {query.denuncia === "erro" ? <p className="listing-report-error" role="alert">Não foi possível enviar essa denúncia.</p> : null}
+              <details className="listing-report">
+                <summary>Denunciar este perfil</summary>
+                <form action={reportFreighter.bind(null, freighter.id)}>
+                  <label><span>Motivo</span><select name="reason" required defaultValue=""><option value="" disabled>Selecione</option><option>Contato incorreto</option><option>Suspeita de fraude</option><option>Serviço inexistente</option><option>Conteúdo inadequado</option><option>Outro</option></select></label>
+                  <label><span>Detalhes (opcional)</span><textarea name="details" maxLength={500} rows={3} /></label>
+                  <PendingSubmitButton pendingText="Enviando...">Enviar denúncia</PendingSubmitButton>
+                </form>
+              </details>
             </aside>
           </div>
         </div>

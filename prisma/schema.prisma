@@ -101,10 +101,10 @@ model City {
 }
 
 model Neighborhood {
-  id         String     @id @default(cuid())
-  name       String     @map("nome")
-  slug       String     @map("identificador_url")
-  cityId     String     @map("id_cidade")
+  id          String     @id @default(cuid())
+  name        String     @map("nome")
+  slug        String     @map("identificador_url")
+  cityId      String     @map("id_cidade")
   city        City       @relation(fields: [cityId], references: [id])
   properties  Property[]
   needsReview Boolean    @default(false) @map("precisa_revisao")
@@ -185,32 +185,33 @@ model PropertyVideo {
 }
 
 model FreighterProfile {
-  id              String             @id @default(cuid())
-  publicCode      String             @unique @map("codigo_publico")
-  slug            String             @map("identificador_url")
-  userId          String             @unique @map("id_usuario")
-  user            User               @relation(fields: [userId], references: [id])
-  cityId          String             @map("id_cidade")
-  city            City               @relation(fields: [cityId], references: [id])
-  status          ContentStatus      @default(PENDING)
-  displayName     String             @map("nome_exibicao")
-  description     String             @map("descricao")
+  id              String                 @id @default(cuid())
+  publicCode      String                 @unique @map("codigo_publico")
+  slug            String                 @map("identificador_url")
+  userId          String                 @unique @map("id_usuario")
+  user            User                   @relation(fields: [userId], references: [id])
+  cityId          String                 @map("id_cidade")
+  city            City                   @relation(fields: [cityId], references: [id])
+  status          ContentStatus          @default(PENDING)
+  displayName     String                 @map("nome_exibicao")
+  description     String                 @map("descricao")
   whatsapp        String
-  serviceRadiusKm Int?               @map("raio_servico_km")
-  availableToday  Boolean            @default(false) @map("disponivel_hoje")
-  priceNote       String?            @map("observacao_preco")
-  publishedAt     DateTime?          @map("publicado_em")
-  moderationNote  String?            @map("observacao_moderacao")
-  moderatedAt     DateTime?          @map("moderado_em")
-  moderatedById   String?            @map("id_moderador")
-  moderatedBy     User?              @relation("FreighterModerator", fields: [moderatedById], references: [id], onDelete: SetNull)
-  createdAt       DateTime           @default(now()) @map("criado_em")
-  updatedAt       DateTime           @updatedAt @map("atualizado_em")
+  serviceRadiusKm Int?                   @map("raio_servico_km")
+  availableToday  Boolean                @default(false) @map("disponivel_hoje")
+  priceNote       String?                @map("observacao_preco")
+  publishedAt     DateTime?              @map("publicado_em")
+  moderationNote  String?                @map("observacao_moderacao")
+  moderatedAt     DateTime?              @map("moderado_em")
+  moderatedById   String?                @map("id_moderador")
+  moderatedBy     User?                  @relation("FreighterModerator", fields: [moderatedById], references: [id], onDelete: SetNull)
+  createdAt       DateTime               @default(now()) @map("criado_em")
+  updatedAt       DateTime               @updatedAt @map("atualizado_em")
   services        FreighterService[]
   images          FreighterImage[]
   reviews         Review[]
   favorites       Favorite[]
   reports         Report[]
+  metrics         FreighterMetricDaily[]
 
   @@index([cityId, status, availableToday])
   @@index([status, createdAt])
@@ -241,6 +242,20 @@ model FreighterImage {
 
   @@index([profileId, position])
   @@map("imagens_freteiros")
+}
+
+model FreighterMetricDaily {
+  id             String           @id @default(cuid())
+  profileId      String           @map("id_perfil")
+  profile        FreighterProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  date           DateTime         @map("data") @db.Date
+  views          Int              @default(0) @map("visualizacoes")
+  whatsappClicks Int              @default(0) @map("cliques_whatsapp")
+  updatedAt      DateTime         @updatedAt @map("atualizado_em")
+
+  @@unique([profileId, date])
+  @@index([profileId, date])
+  @@map("metricas_diarias_freteiros")
 }
 
 model Review {
@@ -304,13 +319,13 @@ model RateLimitBucket {
 }
 
 model MediaUploadGrant {
-  id           String   @id @default(cuid())
-  authUserId   String   @map("id_usuario_auth") @db.Uuid
-  storageKey   String   @unique @map("chave_armazenamento")
-  mimeType     String   @map("tipo_mime")
-  maxBytes     Int      @map("tamanho_maximo")
-  expiresAt    DateTime @map("expira_em")
-  createdAt    DateTime @default(now()) @map("criado_em")
+  id         String   @id @default(cuid())
+  authUserId String   @map("id_usuario_auth") @db.Uuid
+  storageKey String   @unique @map("chave_armazenamento")
+  mimeType   String   @map("tipo_mime")
+  maxBytes   Int      @map("tamanho_maximo")
+  expiresAt  DateTime @map("expira_em")
+  createdAt  DateTime @default(now()) @map("criado_em")
 
   @@index([authUserId, expiresAt])
   @@index([expiresAt])

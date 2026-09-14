@@ -21,8 +21,18 @@ export default async function MyListingsPage({ searchParams }: Props) {
   const [user, params] = await Promise.all([requireCurrentUser("/meus-anuncios"), searchParams]);
   const [properties, freighter] = await Promise.all([
     prisma.property.findMany({ where: { ownerId: user.id, status: { not: "ARCHIVED" } }, orderBy: { createdAt: "desc" }, include: { city: true } }),
-    prisma.freighterProfile.findUnique({ where: { userId: user.id }, include: { city: true } }),
+    prisma.freighterProfile.findUnique({ where: { userId: user.id }, include: { city: true, images: { select: { id: true } }, services: { select: { name: true } } } }),
   ]);
+  const freighterMetrics = freighter ? await prisma.freighterMetricDaily.findMany({
+    where: { profileId: freighter.id },
+    orderBy: { date: "desc" },
+    take: 30,
+    select: { views: true, whatsappClicks: true },
+  }).catch(() => []) : [];
+  const metricTotals = freighterMetrics.reduce((totals, metric) => ({
+    views: totals.views + metric.views,
+    whatsappClicks: totals.whatsappClicks + metric.whatsappClicks,
+  }), { views: 0, whatsappClicks: 0 });
 
   return (
     <>
@@ -62,6 +72,7 @@ export default async function MyListingsPage({ searchParams }: Props) {
                     <span className={`status-pill status-pill--${freighter.status.toLowerCase()}`}>{statusLabel[freighter.status]}</span>
                     <h2>{freighter.displayName}</h2>
                     <p>Freteiro · {freighter.city.name} · Código {freighter.publicCode.toUpperCase()}</p>
+                    <div className="manager-metrics"><span><strong>{metricTotals.views}</strong> visualizações</span><span><strong>{metricTotals.whatsappClicks}</strong> contatos no WhatsApp</span><small>Últimos 30 dias</small></div>
                     <ModerationFeedback note={freighter.moderationNote} />
                   </div>
                   <div className="manager-card__actions">
