@@ -55,7 +55,7 @@ export async function saveFreighterProfile(formData: FormData) {
   if (
     !city || !whatsapp || !servicesAreValid ||
     displayName.length < 3 || displayName.length > 100 ||
-    description.length < 30 || description.length > 2000 ||
+    description.length > 2000 ||
     priceNote.length > 120 || vehicleTypes.length > 5 || serviceCities.length !== requestedServiceCityIds.length
   ) {
     redirect("/publicar/frete?erro=dados");
@@ -89,6 +89,7 @@ export async function saveFreighterProfile(formData: FormData) {
   }
 
   const existing = await prisma.freighterProfile.findUnique({ where: { userId: user.id } });
+  let savedProfileId = existing?.id || "";
   try {
     await prisma.$transaction(async tx => {
       const slug = freighterSlug(displayName, city.name);
@@ -102,10 +103,15 @@ export async function saveFreighterProfile(formData: FormData) {
         priceNote: priceNote || null,
         availableToday: false,
         status: "PENDING" as const,
+        moderationNote: null,
+        moderatedAt: null,
+        moderatedById: null,
+        publishedAt: null,
       };
       const profile = existing
         ? await tx.freighterProfile.update({ where: { id: existing.id }, data })
         : await tx.freighterProfile.create({ data: { ...data, publicCode: createPublicCode(), userId: user.id } });
+      savedProfileId = profile.id;
 
       if (newImage) await tx.user.update({ where: { id: user.id }, data: { image: newImage } });
       await tx.freighterService.deleteMany({ where: { profileId: profile.id } });
@@ -129,5 +135,5 @@ export async function saveFreighterProfile(formData: FormData) {
 
   revalidatePath("/");
   revalidatePath("/freteiros");
-  redirect("/meus-anuncios?criado=frete");
+  redirect(`/meus-anuncios/${savedProfileId}/freteiro-midias?cadastro=salvo`);
 }

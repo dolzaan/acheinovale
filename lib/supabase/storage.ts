@@ -10,6 +10,7 @@ export const PROPERTY_IMAGE_MAX_BYTES = 2 * 1024 * 1024;
 export const PROPERTY_IMAGE_TARGET_BYTES = 900 * 1024;
 export const PROPERTY_IMAGE_MAX_EDGE = 1600;
 export const PROPERTY_IMAGE_LIMIT = 6;
+export const FREIGHTER_IMAGE_LIMIT = 6;
 export const PROPERTY_IMAGE_LEGACY_LIMIT = 10;
 export const PROPERTY_VIDEO_MAX_BYTES = 20 * 1024 * 1024;
 export const PROPERTY_VIDEO_LIMIT = 1;
@@ -57,6 +58,11 @@ export function createPropertyImagePath(authUserId: string, mimeType: string) {
   return `${authUserId}/properties/${crypto.randomUUID()}.${extension}`;
 }
 
+export function createFreighterImagePath(authUserId: string, mimeType: string) {
+  const extension = PROFILE_IMAGE_EXTENSIONS[mimeType] ?? "jpg";
+  return `${authUserId}/freighters/${crypto.randomUUID()}.${extension}`;
+}
+
 export function createPropertyVideoPath(authUserId: string, mimeType: string) {
   const extension = PROPERTY_VIDEO_EXTENSIONS[mimeType] ?? "mp4";
   return `${authUserId}/properties/${crypto.randomUUID()}.${extension}`;
@@ -67,6 +73,13 @@ export function propertyMediaPublicUrl(storageKey: string) {
   if (!baseUrl) return "";
   const encodedPath = storageKey.split("/").map(encodeURIComponent).join("/");
   return `${baseUrl}/storage/v1/object/public/${STORAGE_BUCKETS.properties}/${encodedPath}`;
+}
+
+export function freighterImagePublicUrl(storageKey: string) {
+  const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
+  if (!baseUrl) return "";
+  const encodedPath = storageKey.split("/").map(encodeURIComponent).join("/");
+  return `${baseUrl}/storage/v1/object/public/${STORAGE_BUCKETS.freighters}/${encodedPath}`;
 }
 
 export function propertyImagePublicUrl(storageKey: string) {

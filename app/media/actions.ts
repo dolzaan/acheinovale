@@ -3,10 +3,12 @@
 import { prisma } from "@/lib/db";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { isPropertyImageKey, isPropertyVideoKey } from "@/lib/listings/property-media";
+import { isFreighterImageKey } from "@/lib/listings/freighter-media";
 import { checkRateLimit } from "@/lib/security/rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   PROPERTY_IMAGE_MAX_BYTES,
+  FREIGHTER_IMAGE_LIMIT,
   PROPERTY_IMAGE_LIMIT,
   PROPERTY_IMAGE_MIME_TYPES,
   PROPERTY_VIDEO_MAX_BYTES,
@@ -163,5 +165,40 @@ export async function authorizePropertyMediaUploads(requests: PropertyMediaUploa
     return { ok: false as const, message };
   }
 
+  return { ok: true as const };
+}
+
+export async function authorizeFreighterImageUploads(requests: PropertyMediaUploadRequest[]) {
+  const user = await requireCurrentUser("/publicar/frete");
+  if (!user.authUserId) return { ok: false as const, message: "Sua sessão expirou. Entre novamente." };
+  const authUserId = user.authUserId;
+  const valid = Array.isArray(requests) &&
+    requests.length >= 1 && requests.length <= FREIGHTER_IMAGE_LIMIT &&
+    new Set(requests.map(request => request.storageKey)).size === requests.length &&
+    requests.every(request => Number.isSafeInteger(request.size) && request.size > 0 &&
+      request.size <= PROPERTY_IMAGE_MAX_BYTES &&
+      PROPERTY_IMAGE_MIME_TYPES.includes(request.mimeType as (typeof PROPERTY_IMAGE_MIME_TYPES)[number]) &&
+      isFreighterImageKey(request.storageKey, authUserId));
+  if (!valid) return { ok: false as const, message: "As fotos selecionadas não são válidas." };
+
+  const rateLimit = await checkRateLimit({
+    scope: "autorizar-upload-freteiro",
+    identifier: user.id,
+    limit: 12,
+    windowSeconds: 15 * 60,
+  });
+  if (!rateLimit.allowed) return { ok: false as const, message: "Muitos envios em pouco tempo. Aguarde alguns minutos." };
+
+  const folder = `${authUserId}/freighters`;
+  const { data, error } = await createAdminClient().storage.from(STORAGE_BUCKETS.freighters).list(folder, { limit: 100 });
+  if (error) return { ok: false as const, message: "Não foi possível verificar seu espaço de fotos." };
+  const storedBytes = (data ?? []).reduce((total, object) => {
+    const metadata = object.metadata as { size?: number } | undefined;
+    return total + (typeof metadata?.size === "number" ? metadata.size : 0);
+  }, 0);
+  const requestedBytes = requests.reduce((total, request) => total + request.size, 0);
+  if ((data?.length ?? 0) + requests.length > 30 || storedBytes + requestedBytes > 60 * 1024 * 1024) {
+    return { ok: false as const, message: "Seu limite de armazenamento de fotos foi atingido." };
+  }
   return { ok: true as const };
 }
