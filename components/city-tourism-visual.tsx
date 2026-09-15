@@ -18,7 +18,6 @@ export function CityTourismVisual({ citySlug, cityName }: { citySlug?: string; c
               fill
               sizes="(max-width: 680px) 100vw, 45vw"
               priority
-              unoptimized={photo.src.startsWith("https://")}
             />
             <figcaption><PinIcon size={17} /><span>{photo.caption}<small>{isRegionalFallback ? "Belezas naturais do Alto Vale do Itajaí" : `${cityName}, SC`}</small></span></figcaption>
             <div className="regional-signature"><Image src="/brand/symbol-green.png" alt="" width={36} height={35} /><span>Encontre perto.<br/><strong>Resolva no Vale.</strong></span></div>

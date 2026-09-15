@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
 import { freighterUrl, propertyUrl } from "@/lib/listings/urls";
+import { revalidatePublicListings, revalidatePublicLocations } from "@/lib/listings/public-cache";
 import { slugify } from "@/lib/validation/listing";
 
 type ModerationIntent = "approve" | "reject" | "pause";
@@ -31,6 +32,7 @@ function decision(intent: ModerationIntent, note: string) {
 }
 
 function refreshModerationPages(detailPath: string) {
+  revalidatePublicListings();
   revalidatePath("/admin/anuncios");
   revalidatePath("/meus-anuncios");
   revalidatePath("/imoveis");
@@ -120,6 +122,7 @@ export async function reviewNeighborhood(formData: FormData) {
   }
 
   revalidatePath("/admin/anuncios");
+  revalidatePublicLocations();
   revalidatePath("/imoveis");
   redirect("/admin/anuncios?concluido=bairro");
 }

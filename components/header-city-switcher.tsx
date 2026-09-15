@@ -91,7 +91,7 @@ export function HeaderCitySwitcher({ defaultCitySlug = "rio-do-sul" }: { default
           {!cities.length && !loadFailed ? <span className="city-menu__status">Carregando cidades...</span> : null}
           {loadFailed ? <span className="city-menu__status">Não foi possível carregar. Tente novamente.</span> : null}
           {cities.map(city => (
-            <Link
+            <Link prefetch={false}
               href={cityHref(city.slug)}
               key={city.id}
               aria-current={city.slug === selectedSlug ? "page" : undefined}
