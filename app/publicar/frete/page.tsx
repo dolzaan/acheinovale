@@ -4,6 +4,7 @@ import { MobileNav } from "@/components/mobile-nav";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { PhoneInput } from "@/components/phone-input";
 import { ProfilePhotoInput } from "@/components/profile-photo-input";
+import { FreighterFormTools } from "@/components/freighter-form-tools";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
 import { saveFreighterProfile } from "./actions";
@@ -22,18 +23,21 @@ export default async function NewFreightPage({ searchParams }: Props) {
   const [params, cities, profile] = await Promise.all([
     searchParams,
     prisma.city.findMany({ where: { isActive: true }, orderBy: { name: "asc" } }),
-    prisma.freighterProfile.findUnique({ where: { userId: user.id }, include: { services: true } }),
+    prisma.freighterProfile.findUnique({ where: { userId: user.id }, include: { services: true, images: true } }),
   ]);
   const savedVehicleTypes = profile?.services.filter(service => service.name.startsWith("Veículo: ")).map(service => service.name.slice(9)) ?? [];
   const savedCitySlugs = new Set(profile?.services.filter(service => service.slug.startsWith("atende-")).map(service => service.slug.slice(7)) ?? []);
   const savedServiceCityIds = cities.filter(city => savedCitySlugs.has(city.slug)).map(city => city.id);
   const savedServices = profile?.services.filter(service => !service.name.startsWith("Veículo: ") && !service.name.startsWith("Atende: ")) ?? [];
+  const hasPhoto = Boolean(user.image || profile?.images.length);
+  const initialCompleted = [profile?.whatsapp || user.phone, profile?.cityId || user.cityId, profile?.description, hasPhoto, savedVehicleTypes.length].filter(Boolean).length;
 
   return <><Header/><main className="account-page"><div className="container form-page">
     <div className="account-heading"><span className="section-kicker">Cadastro profissional</span><h1>{profile ? "Editar cadastro de freteiro" : "Cadastrar como freteiro"}</h1><p>Apresente seu serviço com clareza para receber contatos pelo WhatsApp.</p></div>
     {profile ? <Link className="button button--secondary" href={`/meus-anuncios/${profile.id}/freteiro-midias`}>Adicionar ou editar fotos</Link> : null}
     {params.erro && <p className="form-alert">Revise os campos informados ou tente enviar outra foto.</p>}
     <form className="listing-form" action={saveFreighterProfile} encType="multipart/form-data">
+      <FreighterFormTools hasPhoto={hasPhoto} image={user.image} initialCompleted={initialCompleted} />
       <div className="field-wide"><span className="field-title">Foto profissional</span><ProfilePhotoInput image={user.image} name={profile?.displayName || user.name}/></div>
       <label className="field-wide"><span>Nome profissional</span><input name="displayName" defaultValue={profile?.displayName || user.name || ""} minLength={3} maxLength={100} required/></label>
       <label><span>Cidade base</span><select name="cityId" defaultValue={profile?.cityId || user.cityId || ""} required>{cities.map(city => <option key={city.id} value={city.id}>{city.name}</option>)}</select></label>

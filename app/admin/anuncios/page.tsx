@@ -119,6 +119,7 @@ export default async function ModerationPage({ searchParams }: Props) {
             <span className="section-kicker">Administração</span>
             <div className="admin-heading__title"><ShieldIcon size={28} /><h1>Moderação de anúncios</h1></div>
             <p>Revise imóveis e serviços antes de deixá-los públicos no AcheiNoVale.</p>
+            <Link className="button button--secondary" href="/admin/denuncias">Ver denúncias</Link>
           </div>
 
           {params.concluido && successMessages[params.concluido] ? <p className="admin-alert admin-alert--success">{successMessages[params.concluido]}</p> : null}
