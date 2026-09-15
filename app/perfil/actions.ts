@@ -15,6 +15,7 @@ import {
   STORAGE_BUCKETS,
 } from "@/lib/supabase/storage";
 import { normalizeBrazilianPhone, safeInternalPath } from "@/lib/validation/profile";
+import { revalidatePublicListings } from "@/lib/listings/public-cache";
 
 function value(formData: FormData, key: string) {
   const field = formData.get(key);
@@ -136,6 +137,7 @@ export async function updateProfile(formData: FormData) {
     }
   }
 
+  revalidatePublicListings();
   revalidatePath("/perfil");
   revalidatePath("/");
   revalidatePath("/meus-anuncios");

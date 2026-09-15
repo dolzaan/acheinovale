@@ -7,6 +7,7 @@ import { requireCurrentUser } from "@/lib/auth/current-user";
 import { checkRateLimit } from "@/lib/security/rate-limit";
 import { normalizeBrazilianPhone } from "@/lib/validation/profile";
 import { createPublicCode, freighterSlug, slugify } from "@/lib/validation/listing";
+import { revalidatePublicListings } from "@/lib/listings/public-cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   createProfileImagePath,
@@ -133,6 +134,7 @@ export async function saveFreighterProfile(formData: FormData) {
     if (error) console.warn("[freteiro] Não foi possível remover a foto anterior.", { message: error.message });
   }
 
+  revalidatePublicListings();
   revalidatePath("/");
   revalidatePath("/freteiros");
   redirect(`/meus-anuncios/${savedProfileId}/freteiro-midias?cadastro=salvo`);

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requirePropertyOwner, requireFreighterOwner } from "@/lib/listings/authorization";
+import { revalidatePublicListings } from "@/lib/listings/public-cache";
 
 export async function pauseProperty(formData: FormData) {
   const id = String(formData.get("id") || "");
@@ -15,6 +16,7 @@ export async function pauseProperty(formData: FormData) {
   }
   const nextStatus = property.status === "PAUSED" ? "ACTIVE" : "PAUSED";
   await prisma.property.update({ where: { id }, data: { status: nextStatus } });
+  revalidatePublicListings();
   revalidatePath("/meus-anuncios");
 }
 
@@ -22,6 +24,7 @@ export async function archiveProperty(formData: FormData) {
   const id = String(formData.get("id") || "");
   await requirePropertyOwner(id);
   await prisma.property.update({ where: { id }, data: { status: "ARCHIVED" } });
+  revalidatePublicListings();
   revalidatePath("/meus-anuncios");
 }
 
@@ -36,5 +39,6 @@ export async function pauseFreighter(formData: FormData) {
   }
   const nextStatus = profile.status === "PAUSED" ? "ACTIVE" : "PAUSED";
   await prisma.freighterProfile.update({ where: { id }, data: { status: nextStatus } });
+  revalidatePublicListings();
   revalidatePath("/meus-anuncios");
 }

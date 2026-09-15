@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export function Logo({ light = false, href = "/" }: { light?: boolean; href?: string }) {
   return (
-    <Link href={href} className={`brand ${light ? "brand--light" : ""}`} aria-label="Achei no Vale — início">
+    <Link prefetch={false} href={href} className={`brand ${light ? "brand--light" : ""}`} aria-label="Achei no Vale — início">
       <Image
         className="brand__image"
         src={light ? "/brand/logo-gold.png" : "/brand/logo-green-compact.svg"}

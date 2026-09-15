@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { requireFreighterOwner } from "@/lib/listings/authorization";
 import { isFreighterImageKey, removeFreighterImages, verifyFreighterImages } from "@/lib/listings/freighter-media";
 import { freighterUrl } from "@/lib/listings/urls";
+import { revalidatePublicListings } from "@/lib/listings/public-cache";
 import { FREIGHTER_IMAGE_LIMIT } from "@/lib/supabase/storage";
 
 type ImageItem = { id?: string; storageKey?: string };
@@ -80,6 +81,7 @@ export async function updateFreighterImages(profileId: string, formData: FormDat
   }
 
   await cleanup(removedImages.map(image => image.storageKey));
+  revalidatePublicListings();
   revalidatePath("/");
   revalidatePath("/freteiros");
   revalidatePath("/meus-anuncios");

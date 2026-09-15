@@ -20,8 +20,8 @@ export async function Header({ citySlug }: { citySlug?: string } = {}) {
       <div className="container header-inner">
         <Logo href={`/${cityQuery}`} />
         <nav className="desktop-nav" aria-label="Navegação principal">
-          <Link href={`/imoveis${cityQuery}`}>Imóveis</Link>
-          <Link href={`/freteiros${cityQuery}`}>Freteiros</Link>
+          <Link prefetch={false} href={`/imoveis${cityQuery}`}>Imóveis</Link>
+          <Link prefetch={false} href={`/freteiros${cityQuery}`}>Freteiros</Link>
         </nav>
         <div className="header-location">
           <span className="header-location__label">Onde você procura?</span>
@@ -36,17 +36,17 @@ export async function Header({ citySlug }: { citySlug?: string } = {}) {
               <summary><UserAvatar image={user.image} name={user.name} /><span>{user.name?.split(" ")[0] || "Minha conta"}</span><ChevronDownIcon /></summary>
               <div className="user-menu__panel">
                 <div className="user-menu__identity"><strong>{user.name || "Usuário"}</strong><small>{user.email}</small></div>
-                <Link href="/perfil">Meu perfil</Link>
-                <Link href="/meus-anuncios">Meus anúncios</Link>
-                {user.role === "ADMIN" ? <Link href="/admin/anuncios">Moderar anúncios</Link> : null}
-                <Link href="/favoritos">Favoritos <small>em breve</small></Link>
+                <Link prefetch={false} href="/perfil">Meu perfil</Link>
+                <Link prefetch={false} href="/meus-anuncios">Meus anúncios</Link>
+                {user.role === "ADMIN" ? <Link prefetch={false} href="/admin/anuncios">Moderar anúncios</Link> : null}
+                <Link prefetch={false} href="/favoritos">Favoritos <small>em breve</small></Link>
                 <form action={signOut}><PendingSubmitButton pendingText="Saindo...">Sair</PendingSubmitButton></form>
               </div>
             </details>
           ) : (
-            <Link className="login-link" href="/entrar">Entrar</Link>
+            <Link prefetch={false} className="login-link" href="/entrar">Entrar</Link>
           )}
-          <Link className="button button--primary button--sm" href="/publicar">
+          <Link prefetch={false} className="button button--primary button--sm" href="/publicar">
             <PlusIcon size={18} /> Publicar grátis
           </Link>
         </div>

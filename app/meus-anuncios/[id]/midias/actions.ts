@@ -14,6 +14,7 @@ import {
   videoMimeTypeFromKey,
 } from "@/lib/listings/property-media";
 import { propertyUrl } from "@/lib/listings/urls";
+import { revalidatePublicListings } from "@/lib/listings/public-cache";
 import { PROPERTY_IMAGE_LEGACY_LIMIT, PROPERTY_IMAGE_LIMIT, PROPERTY_VIDEO_LIMIT } from "@/lib/supabase/storage";
 
 type MediaItem = { kind: "image" | "video"; id?: string; storageKey?: string };
@@ -119,6 +120,7 @@ export async function updatePropertyMedia(propertyId: string, formData: FormData
 
   await releasePropertyMediaUploadGrants(newKeys);
   await cleanup([...removedImages.map(item => item.storageKey), ...removedVideos.map(item => item.storageKey)]);
+  revalidatePublicListings();
   revalidatePath("/meus-anuncios");
   revalidatePath("/imoveis");
   revalidatePath(propertyUrl(property));
