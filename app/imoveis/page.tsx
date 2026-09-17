@@ -15,6 +15,7 @@ import { resolveRequestCity } from "@/lib/location/selected-city";
 import { propertyUrl } from "@/lib/listings/urls";
 import { parsePropertySearch } from "@/lib/search/property-search";
 import { propertyImagePublicUrl } from "@/lib/supabase/storage";
+import { SITE_URL } from "@/lib/site";
 
 type SearchParams = {
   q?: string;
@@ -43,7 +44,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   return {
     title: `Imóveis em ${city.name} | AcheiNoVale`,
     description,
-    alternates: { canonical: "https://acheinovale.vercel.app/imoveis" },
+    alternates: { canonical: `${SITE_URL}/imoveis` },
     openGraph: { title: `Imóveis em ${city.name} | AcheiNoVale`, description },
   };
 }

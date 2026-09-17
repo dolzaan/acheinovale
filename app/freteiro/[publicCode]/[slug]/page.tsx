@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { notFound, permanentRedirect } from "next/navigation";
 import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
@@ -12,6 +13,7 @@ import { getPublicFreighter } from "@/lib/listings/public";
 import { freighterUrl } from "@/lib/listings/urls";
 import { freighterImagePublicUrl } from "@/lib/supabase/storage";
 import { formatBrazilianPhone } from "@/lib/validation/profile";
+import { SITE_URL } from "@/lib/site";
 import { reportFreighter } from "../../actions";
 
 type Props = {
@@ -24,12 +26,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const freighter = await getPublicFreighter(publicCode);
   if (!freighter) return { title: "Freteiro não encontrado" };
 
-  const canonical = `https://acheinovale.vercel.app${freighterUrl(freighter)}`;
+  const canonical = `${SITE_URL}${freighterUrl(freighter)}`;
   return {
     title: `${freighter.displayName} | AcheiNoVale`,
     description: freighter.description.slice(0, 155),
     alternates: { canonical },
     robots: freighter.status === "ACTIVE" ? undefined : { index: false, follow: false },
+    openGraph: {
+      title: freighter.displayName,
+      description: freighter.description.slice(0, 155),
+      url: canonical,
+      type: "website",
+      images: freighter.images[0]
+        ? [{ url: freighterImagePublicUrl(freighter.images[0].storageKey), alt: freighter.images[0].altText || freighter.displayName }]
+        : undefined,
+    },
   };
 }
 
@@ -57,9 +68,42 @@ export default async function FreighterPage({ params, searchParams }: Props) {
   const services = freighter.services.filter(service => !service.name.startsWith("Veículo: ") && !service.name.startsWith("Atende: "));
   const vehicleTypes = freighter.services.filter(service => service.name.startsWith("Veículo: ")).map(service => service.name.slice(9));
   const serviceCities = freighter.services.filter(service => service.name.startsWith("Atende: ")).map(service => service.name.slice(8));
+  const canonical = `${SITE_URL}${freighterUrl(freighter)}`;
+  const serviceStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: freighter.displayName,
+    description: freighter.description,
+    serviceType: services.map(service => service.name).join(", ") || "Fretes e mudanças",
+    areaServed: [freighter.city.name, ...serviceCities],
+    image: freighter.images.map(image => freighterImagePublicUrl(image.storageKey)),
+    url: canonical,
+    provider: {
+      "@type": "LocalBusiness",
+      name: freighter.displayName,
+      telephone: freighter.whatsapp,
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: freighter.city.name,
+        addressRegion: "SC",
+        addressCountry: "BR",
+      },
+    },
+  };
+  const breadcrumbStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Início", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: `Freteiros em ${freighter.city.name}`, item: `${SITE_URL}/${freighter.city.slug}/freteiros` },
+      { "@type": "ListItem", position: 3, name: freighter.displayName, item: canonical },
+    ],
+  };
 
   return (
     <>
+      <Script id={`freighter-${freighter.publicCode}-jsonld`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceStructuredData) }} />
+      <Script id={`freighter-${freighter.publicCode}-breadcrumbs`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbStructuredData) }} />
       <Header />
       <main className="listing-detail-page">
         <div className="container listing-detail">
