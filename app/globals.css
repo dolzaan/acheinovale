@@ -439,3 +439,13 @@ button { cursor: pointer; }
   .listing-quality__items { grid-template-columns: 1fr; }
   .listing-quality__head b { align-self: flex-start; }
 }
+
+
+/* Identificação visual dos campos obrigatórios */
+.required-fields-note { margin: -2px 0 2px; color: var(--muted); font-size: 10px; }
+.required-fields-note > span { color: var(--brand-terracotta, #a85527); font-weight: 800; }
+.listing-form label:has(input[required], select[required], textarea[required]) > span:first-child::after {
+  content: " *";
+  color: var(--brand-terracotta, #a85527);
+  font-weight: 800;
+}
