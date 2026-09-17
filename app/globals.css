@@ -449,3 +449,176 @@ button { cursor: pointer; }
   color: var(--brand-terracotta, #a85527);
   font-weight: 800;
 }
+
+
+/* Ajuste de legibilidade: textos auxiliares e controles */
+.header-search__submit,
+.outline-button,
+.pwa-install__button,
+.profile-photo-button,
+.manager-card__actions a,
+.manager-card__actions button,
+.property-cep-field button,
+.property-video-preview button,
+.listing-report button,
+.listing-gallery__open,
+.photo-lightbox__fullscreen,
+.catalog-results-bar button {
+  font-size: 12px;
+}
+
+.header-search__panel > small,
+.quick-searches,
+.local-proof small,
+.category-card__copy small,
+.category-card__copy span,
+.property-card__location,
+.freighter-location,
+.property-card__features,
+.property-card__price span,
+.rating,
+.service-tags span,
+.trust-strip span,
+.trust-strip a,
+.footer-local span,
+.footer-bottom,
+.pwa-install__content span,
+.user-menu__identity small,
+.user-menu__panel > a,
+.user-menu__panel form button,
+.user-menu__panel a small,
+.auth-card > small,
+.profile-summary span,
+.profile-summary > small,
+.onboarding-note span,
+.profile-form label small,
+.listing-form label small,
+.profile-photo-control span,
+.form-alert,
+.form-success,
+.manager-card p,
+.manager-card__feedback,
+.manager-metrics span,
+.manager-metrics small,
+.freighter-completion span,
+.admin-alert,
+.admin-stats small,
+.admin-stats span,
+.admin-results-heading span,
+.moderation-card__top small,
+.moderation-card__top time,
+.moderation-card__description,
+.moderation-meta dd,
+.moderation-note,
+.publish-options p,
+.option-fieldset__hint,
+.property-address-heading span,
+.property-cep-status,
+.property-photo-field__heading span,
+.property-photo-picker small,
+.property-photo-empty,
+.property-photo-error,
+.form-success p,
+.property-media-organizer > p,
+.preview-notice,
+.listing-location,
+.listing-description p,
+.listing-contact-card > small,
+.listing-contact-card > span,
+.listing-owner small,
+.listing-owner b,
+.listing-contact-card > p,
+.listing-report summary,
+.listing-report label,
+.photo-lightbox__footer small,
+.catalog-heading p,
+.catalog-filter__check,
+.catalog-location-filter__heading > small,
+.catalog-location-filter .catalog-filter-section > span,
+.catalog-filter__pair > label > span,
+.catalog-filter-section--checks label,
+.catalog-filter-actions > a,
+.catalog-results-bar p,
+.catalog-results-bar form > label,
+.catalog-results-bar select,
+.page-loading__label,
+.listing-quality__head span,
+.listing-quality__items li,
+.listing-quality > p,
+.required-fields-note {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.profile-form label > span,
+.listing-form label > span,
+.profile-photo-field > span,
+.field-title,
+.option-fieldset legend,
+.catalog-filter-section > strong {
+  font-size: 13px;
+}
+
+.footer-grid p,
+.footer-grid strong,
+.footer-grid a,
+.account-heading p,
+.freighter-preview__card > p,
+.listing-description p {
+  font-size: 13px;
+}
+
+.property-card__purpose,
+.property-card__tag,
+.freighter-profile-badge,
+.availability,
+.status-pill,
+.property-photo-field__heading > b,
+.property-photo-preview > span,
+.property-media-item__type,
+.property-media-item__cover,
+.property-media-item__controls button,
+.listing-code,
+.listing-facts > span,
+.service-tags--detail span,
+.catalog-image-placeholder span,
+.catalog-code,
+.catalog-more-filters summary b,
+.catalog-location-filter .catalog-filter-section > span b,
+.catalog-money-input small,
+.catalog-area-input small,
+.catalog-quick-filters a,
+.listing-quality__head b {
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.moderation-meta dt {
+  font-size: 10px;
+}
+
+.mobile-nav__item {
+  font-size: 11px;
+}
+
+@media (max-width: 680px) {
+  .eyebrow,
+  .quick-searches a,
+  .category-card__copy small,
+  .category-card__copy span,
+  .section-heading p,
+  .trust-strip span,
+  .publish-banner p,
+  .pwa-install__content span,
+  .catalog-pagination a,
+  .catalog-pagination span,
+  .catalog-pagination strong {
+    font-size: 11px;
+    line-height: 1.45;
+  }
+
+  .header-search__form input,
+  .main-search input {
+    font-size: 13px;
+  }
+}
