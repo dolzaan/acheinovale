@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ListingQualityIndicator } from "@/components/listing-quality-indicator";
 import { UserAvatar } from "@/components/user-avatar";
 
 type PreviewData = {
@@ -12,7 +13,13 @@ type PreviewData = {
   vehicles: string[];
 };
 
-const COMPLETION_ITEMS = ["WhatsApp", "cidade", "descrição", "foto", "veículo"];
+const COMPLETION_ITEMS = [
+  "Informe um WhatsApp válido",
+  "Escolha a cidade base",
+  "Descreva o serviço com pelo menos 60 caracteres",
+  "Adicione uma foto profissional",
+  "Selecione ao menos um tipo de veículo",
+];
 
 function text(data: FormData, name: string) {
   const value = data.get(name);
@@ -21,7 +28,7 @@ function text(data: FormData, name: string) {
 
 export function FreighterFormTools({ hasPhoto, image, initialCompleted }: { hasPhoto: boolean; image?: string | null; initialCompleted: number }) {
   const rootRef = useRef<HTMLDivElement>(null);
-  const [completed, setCompleted] = useState(initialCompleted);
+  const [qualityItems, setQualityItems] = useState(() => COMPLETION_ITEMS.map((label, index) => ({ label, complete: index < initialCompleted })));
   const [preview, setPreview] = useState<PreviewData | null>(null);
 
   const readForm = useCallback(() => {
@@ -38,14 +45,13 @@ export function FreighterFormTools({ hasPhoto, image, initialCompleted }: { hasP
       services: text(data, "services").split(",").map(item => item.trim()).filter(Boolean),
       vehicles: data.getAll("vehicleTypes").filter((item): item is string => typeof item === "string"),
     };
-    const score = [
-      Boolean(text(data, "whatsapp")),
-      Boolean(text(data, "cityId")),
-      Boolean(text(data, "description")),
-      hasPhoto || Boolean(photoInput?.files?.length),
-      values.vehicles.length > 0,
-    ].filter(Boolean).length;
-    setCompleted(score);
+    setQualityItems([
+      { label: COMPLETION_ITEMS[0], complete: text(data, "whatsapp").replace(/\D/g, "").length >= 10 },
+      { label: COMPLETION_ITEMS[1], complete: Boolean(text(data, "cityId")) },
+      { label: COMPLETION_ITEMS[2], complete: text(data, "description").length >= 60 },
+      { label: COMPLETION_ITEMS[3], complete: hasPhoto || Boolean(photoInput?.files?.length) },
+      { label: COMPLETION_ITEMS[4], complete: values.vehicles.length > 0 },
+    ]);
     return values;
   }, [hasPhoto]);
 
@@ -53,6 +59,7 @@ export function FreighterFormTools({ hasPhoto, image, initialCompleted }: { hasP
     const form = rootRef.current?.closest("form");
     if (!form) return;
     const update = () => { readForm(); };
+    readForm();
     form.addEventListener("input", update);
     form.addEventListener("change", update);
     return () => {
@@ -68,14 +75,9 @@ export function FreighterFormTools({ hasPhoto, image, initialCompleted }: { hasP
     return () => document.removeEventListener("keydown", close);
   }, [preview]);
 
-  const percentage = Math.round((completed / COMPLETION_ITEMS.length) * 100);
-
   return (
     <div ref={rootRef} className="freighter-form-tools field-wide">
-      <div className="freighter-completion">
-        <div><strong>Cadastro {percentage}% completo</strong><span>{completed}/{COMPLETION_ITEMS.length} itens essenciais preenchidos</span></div>
-        <div className="freighter-completion__track" aria-label={`${percentage}% do cadastro completo`}><span style={{ width: `${percentage}%` }} /></div>
-      </div>
+      <ListingQualityIndicator title="Qualidade do cadastro" items={qualityItems} />
       <button className="button button--secondary" type="button" onClick={() => setPreview(readForm())}>Ver prévia antes de salvar</button>
 
       {preview ? (
