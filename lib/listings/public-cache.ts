@@ -7,7 +7,7 @@ import { measureServerOperation } from "@/lib/performance/timing";
 
 const PUBLIC_LOCATIONS_TAG = "public-locations";
 const PUBLIC_LISTINGS_TAG = "public-listings";
-const PUBLIC_DATA_REVALIDATE_SECONDS = 60;
+const PUBLIC_DATA_REVALIDATE_SECONDS = 5 * 60;
 const LOCATION_REVALIDATE_SECONDS = 60 * 60;
 
 const propertyCardSelect = {
