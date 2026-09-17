@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { notFound, permanentRedirect } from "next/navigation";
 import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
@@ -103,8 +104,8 @@ export default async function PropertyPage({ params }: Props) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(propertyStructuredData) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbStructuredData) }} />
+      <Script id={`property-${property.publicCode}-jsonld`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(propertyStructuredData) }} />
+      <Script id={`property-${property.publicCode}-breadcrumbs`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbStructuredData) }} />
       <Header />
       <main className="listing-detail-page">
         <div className="container listing-detail">
