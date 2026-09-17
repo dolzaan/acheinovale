@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import FreightersPage from "@/app/freteiros/page";
 import { prisma } from "@/lib/db";
+import { SITE_URL } from "@/lib/site";
 
 type Props = {
   params: Promise<{ cidade: string }>;
@@ -23,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `Freteiros em ${city.name} | AcheiNoVale`,
     description,
-    alternates: { canonical: `https://acheinovale.vercel.app/${city.slug}/freteiros` },
+    alternates: { canonical: `${SITE_URL}/${city.slug}/freteiros` },
     openGraph: { title: `Freteiros em ${city.name} | AcheiNoVale`, description },
   };
 }

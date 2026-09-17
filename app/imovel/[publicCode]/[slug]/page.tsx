@@ -10,6 +10,7 @@ import { getPublicProperty } from "@/lib/listings/public";
 import { propertyUrl } from "@/lib/listings/urls";
 import { propertyImagePublicUrl, propertyVideoPublicUrl } from "@/lib/supabase/storage";
 import { formatBrazilianPhone } from "@/lib/validation/profile";
+import { SITE_URL } from "@/lib/site";
 
 type Props = {
   params: Promise<{ publicCode: string; slug: string }>;
@@ -38,12 +39,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const property = await getPublicProperty(publicCode);
   if (!property) return { title: "Imóvel não encontrado" };
 
-  const canonical = `https://acheinovale.vercel.app${propertyUrl(property)}`;
+  const canonical = `${SITE_URL}${propertyUrl(property)}`;
   return {
     title: `${property.title} | AcheiNoVale`,
     description: property.description.slice(0, 155),
     alternates: { canonical },
     robots: property.status === "ACTIVE" ? undefined : { index: false, follow: false },
+    openGraph: {
+      title: property.title,
+      description: property.description.slice(0, 155),
+      url: canonical,
+      type: "website",
+      images: property.images[0]
+        ? [{ url: propertyImagePublicUrl(property.images[0].storageKey), alt: property.images[0].altText || property.title }]
+        : undefined,
+    },
   };
 }
 
@@ -61,12 +71,40 @@ export default async function PropertyPage({ params }: Props) {
 
   if (slug !== property.slug) permanentRedirect(propertyUrl(property));
 
+  const canonical = `${SITE_URL}${propertyUrl(property)}`;
   const whatsappUrl = `https://wa.me/${property.whatsapp}?text=${encodeURIComponent(
-  `Olá! Vi o imóvel "${property.title}" no AcheiNoVale.`
-)}`;
+    `Olá! Vi o imóvel "${property.title}" no AcheiNoVale.`,
+  )}`;
+  const propertyStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: property.title,
+    description: property.description,
+    image: property.images.map(image => propertyImagePublicUrl(image.storageKey)),
+    category: propertyTypes[property.type],
+    url: canonical,
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "BRL",
+      price: property.priceCents / 100,
+      availability: "https://schema.org/InStock",
+      url: canonical,
+    },
+  };
+  const breadcrumbStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Início", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: `Imóveis em ${property.city.name}`, item: `${SITE_URL}/${property.city.slug}/imoveis` },
+      { "@type": "ListItem", position: 3, name: property.title, item: canonical },
+    ],
+  };
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(propertyStructuredData) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbStructuredData) }} />
       <Header />
       <main className="listing-detail-page">
         <div className="container listing-detail">

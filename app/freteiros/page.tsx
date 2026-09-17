@@ -11,6 +11,7 @@ import { getPublicFreighters } from "@/lib/listings/public-cache";
 import { freighterUrl } from "@/lib/listings/urls";
 import { UserAvatar } from "@/components/user-avatar";
 import { freighterImagePublicUrl } from "@/lib/supabase/storage";
+import { SITE_URL } from "@/lib/site";
 
 type Props = { searchParams: Promise<{ q?: string; cidade?: string; pagina?: string }> };
 
@@ -35,7 +36,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   return {
     title: `Freteiros em ${city.name} | AcheiNoVale`,
     description,
-    alternates: { canonical: "https://acheinovale.vercel.app/freteiros" },
+    alternates: { canonical: `${SITE_URL}/freteiros` },
     openGraph: { title: `Freteiros em ${city.name} | AcheiNoVale`, description },
   };
 }

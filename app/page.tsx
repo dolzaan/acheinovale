@@ -12,6 +12,7 @@ import { UserAvatar } from "@/components/user-avatar";
 import { getHomeListings } from "@/lib/listings/public-cache";
 import { freighterUrl, propertyUrl } from "@/lib/listings/urls";
 import { propertyImagePublicUrl } from "@/lib/supabase/storage";
+import { SITE_URL } from "@/lib/site";
 import {
   ArrowIcon,
   BathIcon,
@@ -35,7 +36,8 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   return {
     title: `Achei no Vale — Imóveis e fretes em ${city.name}`,
     description,
-    openGraph: { title: `Achei no Vale em ${city.name}`, description },
+    alternates: { canonical: SITE_URL },
+    openGraph: { title: `Achei no Vale em ${city.name}`, description, url: SITE_URL },
   };
 }
 
