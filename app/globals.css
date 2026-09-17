@@ -185,7 +185,7 @@ button { cursor: pointer; }
 .publish-banner__art { position: absolute; z-index: 1; right: 20%; bottom: -25px; display: flex; align-items: flex-end; gap: 6px; color: rgba(119,189,136,.16); transform: scale(1.8); }
 
 .site-footer { padding: 57px 0 110px; color: #d9e4df; background: var(--ink); }
-.footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1.2fr; gap: 60px; }.footer-grid > div { display: flex; align-items: flex-start; flex-direction: column; gap: 10px; }
+.footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 60px; }.footer-grid > div { display: flex; align-items: flex-start; flex-direction: column; gap: 10px; }
 .footer-grid p { color: #91a9a1; font-size: 12px; line-height: 1.6; }.footer-grid strong { color: white; font-size: 12px; }.footer-grid a { color: #9bb0a9; font-size: 11px; }.footer-grid a:hover { color: white; }
 .footer-local { padding: 18px; border: 1px solid rgba(255,255,255,.1); border-radius: 13px; }.footer-local svg { color: #77bd88; }.footer-local span { color: #8ca69d; font-size: 9px; }.footer-local strong { font-family: var(--font-display); font-size: 15px; font-weight: 750; }
 .footer-bottom { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 45px; padding-top: 23px; border-top: 1px solid rgba(255,255,255,.09); color: #77928a; font-size: 9px; }
@@ -620,5 +620,62 @@ button { cursor: pointer; }
   .header-search__form input,
   .main-search input {
     font-size: 13px;
+  }
+}
+
+
+/* Guias de ajuda e segurança */
+.support-content ul,
+.support-content ol {
+  display: grid;
+  gap: 10px;
+  margin: 14px 0 0;
+  padding-left: 22px;
+  color: #526b63;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.support-content li::marker {
+  color: var(--green-dark);
+  font-weight: 800;
+}
+
+.support-contact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+}
+
+.support-contact > div {
+  min-width: 0;
+}
+
+.support-contact .button {
+  flex: 0 0 auto;
+  color: white;
+  text-decoration: none;
+}
+
+.support-switcher a[aria-current="page"] {
+  border-color: var(--green);
+  color: var(--green-dark);
+  background: var(--green-soft);
+}
+
+@media (max-width: 680px) {
+  .support-content ul,
+  .support-content ol {
+    font-size: 15px;
+  }
+
+  .support-contact {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .support-contact .button {
+    width: 100%;
   }
 }
