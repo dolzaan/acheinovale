@@ -38,6 +38,7 @@ export default async function NewFreightPage({ searchParams }: Props) {
     {params.erro && <p className="form-alert">Revise os campos informados ou tente enviar outra foto.</p>}
     <form className="listing-form" action={saveFreighterProfile} encType="multipart/form-data">
       <FreighterFormTools hasPhoto={hasPhoto} image={user.image} initialCompleted={initialCompleted} />
+      <p className="required-fields-note field-wide"><span aria-hidden="true">*</span> Campos obrigatórios</p>
       <div className="field-wide"><span className="field-title">Foto profissional</span><ProfilePhotoInput image={user.image} name={profile?.displayName || user.name}/></div>
       <label className="field-wide"><span>Nome profissional</span><input name="displayName" defaultValue={profile?.displayName || user.name || ""} minLength={3} maxLength={100} required/></label>
       <label><span>Cidade base</span><select name="cityId" defaultValue={profile?.cityId || user.cityId || ""} required>{cities.map(city => <option key={city.id} value={city.id}>{city.name}</option>)}</select></label>
