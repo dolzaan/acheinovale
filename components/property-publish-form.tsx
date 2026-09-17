@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { authorizePropertyMediaUploads } from "@/app/media/actions";
 import { createProperty, lookupPropertyCep } from "@/app/publicar/imovel/actions";
+import { ListingQualityIndicator } from "@/components/listing-quality-indicator";
 import { MoneyInput } from "@/components/money-input";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { PhoneInput } from "@/components/phone-input";
@@ -77,6 +78,31 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
   const mediaOrderRef = useRef<HTMLInputElement>(null);
   const readyToSubmit = useRef(false);
   const cepRequestInFlight = useRef(false);
+  const [qualityItems, setQualityItems] = useState([
+    { label: "Escreva um título claro com pelo menos 15 caracteres", complete: false },
+    { label: "Informe um preço", complete: false },
+    { label: "Informe o bairro", complete: false },
+    { label: "Descreva o imóvel com pelo menos 60 caracteres", complete: false },
+    { label: "Adicione pelo menos 3 fotos", complete: false },
+  ]);
+
+  const refreshQuality = useCallback((photoCount = photosRef.current.length) => {
+    const form = formRef.current;
+    if (!form) return;
+    const data = new FormData(form);
+    const title = String(data.get("title") || "").trim();
+    const priceCents = Number(String(data.get("price") || "").replace(/\D/g, ""));
+    const neighborhood = String(data.get("neighborhoodName") || "").trim();
+    const description = String(data.get("description") || "").trim();
+
+    setQualityItems([
+      { label: "Escreva um título claro com pelo menos 15 caracteres", complete: title.length >= 15 },
+      { label: "Informe um preço", complete: Number.isFinite(priceCents) && priceCents > 0 },
+      { label: "Informe o bairro", complete: neighborhood.length >= 2 },
+      { label: "Descreva o imóvel com pelo menos 60 caracteres", complete: description.length >= 60 },
+      { label: "Adicione pelo menos 3 fotos", complete: photoCount >= 3 },
+    ]);
+  }, []);
 
   const neighborhoods = useMemo(() => {
     const stored = cities.find(city => city.id === selectedCityId)?.neighborhoods ?? [];
@@ -111,6 +137,7 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
 
       const restoredAt = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(new Date(draft.updatedAt));
       setDraftStatus(`Rascunho recuperado de ${restoredAt}.`);
+      requestAnimationFrame(() => refreshQuality());
     }
 
     void loadPropertyDraftMedia(authUserId)
@@ -129,9 +156,9 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
       .catch(() => undefined);
 
     return () => { cancelled = true; };
-  }, [authUserId, cities, cityId]);
+  }, [authUserId, cities, cityId, refreshQuality]);
 
-  useEffect(() => { photosRef.current = photos; }, [photos]);
+  useEffect(() => { photosRef.current = photos; refreshQuality(photos.length); }, [photos, refreshQuality]);
   useEffect(() => { videoRef.current = video; }, [video]);
   useEffect(() => () => {
     photosRef.current.forEach(photo => URL.revokeObjectURL(photo.preview));
@@ -452,10 +479,11 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
   }, []);
 
   return (
-    <form ref={formRef} className="listing-form" action={createProperty} onSubmit={handleSubmit} onChange={scheduleDraftSave}>
+    <form ref={formRef} className="listing-form" action={createProperty} onSubmit={handleSubmit} onChange={() => { scheduleDraftSave(); refreshQuality(); }}>
       <input ref={imageKeysRef} type="hidden" name="imageKeys" defaultValue="[]" />
       <input ref={videoKeyRef} type="hidden" name="videoKey" defaultValue="" />
       <input ref={mediaOrderRef} type="hidden" name="mediaOrder" defaultValue="[]" />
+      <div className="field-wide"><ListingQualityIndicator items={qualityItems} /></div>
       <label className="field-wide"><span>Título</span><input name="title" minLength={8} maxLength={120} placeholder="Ex: Casa com 3 quartos no Centro" required /></label>
       <label><span>Finalidade</span><select name="purpose" required><option value="RENT">Aluguel</option><option value="SALE">Venda</option></select></label>
       <label><span>Tipo</span><select name="type" required><option value="HOUSE">Casa</option><option value="APARTMENT">Apartamento</option><option value="STUDIO">Kitnet / Studio</option><option value="LAND">Terreno</option><option value="COMMERCIAL_ROOM">Sala comercial</option><option value="WAREHOUSE">Galpão</option><option value="OTHER">Outro</option></select></label>

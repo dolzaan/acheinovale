@@ -413,3 +413,29 @@ button { cursor: pointer; }
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
   .route-progress::after, .button-spinner, .loading-skeleton::after { animation-duration: 2s; }
 }
+
+
+/* Qualidade de anúncios e cadastros */
+.listing-quality { display: flex; flex-direction: column; gap: 13px; padding: 18px; border: 1px solid #d6e3db; border-radius: 16px; background: linear-gradient(135deg, #f8fbf8, #fffaf0); }
+.listing-quality__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.listing-quality__head > div { display: flex; flex-direction: column; gap: 3px; }
+.listing-quality__head strong { color: var(--green-dark); font-size: 14px; }
+.listing-quality__head span { color: var(--muted); font-size: 10px; }
+.listing-quality__head b { flex: 0 0 auto; padding: 6px 9px; border-radius: 999px; color: #7b5820; background: var(--brand-gold-soft, #f8e8c5); font-size: 9px; }
+.listing-quality__head b.is-complete { color: var(--green-dark); background: var(--green-soft); }
+.listing-quality__track { height: 9px; overflow: hidden; border-radius: 999px; background: #dfe9e3; }
+.listing-quality__track > span { height: 100%; display: block; border-radius: inherit; background: linear-gradient(90deg, var(--green), var(--brand-gold, #e4a030)); transition: width .25s ease; }
+.listing-quality__items { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 14px; margin: 0; padding: 0; list-style: none; }
+.listing-quality__items li { display: flex; align-items: flex-start; gap: 7px; color: #6b6254; font-size: 10px; line-height: 1.45; }
+.listing-quality__items li > span { width: 17px; height: 17px; flex: 0 0 17px; display: grid; place-items: center; border-radius: 50%; color: #8a7350; background: #f3ead8; font-size: 10px; font-weight: 800; }
+.listing-quality__items li.is-complete { color: var(--green-dark); }
+.listing-quality__items li.is-complete > span { color: white; background: var(--green); }
+.listing-quality > p { margin: 0; color: var(--muted); font-size: 9px; line-height: 1.5; }
+.freighter-form-tools > .listing-quality { min-width: 0; }
+
+@media (max-width: 680px) {
+  .listing-quality { padding: 16px 14px; }
+  .listing-quality__head { flex-direction: column; gap: 8px; }
+  .listing-quality__items { grid-template-columns: 1fr; }
+  .listing-quality__head b { align-self: flex-start; }
+}
