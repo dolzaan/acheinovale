@@ -484,6 +484,7 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
       <input ref={videoKeyRef} type="hidden" name="videoKey" defaultValue="" />
       <input ref={mediaOrderRef} type="hidden" name="mediaOrder" defaultValue="[]" />
       <div className="field-wide"><ListingQualityIndicator items={qualityItems} /></div>
+      <p className="required-fields-note field-wide"><span aria-hidden="true">*</span> Campos obrigatórios</p>
       <label className="field-wide"><span>Título</span><input name="title" minLength={8} maxLength={120} placeholder="Ex: Casa com 3 quartos no Centro" required /></label>
       <label><span>Finalidade</span><select name="purpose" required><option value="RENT">Aluguel</option><option value="SALE">Venda</option></select></label>
       <label><span>Tipo</span><select name="type" required><option value="HOUSE">Casa</option><option value="APARTMENT">Apartamento</option><option value="STUDIO">Kitnet / Studio</option><option value="LAND">Terreno</option><option value="COMMERCIAL_ROOM">Sala comercial</option><option value="WAREHOUSE">Galpão</option><option value="OTHER">Outro</option></select></label>
