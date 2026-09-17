@@ -30,7 +30,7 @@ export default async function NewFreightPage({ searchParams }: Props) {
   const savedServiceCityIds = cities.filter(city => savedCitySlugs.has(city.slug)).map(city => city.id);
   const savedServices = profile?.services.filter(service => !service.name.startsWith("Veículo: ") && !service.name.startsWith("Atende: ")) ?? [];
   const hasPhoto = Boolean(user.image || profile?.images.length);
-  const initialCompleted = [Boolean((profile?.whatsapp || user.phone || "").replace(/\\D/g, "").length >= 10), Boolean(profile?.cityId || user.cityId), Boolean(profile?.description && profile.description.trim().length >= 60), hasPhoto, savedVehicleTypes.length > 0].filter(Boolean).length;
+  const initialCompleted = [Boolean((profile?.whatsapp || user.phone || "").replace(/\D/g, "").length >= 10), Boolean(profile?.cityId || user.cityId), Boolean(profile?.description && profile.description.trim().length >= 60), hasPhoto, savedVehicleTypes.length > 0].filter(Boolean).length;
 
   return <><Header/><main className="account-page"><div className="container form-page">
     <div className="account-heading"><span className="section-kicker">Cadastro profissional</span><h1>{profile ? "Editar cadastro de freteiro" : "Cadastrar como freteiro"}</h1><p>Apresente seu serviço com clareza para receber contatos pelo WhatsApp.</p></div>
