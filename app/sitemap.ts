@@ -13,6 +13,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     { url: SITE_URL, changeFrequency: "daily", priority: 1 },
+    { url: `${SITE_URL}/seguranca`, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${SITE_URL}/ajuda`, changeFrequency: "monthly", priority: 0.6 },
     ...cities.flatMap(city => [
       { url: `${SITE_URL}/${city.slug}/imoveis`, changeFrequency: "daily" as const, priority: 0.9 },
       { url: `${SITE_URL}/${city.slug}/freteiros`, changeFrequency: "daily" as const, priority: 0.8 },
