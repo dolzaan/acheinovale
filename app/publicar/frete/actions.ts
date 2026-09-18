@@ -1,7 +1,6 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { checkRateLimit } from "@/lib/security/rate-limit";
@@ -135,7 +134,5 @@ export async function saveFreighterProfile(formData: FormData) {
   }
 
   revalidatePublicListings();
-  revalidatePath("/");
-  revalidatePath("/freteiros");
   redirect(`/meus-anuncios/${savedProfileId}/freteiro-midias?cadastro=salvo`);
 }

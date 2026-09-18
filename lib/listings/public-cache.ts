@@ -7,8 +7,69 @@ import { measureServerOperation } from "@/lib/performance/timing";
 
 const PUBLIC_LOCATIONS_TAG = "public-locations";
 const PUBLIC_LISTINGS_TAG = "public-listings";
-const PUBLIC_DATA_REVALIDATE_SECONDS = 5 * 60;
-const LOCATION_REVALIDATE_SECONDS = 60 * 60;
+const PUBLIC_DATA_REVALIDATE_SECONDS = 15 * 60;
+const LOCATION_REVALIDATE_SECONDS = 24 * 60 * 60;
+const DATABASE_RECOVERY_DELAY_MS = 30 * 1000;
+const MAX_LAST_KNOWN_GOOD_ENTRIES = 100;
+
+type PublicCacheRuntimeState = {
+  lastKnownGood: Map<string, unknown>;
+  databaseUnavailableUntil: number;
+};
+
+const globalForPublicCache = globalThis as typeof globalThis & {
+  acheiNoValePublicCache?: PublicCacheRuntimeState;
+};
+
+const runtimeState = globalForPublicCache.acheiNoValePublicCache ?? {
+  lastKnownGood: new Map<string, unknown>(),
+  databaseUnavailableUntil: 0,
+};
+
+globalForPublicCache.acheiNoValePublicCache = runtimeState;
+
+function isTransientDatabaseError(error: unknown) {
+  const code = typeof error === "object" && error !== null && "code" in error
+    ? String(error.code)
+    : "";
+  const message = error instanceof Error ? error.message : String(error);
+  return code === "P1001" || code === "P2024" || /connection pool|can't reach database server/i.test(message);
+}
+
+function rememberLastKnownGood<T>(key: string, value: T) {
+  if (!runtimeState.lastKnownGood.has(key) && runtimeState.lastKnownGood.size >= MAX_LAST_KNOWN_GOOD_ENTRIES) {
+    const oldestKey = runtimeState.lastKnownGood.keys().next().value;
+    if (oldestKey) runtimeState.lastKnownGood.delete(oldestKey);
+  }
+  runtimeState.lastKnownGood.set(key, value);
+}
+
+async function loadPublicData<T>(key: string, loader: () => Promise<T>, emptyValue: () => T): Promise<T> {
+  const previousValue = runtimeState.lastKnownGood.get(key) as T | undefined;
+
+  if (runtimeState.databaseUnavailableUntil > Date.now()) {
+    return previousValue ?? emptyValue();
+  }
+
+  try {
+    const value = await loader();
+    rememberLastKnownGood(key, value);
+    runtimeState.databaseUnavailableUntil = 0;
+    return value;
+  } catch (error) {
+    if (!isTransientDatabaseError(error)) throw error;
+
+    runtimeState.databaseUnavailableUntil = Date.now() + DATABASE_RECOVERY_DELAY_MS;
+    console.warn(JSON.stringify({
+      level: "warning",
+      message: "serving_last_known_public_data",
+      cacheKey: key,
+      hasPreviousValue: previousValue !== undefined,
+      retryAfterMs: DATABASE_RECOVERY_DELAY_MS,
+    }));
+    return previousValue ?? emptyValue();
+  }
+}
 
 const propertyCardSelect = {
   id: true,
@@ -55,7 +116,7 @@ const freighterCardSelect = {
   },
 } satisfies Prisma.FreighterProfileSelect;
 
-export const getActiveCityBySlug = unstable_cache(
+const getCachedActiveCityBySlug = unstable_cache(
   async (slug: string) => measureServerOperation("city.find_active_by_slug", () => prisma.city.findFirst({
     where: { slug, isActive: true },
     select: { id: true, name: true, slug: true },
@@ -64,7 +125,11 @@ export const getActiveCityBySlug = unstable_cache(
   { revalidate: LOCATION_REVALIDATE_SECONDS, tags: [PUBLIC_LOCATIONS_TAG] },
 );
 
-export const getActiveCityOptions = unstable_cache(
+export function getActiveCityBySlug(slug: string) {
+  return loadPublicData(`city:${slug}`, () => getCachedActiveCityBySlug(slug), () => null);
+}
+
+const getCachedActiveCityOptions = unstable_cache(
   async () => measureServerOperation("city.list_active", () => prisma.city.findMany({
     where: { isActive: true },
     orderBy: { name: "asc" },
@@ -74,7 +139,11 @@ export const getActiveCityOptions = unstable_cache(
   { revalidate: LOCATION_REVALIDATE_SECONDS, tags: [PUBLIC_LOCATIONS_TAG] },
 );
 
-export const getActiveLocations = unstable_cache(
+export function getActiveCityOptions() {
+  return loadPublicData("city-options", getCachedActiveCityOptions, () => []);
+}
+
+const getCachedActiveLocations = unstable_cache(
   async () => measureServerOperation("city.list_with_neighborhoods", () => prisma.city.findMany({
     where: { isActive: true },
     orderBy: { name: "asc" },
@@ -93,44 +162,72 @@ export const getActiveLocations = unstable_cache(
   { revalidate: LOCATION_REVALIDATE_SECONDS, tags: [PUBLIC_LOCATIONS_TAG] },
 );
 
-export const getHomeListings = unstable_cache(
-  async (cityId: string) => measureServerOperation("home.public_listings", () => Promise.all([
-    prisma.property.findMany({
+export function getActiveLocations() {
+  return loadPublicData("locations", getCachedActiveLocations, () => []);
+}
+
+const getCachedHomeListings = unstable_cache(
+  async (cityId: string) => measureServerOperation("home.public_listings", async () => {
+    const properties = await prisma.property.findMany({
       where: { status: "ACTIVE", cityId },
       select: propertyCardSelect,
       orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
       take: 3,
-    }),
-    prisma.freighterProfile.findMany({
+    });
+    const freighters = await prisma.freighterProfile.findMany({
       where: { status: "ACTIVE", cityId },
       select: freighterCardSelect,
       orderBy: { updatedAt: "desc" },
       take: 3,
-    }),
-  ])),
+    });
+    return [properties, freighters] as const;
+  }),
   ["home-public-listings-v1"],
   { revalidate: PUBLIC_DATA_REVALIDATE_SECONDS, tags: [PUBLIC_LISTINGS_TAG] },
 );
 
-export const getPublicPropertiesPage = unstable_cache(
+export function getHomeListings(cityId: string) {
+  return loadPublicData<Awaited<ReturnType<typeof getCachedHomeListings>>>(
+    `home:${cityId}`,
+    () => getCachedHomeListings(cityId),
+    () => [[], []],
+  );
+}
+
+const getCachedPublicPropertiesPage = unstable_cache(
   async (
     where: Prisma.PropertyWhereInput,
     orderBy: Prisma.PropertyOrderByWithRelationInput[],
     skip: number,
     take: number,
-  ) => measureServerOperation("property.list_public", () => Promise.all([
-    prisma.property.findMany({
+  ) => measureServerOperation("property.list_public", async () => {
+    const properties = await prisma.property.findMany({
       where,
       select: propertyCardSelect,
       orderBy,
       skip,
       take,
-    }),
-    prisma.property.count({ where }),
-  ])),
+    });
+    const resultCount = await prisma.property.count({ where });
+    return [properties, resultCount] as const;
+  }),
   ["public-properties-page-v1"],
   { revalidate: PUBLIC_DATA_REVALIDATE_SECONDS, tags: [PUBLIC_LISTINGS_TAG] },
 );
+
+export function getPublicPropertiesPage(
+  where: Prisma.PropertyWhereInput,
+  orderBy: Prisma.PropertyOrderByWithRelationInput[],
+  skip: number,
+  take: number,
+) {
+  const cacheKey = `properties:${JSON.stringify([where, orderBy, skip, take])}`;
+  return loadPublicData<Awaited<ReturnType<typeof getCachedPublicPropertiesPage>>>(
+    cacheKey,
+    () => getCachedPublicPropertiesPage(where, orderBy, skip, take),
+    () => [[], 0],
+  );
+}
 
 async function queryFreighters(cityId: string, citySlug: string, query: string, skip: number, take: number) {
   const cityMatch: Prisma.FreighterProfileWhereInput = {
@@ -173,9 +270,14 @@ const getCachedFreighters = unstable_cache(
 );
 
 export function getPublicFreighters(cityId: string, citySlug: string, query: string, skip: number, take: number) {
-  return query
-    ? queryFreighters(cityId, citySlug, query, skip, take)
-    : getCachedFreighters(cityId, citySlug, skip, take);
+  const cacheKey = `freighters:${JSON.stringify([cityId, citySlug, query, skip, take])}`;
+  return loadPublicData<Awaited<ReturnType<typeof queryFreighters>>>(
+    cacheKey,
+    () => query
+      ? queryFreighters(cityId, citySlug, query, skip, take)
+      : getCachedFreighters(cityId, citySlug, skip, take),
+    () => [],
+  );
 }
 
 export function revalidatePublicListings() {
