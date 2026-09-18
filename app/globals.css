@@ -247,7 +247,7 @@ button { cursor: pointer; }
 .auth-card { width: min(460px, 100%); padding: 42px; border: 1px solid rgba(23,63,53,.1); border-radius: 24px; background: rgba(255,254,250,.96); box-shadow: var(--shadow); text-align: center; }
 .auth-card .brand { justify-content: center; margin-bottom: 26px; }.auth-card__eyebrow { display: block; color: var(--green-dark); font-size: 10px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
 .auth-card h1 { margin: 8px 0 10px; font-size: 32px; letter-spacing: -1.4px; }.auth-card > p:not(.form-alert) { margin: 0 auto 25px; color: var(--muted); font-size: 13px; line-height: 1.65; }
-.google-button { width: 100%; min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 12px; border: 1px solid #cad6d0; border-radius: 13px; color: var(--ink); background: white; font-weight: 800; transition: transform .2s, box-shadow .2s; }.google-button:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(23,63,53,.1); }.google-button svg { width: 21px; height: 21px; }
+.google-sign-in { display: grid; justify-items: center; gap: 10px; }.google-sign-in__button { width: 100%; min-height: 44px; display: grid; place-items: center; transition: opacity .2s; }.google-sign-in__button > div { width: 100% !important; }.google-sign-in__button iframe { margin: 0 auto !important; }.google-sign-in__button.is-pending { pointer-events: none; opacity: .55; }.google-sign-in__status { color: var(--muted); font-size: 10px; font-weight: 750; }
 .auth-card > small { display: block; margin-top: 18px; color: #81928c; font-size: 9px; line-height: 1.5; }
 
 .account-page { min-height: calc(100vh - 78px); padding: 58px 0 100px; background: #f4f6f2; }
