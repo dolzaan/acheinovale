@@ -82,8 +82,6 @@ export async function updateFreighterImages(profileId: string, formData: FormDat
 
   await cleanup(removedImages.map(image => image.storageKey));
   revalidatePublicListings();
-  revalidatePath("/");
-  revalidatePath("/freteiros");
   revalidatePath("/meus-anuncios");
   revalidatePath(freighterUrl(profile));
   redirect(`/meus-anuncios/${profileId}/freteiro-midias?salvo=1${contentChanged ? "&revisao=1" : ""}`);

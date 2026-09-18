@@ -17,7 +17,12 @@ function getServerlessDatabaseUrl() {
 
     if (url.port === "6543") {
       url.searchParams.set("pgbouncer", "true");
-      url.searchParams.set("connection_limit", "1");
+      // Uma única conexão fazia as consultas públicas paralelas disputarem o
+      // mesmo slot até o P2024. Três conexões mantêm o consumo controlado e
+      // ainda permitem que páginas públicas e autenticação avancem juntas.
+      url.searchParams.set("connection_limit", process.env.PRISMA_CONNECTION_LIMIT || "3");
+      url.searchParams.set("pool_timeout", process.env.PRISMA_POOL_TIMEOUT || "20");
+      url.searchParams.set("connect_timeout", process.env.PRISMA_CONNECT_TIMEOUT || "10");
     }
 
     return url.toString();

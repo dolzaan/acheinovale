@@ -35,8 +35,6 @@ function refreshModerationPages(detailPath: string) {
   revalidatePublicListings();
   revalidatePath("/admin/anuncios");
   revalidatePath("/meus-anuncios");
-  revalidatePath("/imoveis");
-  revalidatePath("/freteiros");
   revalidatePath(detailPath);
 }
 
@@ -123,6 +121,5 @@ export async function reviewNeighborhood(formData: FormData) {
 
   revalidatePath("/admin/anuncios");
   revalidatePublicLocations();
-  revalidatePath("/imoveis");
   redirect("/admin/anuncios?concluido=bairro");
 }

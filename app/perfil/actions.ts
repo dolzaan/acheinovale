@@ -139,7 +139,6 @@ export async function updateProfile(formData: FormData) {
 
   revalidatePublicListings();
   revalidatePath("/perfil");
-  revalidatePath("/");
   revalidatePath("/meus-anuncios");
   redirect(next === "/perfil" ? "/perfil?salvo=1" : next);
 }

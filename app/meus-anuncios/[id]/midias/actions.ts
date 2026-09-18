@@ -122,7 +122,6 @@ export async function updatePropertyMedia(propertyId: string, formData: FormData
   await cleanup([...removedImages.map(item => item.storageKey), ...removedVideos.map(item => item.storageKey)]);
   revalidatePublicListings();
   revalidatePath("/meus-anuncios");
-  revalidatePath("/imoveis");
   revalidatePath(propertyUrl(property));
   redirect(`/meus-anuncios/${propertyId}/midias?salvo=1${contentChanged ? "&revisao=1" : ""}`);
 }
