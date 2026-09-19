@@ -1,5 +1,6 @@
 export const CITY_COOKIE_NAME = "achei_no_vale_city";
 export const CITY_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+export const DEFAULT_CITY_SLUG = "rio-do-sul";
 
 export function normalizeCitySlug(value?: string | null) {
   const slug = value?.trim().toLowerCase() ?? "";

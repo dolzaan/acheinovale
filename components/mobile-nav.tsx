@@ -1,12 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import { BuildingIcon, HomeIcon, PlusIcon, TruckIcon } from "./icons";
-import { getCurrentUser } from "@/lib/auth/current-user";
-import { resolveRequestCity } from "@/lib/location/selected-city";
 import { MobileAccountMenu } from "./mobile-account-menu";
+import { usePreferredCitySlug } from "./use-preferred-city-slug";
 
-export async function MobileNav({ citySlug }: { citySlug?: string } = {}) {
-  const [user, city] = await Promise.all([getCurrentUser(), resolveRequestCity(citySlug)]);
-  const cityQuery = `?cidade=${encodeURIComponent(city.slug)}`;
+export function MobileNav({ citySlug }: { citySlug?: string } = {}) {
+  const resolvedCitySlug = usePreferredCitySlug(citySlug);
+  const cityQuery = `?cidade=${encodeURIComponent(resolvedCitySlug)}`;
   return (
     <nav className="mobile-nav" aria-label="Navegação mobile">
       <Link prefetch={false} className="mobile-nav__item is-active" href={`/${cityQuery}`}><HomeIcon/><span>Início</span></Link>
@@ -16,7 +17,7 @@ export async function MobileNav({ citySlug }: { citySlug?: string } = {}) {
         <span className="mobile-nav__publish-label">Publicar</span>
       </Link>
       <Link prefetch={false} className="mobile-nav__item" href={`/freteiros${cityQuery}`}><TruckIcon/><span>Freteiros</span></Link>
-      <MobileAccountMenu user={user ? { name: user.name, email: user.email, image: user.image } : null} />
+      <MobileAccountMenu />
     </nav>
   );
 }

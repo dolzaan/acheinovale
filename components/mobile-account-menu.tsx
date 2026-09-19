@@ -6,16 +6,10 @@ import { createPortal } from "react-dom";
 import { signOut } from "@/app/auth/actions";
 import { HeartIcon, PlusIcon, UserIcon } from "./icons";
 import { UserAvatar } from "./user-avatar";
+import { useAccountSession } from "./account-session-provider";
 
-type MobileAccountMenuProps = {
-  user: {
-    name: string | null;
-    email: string;
-    image: string | null;
-  } | null;
-};
-
-export function MobileAccountMenu({ user }: MobileAccountMenuProps) {
+export function MobileAccountMenu() {
+  const { user, loading } = useAccountSession();
   const [open, setOpen] = useState(false);
   const sheetId = useId();
   const titleId = useId();
@@ -38,6 +32,15 @@ export function MobileAccountMenu({ user }: MobileAccountMenuProps) {
       window.removeEventListener("keydown", closeOnEscape);
     };
   }, [open]);
+
+  if (loading) {
+    return (
+      <span className="mobile-nav__item" aria-label="Carregando conta">
+        <UserIcon />
+        <span>Perfil</span>
+      </span>
+    );
+  }
 
   if (!user) {
     return (
