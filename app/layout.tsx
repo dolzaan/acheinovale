@@ -9,6 +9,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { AccountSessionProvider } from "@/components/account-session-provider";
 
 const organizationStructuredData = {
   "@context": "https://schema.org",
@@ -86,7 +87,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteStructuredData) }}
         />
-        {children}
+        <AccountSessionProvider>{children}</AccountSessionProvider>
         <PwaInstallPrompt />
         <Analytics />
         <SpeedInsights />

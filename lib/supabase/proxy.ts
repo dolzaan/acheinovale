@@ -7,6 +7,16 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.next({ request });
   }
 
+  const hasAuthCookie = request.cookies.getAll().some(
+    cookie => cookie.name.startsWith("sb-") && cookie.name.includes("-auth-token"),
+  );
+
+  // Visitantes anônimos não precisam consultar o Supabase em toda navegação.
+  // Além de reduzir o TTFB, isso mantém as páginas públicas elegíveis ao CDN.
+  if (!hasAuthCookie) {
+    return NextResponse.next({ request });
+  }
+
   let response = NextResponse.next({ request });
   const { url, publishableKey } = getPublicSupabaseConfig();
 
