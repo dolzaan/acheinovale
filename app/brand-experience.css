@@ -121,6 +121,27 @@
   .header-actions .button { padding-inline: 8px; font-size: .75rem; }
 }
 
+.catalog-seo-copy {
+  max-width: 820px;
+  margin: 46px auto 0;
+  padding: 28px 30px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(255,255,255,.72);
+}
+.catalog-seo-copy h2 {
+  margin: 0 0 12px;
+  color: var(--green-dark);
+  font-size: 24px;
+  letter-spacing: -.03em;
+}
+.catalog-seo-copy p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.75;
+}
+
 /* Real local photographs, kept separate from the search controls. */
 .hero__visual.regional-visual { display: block; width: 100%; min-width: 0; align-self: center; opacity: 1; padding: 0 0 50px 16px; }
 .regional-photo { position: relative; margin: 0; overflow: hidden; background: var(--brand-green-soft); }

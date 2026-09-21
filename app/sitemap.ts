@@ -25,6 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     { url: SITE_URL, changeFrequency: "daily", priority: 1 },
     { url: `${SITE_URL}/imoveis`, changeFrequency: "daily", priority: 0.9 },
+    { url: `${SITE_URL}/rio-do-sul/imoveis/aluguel`, changeFrequency: "daily", priority: 0.9 },
     { url: `${SITE_URL}/freteiros`, changeFrequency: "daily", priority: 0.8 },
     { url: `${SITE_URL}/seguranca`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${SITE_URL}/ajuda`, changeFrequency: "monthly", priority: 0.6 },

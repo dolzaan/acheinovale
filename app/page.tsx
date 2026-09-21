@@ -50,7 +50,9 @@ export default async function HomePage({ searchParams }: Props) {
   const cityQuery = `cidade=${encodeURIComponent(city.slug)}`;
   const propertiesHref = `/imoveis?${cityQuery}`;
   const freightersHref = `/freteiros?${cityQuery}`;
-  const rentalsHref = `${propertiesHref}&finalidade=aluguel`;
+  const rentalsHref = city.slug === "rio-do-sul"
+    ? "/rio-do-sul/imoveis/aluguel"
+    : `${propertiesHref}&finalidade=aluguel`;
 
   return (
     <>
