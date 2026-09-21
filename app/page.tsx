@@ -47,12 +47,11 @@ export default async function HomePage({ searchParams }: Props) {
   const city = await resolveRequestCity(requestedSlug);
   const [properties, freighters] = city.id ? await getHomeListings(city.id) : [[], []];
   const cityName = city.name;
-  const cityQuery = `cidade=${encodeURIComponent(city.slug)}`;
-  const propertiesHref = `/imoveis?${cityQuery}`;
-  const freightersHref = `/freteiros?${cityQuery}`;
+  const propertiesHref = `/${city.slug}/imoveis`;
+  const freightersHref = `/${city.slug}/freteiros`;
   const rentalsHref = city.slug === "rio-do-sul"
     ? "/rio-do-sul/imoveis/aluguel"
-    : `${propertiesHref}&finalidade=aluguel`;
+    : `${propertiesHref}?finalidade=aluguel`;
 
   return (
     <>

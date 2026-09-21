@@ -8,6 +8,6 @@ export default async function Page({ searchParams }: Props) {
   const city = typeof params.cidade === "string" ? params.cidade : "";
   const next = new URLSearchParams();
   if (query) next.set("q", query);
-  if (city) next.set("cidade", city);
-  redirect(next.size ? `/imoveis?${next}` : "/imoveis");
+  const destination = city ? `/${encodeURIComponent(city)}/imoveis` : "/imoveis";
+  redirect(next.size ? `${destination}?${next}` : destination);
 }
