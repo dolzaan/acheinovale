@@ -60,6 +60,7 @@ export default async function RioDoSulRentalsPage({ searchParams }: Props) {
           cidade: "rio-do-sul",
           finalidade: "aluguel",
         })}
+        prettyPath
       />
     </>
   );
