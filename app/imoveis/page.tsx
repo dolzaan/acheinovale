@@ -114,7 +114,7 @@ function buildFilterUrl(params: SearchParams, changes: Partial<SearchParams>) {
     return "/rio-do-sul/imoveis/aluguel";
   }
   const query = next.toString();
-  const destination = citySlug ? `/${citySlug}/imoveis` : "/imoveis";
+  const destination = citySlug ? `/${encodeURIComponent(citySlug)}/imoveis` : "/imoveis";
   return query ? `${destination}?${query}` : destination;
 }
 

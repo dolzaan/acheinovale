@@ -28,7 +28,7 @@ function freighterPageHref(citySlug: string, query: string, page: number) {
   if (query) params.set("q", query);
   if (page > 1) params.set("pagina", String(page));
   const search = params.toString();
-  return `/${citySlug}/freteiros${search ? `?${search}` : ""}`;
+  return `/${encodeURIComponent(citySlug)}/freteiros${search ? `?${search}` : ""}`;
 }
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
