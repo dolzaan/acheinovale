@@ -33,5 +33,5 @@ export default async function CityPropertiesPage({ params, searchParams }: Props
   const [{ cidade }, filters] = await Promise.all([params, searchParams]);
   const city = await getCity(cidade);
   if (!city) notFound();
-  return <PropertiesPage searchParams={Promise.resolve({ ...filters, cidade: city.slug })} />;
+  return <PropertiesPage searchParams={Promise.resolve({ ...filters, cidade: city.slug })} prettyPath />;
 }

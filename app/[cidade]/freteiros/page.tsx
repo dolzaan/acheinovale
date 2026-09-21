@@ -33,5 +33,5 @@ export default async function CityFreightersPage({ params, searchParams }: Props
   const [{ cidade }, filters] = await Promise.all([params, searchParams]);
   const city = await getCity(cidade);
   if (!city) notFound();
-  return <FreightersPage searchParams={Promise.resolve({ ...filters, cidade: city.slug })} />;
+  return <FreightersPage searchParams={Promise.resolve({ ...filters, cidade: city.slug })} prettyPath />;
 }

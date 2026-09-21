@@ -13,13 +13,15 @@ import { usePreferredCitySlug } from "./use-preferred-city-slug";
 export function Header({ citySlug }: { citySlug?: string } = {}) {
   const resolvedCitySlug = usePreferredCitySlug(citySlug);
   const cityQuery = `?cidade=${encodeURIComponent(resolvedCitySlug)}`;
+  const propertiesHref = `/${resolvedCitySlug}/imoveis`;
+  const freightersHref = `/${resolvedCitySlug}/freteiros`;
   return (
     <><Suspense fallback={null}><NavigationProgress /></Suspense><header className="site-header">
       <div className="container header-inner">
         <Logo href={`/${cityQuery}`} />
         <nav className="desktop-nav" aria-label="Navegação principal">
-          <Link prefetch={false} href={`/imoveis${cityQuery}`}>Imóveis</Link>
-          <Link prefetch={false} href={`/freteiros${cityQuery}`}>Freteiros</Link>
+          <Link prefetch={false} href={propertiesHref}>Imóveis</Link>
+          <Link prefetch={false} href={freightersHref}>Freteiros</Link>
         </nav>
         <div className="header-location">
           <span className="header-location__label">Onde você procura?</span>

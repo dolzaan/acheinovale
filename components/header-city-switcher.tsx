@@ -21,16 +21,38 @@ export function HeaderCitySwitcher({ defaultCitySlug = "rio-do-sul" }: { default
   const pathname = usePathname();
   const selectedSlug = searchParams.get("cidade") || defaultCitySlug;
   const selectedCity = cities.find(city => city.slug === selectedSlug);
-  const destination = pathname === "/" || pathname.startsWith("/freteiros") || pathname.startsWith("/imoveis")
-    ? pathname
-    : "/imoveis";
+  const isPropertyCatalog = pathname === "/imoveis" || /^\/[^/]+\/imoveis(?:\/aluguel)?$/.test(pathname);
+  const isFreighterCatalog = pathname === "/freteiros" || /^\/[^/]+\/freteiros$/.test(pathname);
 
   function cityHref(citySlug: string) {
     const next = new URLSearchParams(searchParams.toString());
-    next.set("cidade", citySlug);
+    next.delete("cidade");
     next.delete("pagina");
-    if (destination.startsWith("/imoveis")) next.delete("bairro");
-    return `${destination}?${next.toString()}`;
+    next.delete("bairro");
+
+    if (pathname === "/") {
+      next.set("cidade", citySlug);
+      return `/?${next.toString()}`;
+    }
+
+    if (isPropertyCatalog) {
+      const keepsRentalFilter = pathname.endsWith("/imoveis/aluguel") || next.get("finalidade") === "aluguel";
+      if (keepsRentalFilter && citySlug === "rio-do-sul") {
+        next.delete("finalidade");
+        const query = next.toString();
+        return `/rio-do-sul/imoveis/aluguel${query ? `?${query}` : ""}`;
+      }
+      if (keepsRentalFilter) next.set("finalidade", "aluguel");
+      const query = next.toString();
+      return `/${citySlug}/imoveis${query ? `?${query}` : ""}`;
+    }
+
+    if (isFreighterCatalog) {
+      const query = next.toString();
+      return `/${citySlug}/freteiros${query ? `?${query}` : ""}`;
+    }
+
+    return `/${citySlug}/imoveis`;
   }
 
   useEffect(() => {
