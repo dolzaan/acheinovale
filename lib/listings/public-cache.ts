@@ -168,18 +168,20 @@ export function getActiveLocations() {
 
 const getCachedHomeListings = unstable_cache(
   async (cityId: string) => measureServerOperation("home.public_listings", async () => {
-    const properties = await prisma.property.findMany({
-      where: { status: "ACTIVE", cityId },
-      select: propertyCardSelect,
-      orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
-      take: 3,
-    });
-    const freighters = await prisma.freighterProfile.findMany({
-      where: { status: "ACTIVE", cityId },
-      select: freighterCardSelect,
-      orderBy: { updatedAt: "desc" },
-      take: 3,
-    });
+    const [properties, freighters] = await Promise.all([
+      prisma.property.findMany({
+        where: { status: "ACTIVE", cityId },
+        select: propertyCardSelect,
+        orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
+        take: 3,
+      }),
+      prisma.freighterProfile.findMany({
+        where: { status: "ACTIVE", cityId },
+        select: freighterCardSelect,
+        orderBy: { updatedAt: "desc" },
+        take: 3,
+      }),
+    ]);
     return [properties, freighters] as const;
   }),
   ["home-public-listings-v1"],
@@ -201,14 +203,16 @@ const getCachedPublicPropertiesPage = unstable_cache(
     skip: number,
     take: number,
   ) => measureServerOperation("property.list_public", async () => {
-    const properties = await prisma.property.findMany({
-      where,
-      select: propertyCardSelect,
-      orderBy,
-      skip,
-      take,
-    });
-    const resultCount = await prisma.property.count({ where });
+    const [properties, resultCount] = await Promise.all([
+      prisma.property.findMany({
+        where,
+        select: propertyCardSelect,
+        orderBy,
+        skip,
+        take,
+      }),
+      prisma.property.count({ where }),
+    ]);
     return [properties, resultCount] as const;
   }),
   ["public-properties-page-v1"],

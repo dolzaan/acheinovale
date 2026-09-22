@@ -125,11 +125,13 @@ function formatPrice(priceCents: number) {
 export default async function PropertiesPage({ searchParams, prettyPath = false }: Props) {
   const params = await searchParams;
   if (!prettyPath && params.cidade) redirect(buildFilterUrl(params, {}));
-  const requestedCity = await resolveRequestCity(params.cidade);
+  const [requestedCity, cities] = await Promise.all([
+    resolveRequestCity(params.cidade),
+    getActiveLocations(),
+  ]);
   const requestedPage = Math.max(1, parseNatural(params.pagina, 10_000) ?? 1);
   const resultOffset = (requestedPage - 1) * PROPERTY_PAGE_SIZE;
   const query = params.q?.trim().slice(0, 80) || "";
-  const cities = await getActiveLocations();
   const selectedCity = cities.find(city => city.slug === requestedCity.slug)
     ?? cities.find(city => city.slug === "rio-do-sul");
   const neighborhoods = selectedCity?.neighborhoods ?? cities.flatMap(city => city.neighborhoods);
@@ -163,7 +165,7 @@ export default async function PropertiesPage({ searchParams, prettyPath = false 
     : undefined;
   const where: Prisma.PropertyWhereInput = {
     status: "ACTIVE",
-    city: { isActive: true, ...(selectedCity ? { id: selectedCity.id } : {}) },
+    ...(selectedCity ? { cityId: selectedCity.id } : { city: { isActive: true } }),
     ...(purpose ? { purpose } : {}),
     ...(type ? { type } : {}),
     ...(selectedNeighborhood

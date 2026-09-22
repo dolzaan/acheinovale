@@ -9,7 +9,7 @@ export async function proxy(request: NextRequest) {
   const isPublicCatalog = request.nextUrl.pathname === "/"
     || request.nextUrl.pathname === "/imoveis"
     || request.nextUrl.pathname === "/freteiros"
-    || /^\/[^/]+\/(?:imoveis|freteiros)$/.test(request.nextUrl.pathname);
+    || /^\/[^/]+\/(?:imoveis(?:\/aluguel)?|freteiros)$/.test(request.nextUrl.pathname);
 
   if (!hasAuthCookie && isPublicCatalog && (request.method === "GET" || request.method === "HEAD")) {
     const cachePolicy = "public, s-maxage=900, stale-while-revalidate=86400";
