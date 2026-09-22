@@ -20,21 +20,12 @@ export function AccountSessionProvider({ children }: { children: React.ReactNode
   const [session, setSession] = useState<AccountSession>({ user: null, loading: true });
 
   useEffect(() => {
-    const hasAuthCookie = document.cookie.split(";").some(cookie => {
-      const name = cookie.trim().split("=", 1)[0];
-      return name.startsWith("sb-") && name.includes("-auth-token");
-    });
-
-    if (!hasAuthCookie) {
-      queueMicrotask(() => setSession({ user: null, loading: false }));
-      return;
-    }
-
     const controller = new AbortController();
 
     fetch("/api/conta", {
       cache: "no-store",
       credentials: "same-origin",
+      headers: { Accept: "application/json" },
       signal: controller.signal,
     })
       .then(response => response.ok ? response.json() as Promise<{ user: AccountSessionUser | null }> : { user: null })
