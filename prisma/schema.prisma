@@ -153,6 +153,8 @@ model Property {
   reports            Report[]
 
   @@index([cityId, status, purpose, createdAt])
+  @@index([cityId, status, publishedAt, createdAt])
+  @@index([cityId, status, purpose, publishedAt, createdAt])
   @@index([neighborhoodId, type, priceCents])
   @@index([status, createdAt])
   @@index([moderatedById])
@@ -214,6 +216,8 @@ model FreighterProfile {
   metrics         FreighterMetricDaily[]
 
   @@index([cityId, status, availableToday])
+  @@index([cityId, status, updatedAt])
+  @@index([status, updatedAt])
   @@index([status, createdAt])
   @@index([moderatedById])
   @@index([slug])
@@ -229,6 +233,7 @@ model FreighterService {
 
   @@unique([profileId, slug])
   @@index([slug])
+  @@index([slug, profileId])
   @@map("servicos_freteiros")
 }
 
