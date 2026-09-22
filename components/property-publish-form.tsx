@@ -52,6 +52,7 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
   const [selectedCityId, setSelectedCityId] = useState(cityId);
   const [selectedNeighborhoodId, setSelectedNeighborhoodId] = useState("");
   const [neighborhoodName, setNeighborhoodName] = useState("");
+  const [customNeighborhood, setCustomNeighborhood] = useState(false);
   const [cep, setCep] = useState("");
   const [street, setStreet] = useState("");
   const [addressComplement, setAddressComplement] = useState("");
@@ -121,23 +122,26 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
       const savedNeighborhood = cities.find(city => city.id === savedCityId)?.neighborhoods.find(neighborhood =>
         neighborhood.name.localeCompare(savedNeighborhoodName, "pt-BR", { sensitivity: "base" }) === 0
       );
+      queueMicrotask(() => {
+        if (cancelled) return;
+        setSelectedCityId(savedCityId);
+        setNeighborhoodName(savedNeighborhoodName);
+        setSelectedNeighborhoodId(savedNeighborhood?.id ?? "");
+        setCustomNeighborhood(Boolean(savedNeighborhoodName && !savedNeighborhood));
+        setCep(draft.values.cep || "");
+        setStreet(draft.values.street || "");
+        setAddressComplement(draft.values.addressComplement || "");
 
-      setSelectedCityId(savedCityId);
-      setNeighborhoodName(savedNeighborhoodName);
-      setSelectedNeighborhoodId(savedNeighborhood?.id ?? "");
-      setCep(draft.values.cep || "");
-      setStreet(draft.values.street || "");
-      setAddressComplement(draft.values.addressComplement || "");
+        for (const [name, value] of Object.entries(draft.values)) {
+          if (["cityId", "neighborhoodName", "cep", "street", "addressComplement"].includes(name)) continue;
+          const control = formRef.current?.elements.namedItem(name);
+          if (control instanceof HTMLInputElement || control instanceof HTMLSelectElement || control instanceof HTMLTextAreaElement) control.value = value;
+        }
 
-      for (const [name, value] of Object.entries(draft.values)) {
-        if (["cityId", "neighborhoodName", "cep", "street", "addressComplement"].includes(name)) continue;
-        const control = formRef.current?.elements.namedItem(name);
-        if (control instanceof HTMLInputElement || control instanceof HTMLSelectElement || control instanceof HTMLTextAreaElement) control.value = value;
-      }
-
-      const restoredAt = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(new Date(draft.updatedAt));
-      setDraftStatus(`Rascunho recuperado de ${restoredAt}.`);
-      requestAnimationFrame(() => refreshQuality());
+        const restoredAt = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(new Date(draft.updatedAt));
+        setDraftStatus(`Rascunho recuperado de ${restoredAt}.`);
+        requestAnimationFrame(() => refreshQuality());
+      });
     }
 
     void loadPropertyDraftMedia(authUserId)
@@ -372,10 +376,12 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
       setResolvedNeighborhood({ ...result.neighborhood, cityId: result.city.id });
       setSelectedNeighborhoodId(result.neighborhood.id);
       setNeighborhoodName(result.neighborhood.name);
+      setCustomNeighborhood(false);
     } else {
       setResolvedNeighborhood(null);
       setSelectedNeighborhoodId("");
       setNeighborhoodName("");
+      setCustomNeighborhood(false);
     }
     setCepStatus({ kind: "success", message: result.message });
   }
@@ -467,10 +473,6 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
     ? `Enviando vídeo ${videoProgress}%...`
     : `Enviando fotos ${photoProgress}/${photos.length}...`;
 
-  const neighborhoodIsKnown = !neighborhoodName.trim() || neighborhoods.some(neighborhood =>
-    neighborhood.name.localeCompare(neighborhoodName.trim(), "pt-BR", { sensitivity: "base" }) === 0
-  );
-
   const mediaItems = mediaOrder.reduce<PropertyOrganizerItem[]>((result, id) => {
     const photo = photos.find(item => item.id === id);
     if (photo) result.push({ id, kind: "image", preview: photo.preview, label: photo.file.name });
@@ -493,35 +495,35 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
         <span>Informe o CEP para preencher o que estiver disponível. Você poderá completar ou corrigir os dados manualmente.</span>
       </div>
       <label className="property-cep-field"><span>CEP</span><div><input name="cep" value={cep} inputMode="numeric" autoComplete="postal-code" maxLength={9} placeholder="00000-000" onChange={event => { const digits = event.target.value.replace(/\D/g, "").slice(0, 8); setCep(digits.replace(/^(\d{5})(\d)/, "$1-$2")); setCepStatus(null); }} onBlur={() => { if (cep.replace(/\D/g, "").length === 8 && !cepStatus) void consultCep(); }} /><button type="button" onClick={() => void consultCep()} disabled={cepLoading}>{cepLoading ? "Consultando..." : "Buscar CEP"}</button></div></label>
-      <label><span>Cidade</span><select name="cityId" value={selectedCityId} onChange={event => { setSelectedCityId(event.target.value); setSelectedNeighborhoodId(""); setNeighborhoodName(""); setResolvedNeighborhood(null); setCepStatus(null); }} required><option value="">Selecione a cidade</option>{cities.map(city => <option key={city.id} value={city.id}>{city.name} — {city.stateCode}</option>)}</select></label>
+      <label><span>Cidade</span><select name="cityId" value={selectedCityId} onChange={event => { setSelectedCityId(event.target.value); setSelectedNeighborhoodId(""); setNeighborhoodName(""); setCustomNeighborhood(false); setResolvedNeighborhood(null); setCepStatus(null); }} required><option value="">Selecione a cidade</option>{cities.map(city => <option key={city.id} value={city.id}>{city.name} — {city.stateCode}</option>)}</select></label>
       <label className="property-neighborhood-field">
         <span>Bairro</span>
-        <input
-          name="neighborhoodName"
-          value={neighborhoodName}
-          list="property-neighborhood-options"
-          maxLength={80}
-          autoComplete="address-level3"
-          placeholder={selectedCityId ? "Escolha ou digite o bairro" : "Selecione a cidade primeiro"}
+        <select
+          value={customNeighborhood ? "__other__" : selectedNeighborhoodId}
           disabled={!selectedCityId}
           onChange={event => {
-            const nextName = event.target.value;
-            const matchingNeighborhood = neighborhoods.find(neighborhood =>
-              neighborhood.name.localeCompare(nextName.trim(), "pt-BR", { sensitivity: "base" }) === 0
-            );
-            setNeighborhoodName(nextName);
-            setSelectedNeighborhoodId(matchingNeighborhood?.id ?? "");
+            if (event.target.value === "__other__") {
+              setCustomNeighborhood(true);
+              setSelectedNeighborhoodId("");
+              setNeighborhoodName("");
+              return;
+            }
+            const neighborhood = neighborhoods.find(item => item.id === event.target.value);
+            setCustomNeighborhood(false);
+            setSelectedNeighborhoodId(neighborhood?.id ?? "");
+            setNeighborhoodName(neighborhood?.name ?? "");
           }}
           required
-        />
+        >
+          <option value="">{selectedCityId ? "Selecione o bairro" : "Selecione a cidade primeiro"}</option>
+          {neighborhoods.map(neighborhood => <option key={neighborhood.id} value={neighborhood.id}>{neighborhood.name}</option>)}
+          <option value="__other__">Outro bairro (digitar)</option>
+        </select>
         <input type="hidden" name="neighborhoodId" value={selectedNeighborhoodId} />
-        <datalist id="property-neighborhood-options">
-          {neighborhoods.map(neighborhood => <option key={neighborhood.id} value={neighborhood.name} />)}
-        </datalist>
-        <small className={!neighborhoodIsKnown ? "property-neighborhood-field__new" : undefined}>
-          {!neighborhoodIsKnown ? "Novo bairro: será enviado para revisão antes de entrar na lista oficial." : "Comece a digitar para buscar ou informe um bairro novo."}
-        </small>
+        <input type="hidden" name="neighborhoodName" value={neighborhoodName} />
+        <small>Não encontrou? Escolha “Outro bairro (digitar)”.</small>
       </label>
+      {customNeighborhood ? <label className="property-neighborhood-field property-neighborhood-field--custom"><span>Nome do bairro</span><input value={neighborhoodName} maxLength={80} autoComplete="address-level3" placeholder="Digite o nome do bairro" onChange={event => setNeighborhoodName(event.target.value)} required /><small className="property-neighborhood-field__new">Será enviado para revisão antes de entrar na lista oficial.</small></label> : null}
       <label><span>Rua</span><input name="street" value={street} onChange={event => setStreet(event.target.value)} maxLength={160} autoComplete="address-line1" placeholder="Preenchida pelo CEP" /></label>
       <label><span>Número</span><input name="addressNumber" maxLength={20} autoComplete="address-line2" placeholder="Ex: 120 ou S/N" /></label>
       <label className="field-wide"><span>Complemento</span><input name="addressComplement" value={addressComplement} onChange={event => setAddressComplement(event.target.value)} maxLength={120} placeholder="Apartamento, bloco ou ponto de referência (opcional)" /></label>

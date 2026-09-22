@@ -6,6 +6,7 @@ import { requireAdmin } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
 import { freighterUrl, propertyUrl } from "@/lib/listings/urls";
 import { revalidatePublicListings, revalidatePublicLocations } from "@/lib/listings/public-cache";
+import { normalizeNeighborhoodName } from "@/lib/location/neighborhood";
 import { slugify } from "@/lib/validation/listing";
 
 type ModerationIntent = "approve" | "reject" | "pause";
@@ -92,7 +93,7 @@ export async function moderateFreighter(formData: FormData) {
 export async function reviewNeighborhood(formData: FormData) {
   await requireAdmin();
   const id = field(formData, "id");
-  const name = field(formData, "name").replace(/\s+/g, " ");
+  const name = normalizeNeighborhoodName(field(formData, "name"));
   if (!id || name.length < 2 || name.length > 80) redirect("/admin/anuncios?erro=bairro");
 
   const source = await prisma.neighborhood.findUnique({ where: { id }, include: { city: true } });

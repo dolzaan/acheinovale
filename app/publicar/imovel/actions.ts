@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { getAddressByCep, normalizeCep } from "@/lib/location/cep";
+import { normalizeNeighborhoodName } from "@/lib/location/neighborhood";
 import {
   parseImageKeys,
   parseStoredMediaOrder,
@@ -109,7 +110,7 @@ export async function createProperty(formData: FormData) {
   const description = field(formData, "description");
   const cityId = field(formData, "cityId");
   let neighborhoodId = field(formData, "neighborhoodId");
-  let neighborhoodName = field(formData, "neighborhoodName").replace(/\s+/g, " ");
+  let neighborhoodName = normalizeNeighborhoodName(field(formData, "neighborhoodName"));
   const cep = normalizeCep(field(formData, "cep"));
   const purpose = field(formData, "purpose");
   const type = field(formData, "type");
@@ -182,7 +183,7 @@ export async function createProperty(formData: FormData) {
     if (neighborhoodSlug && cityIsAvailable) {
       neighborhood = await prisma.neighborhood.upsert({
         where: { cityId_slug: { cityId, slug: neighborhoodSlug } },
-        update: { name: neighborhoodName, needsReview: true },
+        update: {},
         create: { cityId, name: neighborhoodName, slug: neighborhoodSlug, needsReview: true },
         include: { city: true },
       });
