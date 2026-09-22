@@ -11,7 +11,7 @@ export function HeaderAccount() {
   const { user, loading } = useAccountSession();
 
   if (loading) {
-    return <span className="login-link" aria-label="Carregando conta">Entrar</span>;
+    return <span className="login-link" aria-label="Carregando conta">Conta</span>;
   }
 
   if (!user) {
