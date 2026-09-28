@@ -17,10 +17,14 @@ function getServerlessDatabaseUrl() {
 
     if (url.port === "6543") {
       url.searchParams.set("pgbouncer", "true");
-      // Uma única conexão fazia as consultas públicas paralelas disputarem o
-      // mesmo slot até o P2024. Três conexões mantêm o consumo controlado e
-      // ainda permitem que páginas públicas e autenticação avancem juntas.
-      url.searchParams.set("connection_limit", process.env.PRISMA_CONNECTION_LIMIT || "3");
+      // Um pool pequeno evita que várias instâncias serverless esgotem as
+      // conexões do Supabase. As consultas públicas que compartilham este
+      // cliente são executadas em sequência para não disputar esses slots.
+      const configuredLimit = Number.parseInt(process.env.PRISMA_CONNECTION_LIMIT || "2", 10);
+      const connectionLimit = Number.isFinite(configuredLimit)
+        ? Math.min(2, Math.max(1, configuredLimit))
+        : 2;
+      url.searchParams.set("connection_limit", String(connectionLimit));
       url.searchParams.set("pool_timeout", process.env.PRISMA_POOL_TIMEOUT || "20");
       url.searchParams.set("connect_timeout", process.env.PRISMA_CONNECT_TIMEOUT || "10");
     }

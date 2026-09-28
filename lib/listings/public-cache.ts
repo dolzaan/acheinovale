@@ -7,7 +7,9 @@ import { measureServerOperation } from "@/lib/performance/timing";
 
 const PUBLIC_LOCATIONS_TAG = "public-locations";
 const PUBLIC_LISTINGS_TAG = "public-listings";
-const PUBLIC_DATA_REVALIDATE_SECONDS = 15 * 60;
+// Escritas invalidam esta tag imediatamente. O intervalo maior funciona como
+// rede de segurança sem renovar o catálogo no banco a cada poucos minutos.
+const PUBLIC_DATA_REVALIDATE_SECONDS = 60 * 60;
 const LOCATION_REVALIDATE_SECONDS = 24 * 60 * 60;
 const DATABASE_RECOVERY_DELAY_MS = 30 * 1000;
 const MAX_LAST_KNOWN_GOOD_ENTRIES = 100;
@@ -168,20 +170,18 @@ export function getActiveLocations() {
 
 const getCachedHomeListings = unstable_cache(
   async (cityId: string) => measureServerOperation("home.public_listings", async () => {
-    const [properties, freighters] = await Promise.all([
-      prisma.property.findMany({
-        where: { status: "ACTIVE", cityId },
-        select: propertyCardSelect,
-        orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
-        take: 3,
-      }),
-      prisma.freighterProfile.findMany({
-        where: { status: "ACTIVE", cityId },
-        select: freighterCardSelect,
-        orderBy: { updatedAt: "desc" },
-        take: 3,
-      }),
-    ]);
+    const properties = await prisma.property.findMany({
+      where: { status: "ACTIVE", cityId },
+      select: propertyCardSelect,
+      orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
+      take: 3,
+    });
+    const freighters = await prisma.freighterProfile.findMany({
+      where: { status: "ACTIVE", cityId },
+      select: freighterCardSelect,
+      orderBy: { updatedAt: "desc" },
+      take: 3,
+    });
     return [properties, freighters] as const;
   }),
   ["home-public-listings-v1"],
@@ -203,16 +203,14 @@ const getCachedPublicPropertiesPage = unstable_cache(
     skip: number,
     take: number,
   ) => measureServerOperation("property.list_public", async () => {
-    const [properties, resultCount] = await Promise.all([
-      prisma.property.findMany({
-        where,
-        select: propertyCardSelect,
-        orderBy,
-        skip,
-        take,
-      }),
-      prisma.property.count({ where }),
-    ]);
+    const properties = await prisma.property.findMany({
+      where,
+      select: propertyCardSelect,
+      orderBy,
+      skip,
+      take,
+    });
+    const resultCount = await prisma.property.count({ where });
     return [properties, resultCount] as const;
   }),
   ["public-properties-page-v1"],
