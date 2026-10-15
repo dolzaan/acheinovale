@@ -707,13 +707,29 @@ button { cursor: pointer; }
 }
 
 /* Compartilhamento e contato nos anúncios */
-.listing-share { display: grid; gap: 12px; margin: 24px 0; }
-.listing-share__actions { display: flex; flex-wrap: wrap; gap: 10px; }
-.listing-share__actions a, .listing-share__actions button {
-  display: inline-flex; align-items: center; justify-content: center;
-  padding: 10px 14px; border: 1px solid #d1ddd7; border-radius: 10px;
-  background: #fff; color: #225746; font: inherit; font-weight: 700;
-  cursor: pointer; text-decoration: none;
+.listing-share { display: grid; gap: 13px; margin: 25px 0; }
+.listing-share__heading { display: grid; gap: 4px; }
+.listing-share__heading strong { color: var(--ink); font-size: 15px; font-weight: 800; letter-spacing: -.2px; }
+.listing-share__heading span { color: var(--muted); font-size: 12px; line-height: 1.5; }
+.listing-share__actions { display: flex; flex-wrap: wrap; gap: 9px; }
+.listing-share__actions .listing-share__button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 43px; padding: 0 15px; border: 1px solid transparent; border-radius: 11px;
+  font: inherit; font-size: 12px; font-weight: 800; line-height: 1;
+  cursor: pointer; text-decoration: none; white-space: nowrap;
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.listing-share__actions .listing-share__button:hover { transform: translateY(-1px); box-shadow: 0 5px 13px rgba(23,63,53,.12); }
+.listing-share__button svg { width: 17px; height: 17px; flex: 0 0 auto; fill: currentColor; }
+.listing-share__button--whatsapp { color: #fff; background: #218b55; }
+.listing-share__button--whatsapp:hover { background: #176f42; }
+.listing-share__button--facebook { color: #fff; background: #1877f2; }
+.listing-share__button--facebook:hover { background: #1264cf; }
+.listing-share__actions .listing-share__button--copy { border-color: #d9e3dd; color: var(--ink); background: #fff; }
+.listing-share__button--copy svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+@media (max-width: 520px) {
+  .listing-share__actions { gap: 8px; }
+  .listing-share__actions .listing-share__button { min-height: 42px; padding-inline: 12px; }
 }
 @media (max-width: 680px) {
   .listing-contact-primary { position: sticky; bottom: 76px; z-index: 5; }
