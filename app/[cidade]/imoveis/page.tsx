@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { notFound } from "next/navigation";
 import PropertiesPage from "@/app/imoveis/page";
 import { prisma } from "@/lib/db";
@@ -33,5 +34,13 @@ export default async function CityPropertiesPage({ params, searchParams }: Props
   const [{ cidade }, filters] = await Promise.all([params, searchParams]);
   const city = await getCity(cidade);
   if (!city) notFound();
-  return <PropertiesPage searchParams={Promise.resolve({ ...filters, cidade: city.slug })} prettyPath />;
+  const breadcrumbs = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Início", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "Imóveis em " + city.name, item: `${SITE_URL}/${city.slug}/imoveis` },
+    ],
+  };
+  return <><Script id="breadcrumbs-imoveis-cidade" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }} /><PropertiesPage searchParams={Promise.resolve({ ...filters, cidade: city.slug })} prettyPath /></>;
 }
