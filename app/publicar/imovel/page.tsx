@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
+import { PublishConversionEvent } from "@/components/publish-conversion-event";
 import { PropertyPublishForm } from "@/components/property-publish-form";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
@@ -27,6 +28,7 @@ export default async function NewPropertyPage({ searchParams }: Props) {
 
   return (
     <>
+      <PublishConversionEvent name="publish_property_form_view" />
       <Header />
       <main className="account-page">
         <div className="container form-page">
