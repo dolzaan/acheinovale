@@ -90,7 +90,6 @@ export default async function PropertyPage({ params }: Props) {
       priceCurrency: "BRL",
       price: property.priceCents / 100,
       availability: "https://schema.org/InStock",
-      itemCondition: "https://schema.org/UsedCondition",
       url: canonical,
     },
   };
