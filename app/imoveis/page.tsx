@@ -5,6 +5,7 @@ import Script from "next/script";
 import { redirect } from "next/navigation";
 import Form from "next/form";
 import type { Prisma, PropertyType } from "@prisma/client";
+import { CityDiscovery } from "@/components/city-discovery";
 import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
@@ -335,5 +336,6 @@ export default async function PropertiesPage({ searchParams, prettyPath = false 
       <p>Compare casas, apartamentos, kitnets e outros imóveis disponíveis para aluguel em Rio do Sul. Os anúncios reúnem preço, fotos, características e localização para facilitar sua busca.</p>
       <p>Ao encontrar uma opção interessante, você pode falar diretamente com o anunciante pelo WhatsApp. Antes de negociar ou fazer pagamentos, confira os dados do imóvel e siga as orientações de segurança do Achei no Vale.</p>
     </section> : null}
+    <CityDiscovery category="imoveis" currentSlug={selectedCity?.slug} />
   </div></main><MobileNav citySlug={selectedCity?.slug}/></>;
 }
