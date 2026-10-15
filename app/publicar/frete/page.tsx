@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
+import { PublishConversionEvent } from "@/components/publish-conversion-event";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { PhoneInput } from "@/components/phone-input";
 import { ProfilePhotoInput } from "@/components/profile-photo-input";
@@ -32,7 +33,7 @@ export default async function NewFreightPage({ searchParams }: Props) {
   const hasPhoto = Boolean(user.image || profile?.images.length);
   const initialCompleted = [Boolean((profile?.whatsapp || user.phone || "").replace(/\D/g, "").length >= 10), Boolean(profile?.cityId || user.cityId), Boolean(profile?.description && profile.description.trim().length >= 60), hasPhoto, savedVehicleTypes.length > 0].filter(Boolean).length;
 
-  return <><Header/><main className="account-page"><div className="container form-page">
+  return <><PublishConversionEvent name="publish_freighter_form_view" /><Header/><main className="account-page"><div className="container form-page">
     <div className="account-heading"><span className="section-kicker">Cadastro profissional</span><h1>{profile ? "Editar cadastro de freteiro" : "Cadastrar como freteiro"}</h1><p>Apresente seu serviço com clareza para receber contatos pelo WhatsApp.</p></div>
     {profile ? <Link className="button button--secondary" href={`/meus-anuncios/${profile.id}/freteiro-midias`}>Adicionar ou editar fotos</Link> : null}
     {params.erro && <p className="form-alert">Revise os campos informados ou tente enviar outra foto.</p>}
