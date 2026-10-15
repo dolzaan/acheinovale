@@ -562,9 +562,13 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
       <p className="property-privacy-note field-wide"><strong>Endereço protegido:</strong> CEP, rua, número e complemento ficam privados. No anúncio público aparecem somente o bairro e a cidade.</p>
       {cepStatus ? <p className={`property-cep-status property-cep-status--${cepStatus.kind} field-wide`} role="status">{cepStatus.message}</p> : null}
       
-          <p className="property-privacy-note"><strong>Privacidade protegida:</strong> CEP, rua, número e complemento ficam privados. No anúncio público aparecem somente o bairro e a cidade.</p>
-          {cepStatus ? <p className={`property-cep-status property-cep-status--${cepStatus.kind}`} role="status">{cepStatus.message}</p> : null}
         </details>
+        <section className="property-photo-field field-wide" aria-labelledby="property-photo-title">
+          <div className="property-photo-field__heading"><div><strong id="property-photo-title">Fotos do imóvel</strong><span>Adicione fotos se tiver. Elas ajudam a destacar seu anúncio.</span></div><b>{photos.length}/{PROPERTY_IMAGE_LIMIT}</b></div>
+          <label className="property-photo-picker" htmlFor="property-photos"><span>{optimizingPhotos ? "Otimizando fotos..." : "Adicionar fotos"}</span><small>Até 20 MB por original · conversão automática para WebP</small></label>
+          <input id="property-photos" className="property-photo-input" type="file" accept={PROPERTY_IMAGE_MIME_TYPES.join(",")} multiple onChange={selectPhotos} disabled={uploading || optimizingPhotos || photos.length >= PROPERTY_IMAGE_LIMIT} />
+          {!photos.length ? <p className="property-photo-empty">Você pode publicar sem fotos. Se tiver imagens, elas ajudam as pessoas a conhecer melhor o imóvel.</p> : null}
+        </section>
         <section className="property-photo-field property-video-field field-wide" aria-labelledby="property-video-title">
         <div className="property-photo-field__heading"><div><strong id="property-video-title">Vídeo do imóvel</strong><span>Mostre os ambientes em um passeio rápido.</span></div><b>{video ? "1/1" : "0/1"}</b></div>
         {!video ? <><label className="property-photo-picker" htmlFor="property-video"><span>Adicionar vídeo</span><small>MP4, WebM, MOV ou M4V · até 20 MB</small></label><input id="property-video" className="property-photo-input" type="file" accept={PROPERTY_VIDEO_MIME_TYPES.join(",")} onChange={selectVideo} disabled={uploading || optimizingPhotos} /></> : <p className="property-photo-empty">O vídeo já está junto às fotos abaixo. Você pode mudar a posição ou removê-lo.</p>}
