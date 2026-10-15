@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
-import { PublishConversionEvent } from "@/components/publish-conversion-event";
+import { PublishConversionEvent, PublishOptionLink } from "@/components/publish-conversion-event";
 import { HomeIcon, TruckIcon, ArrowIcon } from "@/components/icons";
 
 export default function PublishPage() {
@@ -18,22 +18,22 @@ export default function PublishPage() {
           </div>
 
           <div className="publish-options">
-            <Link href="/publicar/imovel">
+            <PublishOptionLink href="/publicar/imovel" type="imovel">
               <span><HomeIcon size={34}/></span>
               <div>
                 <strong>Um imóvel</strong>
                 <p>Casa, apartamento, terreno ou espaço comercial para venda ou aluguel.</p>
               </div>
               <ArrowIcon/>
-            </Link>
-            <Link href="/publicar/frete">
+            </PublishOptionLink>
+            <PublishOptionLink href="/publicar/frete" type="frete">
               <span><TruckIcon size={34}/></span>
               <div>
                 <strong>Meu serviço de frete</strong>
                 <p>Apresente seu serviço, os veículos e as cidades que você atende.</p>
               </div>
               <ArrowIcon/>
-            </Link>
+            </PublishOptionLink>
           </div>
 
           <section className="account-card" style={{ marginTop: 24, padding: 26 }}>
