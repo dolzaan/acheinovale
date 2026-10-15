@@ -43,18 +43,25 @@ type Props = { searchParams: Promise<SearchParams>; prettyPath?: boolean };
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const params = await searchParams;
   const city = await resolveRequestCity(params.cidade);
-  const isRioDoSulRental = params.cidade === "rio-do-sul" && params.finalidade === "aluguel";
-  const title = isRioDoSulRental
-    ? "Imóveis para alugar em Rio do Sul, SC | Achei no Vale"
-    : `Imóveis em ${city.name} | AcheiNoVale`;
-  const description = isRioDoSulRental
-    ? "Encontre casas, apartamentos e imóveis para alugar em Rio do Sul. Veja fotos, preços, bairros e fale direto com o anunciante."
-    : `Casas, apartamentos e terrenos para venda ou aluguel em ${city.name} e região.`;
-  const canonical = isRioDoSulRental
-    ? `${SITE_URL}/rio-do-sul/imoveis/aluguel`
-    : params.cidade
-      ? `${SITE_URL}/${city.slug}/imoveis`
-      : `${SITE_URL}/imoveis`;
+  const regional = params.regiao === "1";
+  const isRioDoSulRental = params.cidade === "rio-do-sul" && params.finalidade === "aluguel" && !regional;
+  const title = regional
+    ? "Imóveis em toda a região | AcheiNoVale"
+    : isRioDoSulRental
+      ? "Imóveis para alugar em Rio do Sul, SC | Achei no Vale"
+      : `Imóveis em ${city.name} | AcheiNoVale`;
+  const description = regional
+    ? "Busque casas, apartamentos e terrenos anunciados nas cidades atendidas pelo Achei no Vale."
+    : isRioDoSulRental
+      ? "Encontre casas, apartamentos e imóveis para alugar em Rio do Sul. Veja fotos, preços, bairros e fale direto com o anunciante."
+      : `Casas, apartamentos e terrenos para venda ou aluguel em ${city.name} e região.`;
+  const canonical = regional
+    ? `${SITE_URL}/imoveis`
+    : isRioDoSulRental
+      ? `${SITE_URL}/rio-do-sul/imoveis/aluguel`
+      : params.cidade
+        ? `${SITE_URL}/${city.slug}/imoveis`
+        : `${SITE_URL}/imoveis`;
   return {
     title,
     description,
@@ -319,7 +326,7 @@ export default async function PropertiesPage({ searchParams, prettyPath = false 
       <details className="catalog-more-filters">
         <summary><FilterIcon/><span>Mais filtros</span>{advancedFilterCount > 0 ? <b>{advancedFilterCount}</b> : null}</summary>
         <div className="catalog-more-filters__panel">
-          <PropertyLocationFilter cities={cities.map(city => ({ id: city.id, name: city.name, slug: city.slug, stateCode: city.stateCode, neighborhoods: city.neighborhoods.map(neighborhood => ({ id: neighborhood.id, name: neighborhood.name, slug: neighborhood.slug })) }))} defaultCity={selectedCity?.slug} defaultNeighborhood={selectedNeighborhood?.slug}/>
+          {!regional ? <PropertyLocationFilter cities={cities.map(city => ({ id: city.id, name: city.name, slug: city.slug, stateCode: city.stateCode, neighborhoods: city.neighborhoods.map(neighborhood => ({ id: neighborhood.id, name: neighborhood.name, slug: neighborhood.slug })) }))} defaultCity={selectedCity?.slug} defaultNeighborhood={selectedNeighborhood?.slug}/> : <p className="catalog-location-filter__heading">A busca inclui todas as cidades ativas do Achei no Vale.</p>}
           <div className="catalog-filter-section catalog-filter-section--wide"><strong>Faixa de preço</strong><div className="catalog-filter__pair"><label><span>Valor mínimo</span><div className="catalog-money-input"><small>R$</small><input name="precoMin" type="number" min="0" step="100" defaultValue={minimumPrice !== undefined ? minimumPrice / 100 : ""} placeholder="0"/></div></label><label><span>Valor máximo</span><div className="catalog-money-input"><small>R$</small><input name="precoMax" type="number" min="0" step="100" defaultValue={maximumPrice !== undefined ? maximumPrice / 100 : ""} placeholder="Sem limite"/></div></label></div></div>
           <label className="catalog-filter-section"><strong>Tipo de imóvel</strong><select name="tipo" defaultValue={explicitType || ""}><option value="">Todos os tipos</option>{propertyTypes.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
           <label className="catalog-filter-section"><strong>Quartos</strong><select name="quartos" defaultValue={explicitMinimumBedrooms ?? ""}><option value="">Qualquer</option><option value="1">1 ou mais</option><option value="2">2 ou mais</option><option value="3">3 ou mais</option><option value="4">4 ou mais</option></select></label>
