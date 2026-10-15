@@ -706,15 +706,41 @@ button { cursor: pointer; }
   }
 }
 
-/* Compartilhamento e contato nos anúncios */
-.listing-share { display: grid; gap: 12px; margin: 24px 0; }
-.listing-share__actions { display: flex; flex-wrap: wrap; gap: 10px; }
-.listing-share__actions a, .listing-share__actions button {
-  display: inline-flex; align-items: center; justify-content: center;
-  padding: 10px 14px; border: 1px solid #d1ddd7; border-radius: 10px;
-  background: #fff; color: #225746; font: inherit; font-weight: 700;
-  cursor: pointer; text-decoration: none;
+/* Compartilhamento nos anúncios: um botão com menu de destinos */
+.listing-share { display: grid; justify-items: start; gap: 10px; margin: 24px 0; }
+.listing-share > strong { color: var(--ink); font-size: 15px; font-weight: 800; }
+.listing-share__menu-wrap { position: relative; }
+.listing-share__main-button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  min-height: 44px; padding: 0 17px; border: 0; border-radius: 11px;
+  color: #fff; background: var(--green); font: inherit; font-size: 13px; font-weight: 800;
+  cursor: pointer; box-shadow: 0 5px 14px rgba(23,63,53,.14);
+  transition: background .18s ease, transform .18s ease;
 }
+.listing-share__main-button:hover { background: #164b37; transform: translateY(-1px); }
+.listing-share__main-button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.listing-share__menu {
+  position: absolute; z-index: 20; top: calc(100% + 8px); left: 0;
+  display: grid; gap: 3px; width: 205px; padding: 7px;
+  border: 1px solid #e0e7e2; border-radius: 13px; background: #fff;
+  box-shadow: 0 12px 32px rgba(24,53,42,.16);
+}
+.listing-share__menu a, .listing-share__menu button {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 42px;
+  padding: 8px 10px; border: 0; border-radius: 8px; background: transparent;
+  color: var(--ink); font: inherit; font-size: 13px; font-weight: 650;
+  text-align: left; text-decoration: none; cursor: pointer;
+}
+.listing-share__menu a:hover, .listing-share__menu button:hover { background: #f2f6f3; }
+.listing-share__option-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 27px; height: 27px; flex: 0 0 27px; border-radius: 8px;
+  color: #fff; font-size: 16px; font-weight: 800;
+}
+.listing-share__option-icon--whatsapp { background: #218b55; }
+.listing-share__option-icon--facebook { background: #1877f2; }
+.listing-share__option-icon--copy { background: #eaf0ec; color: var(--ink); }
+.listing-share__option-icon--other { background: #eaf0ec; color: var(--ink); font-size: 12px; }
 @media (max-width: 680px) {
   .listing-contact-primary { position: sticky; bottom: 76px; z-index: 5; }
 }
