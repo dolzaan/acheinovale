@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import { notFound, permanentRedirect } from "next/navigation";
+import { ListingShare } from "@/components/listing-share";
 import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
 import { PropertyGallery } from "@/components/property-gallery";
@@ -138,6 +139,7 @@ export default async function PropertyPage({ params }: Props) {
                 {property.parkingSpots !== null ? <span>{property.parkingSpots} vagas</span> : null}
                 {property.areaM2 ? <span>{property.areaM2.toString()} m²</span> : null}
               </div>
+              <ListingShare title={property.title} url={canonical} />
               <section className="listing-description">
                 <h2>Sobre o imóvel</h2>
                 <p>{property.description}</p>
@@ -148,7 +150,7 @@ export default async function PropertyPage({ params }: Props) {
               <small>{property.purpose === "RENT" ? "Valor do aluguel" : "Valor de venda"}</small>
               <strong>{formatPrice(property.priceCents)}</strong>
               {property.purpose === "RENT" ? <span>por mês</span> : null}
-              <a className="button button--primary" href={whatsappUrl} target="_blank" rel="noreferrer">Conversar no WhatsApp</a>
+              <a className="button button--primary listing-contact-primary" href={whatsappUrl} target="_blank" rel="noreferrer">Conversar no WhatsApp</a>
               <div className="listing-owner">
                 <UserAvatar image={property.owner.image} name={property.owner.name} />
                 <div><small>Anunciante</small><b>{property.owner.name || "Usuário do AcheiNoVale"}</b></div>

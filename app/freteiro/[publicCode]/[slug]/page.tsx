@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import { notFound, permanentRedirect } from "next/navigation";
+import { ListingShare } from "@/components/listing-share";
 import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
 import { UserAvatar } from "@/components/user-avatar";
@@ -106,6 +107,7 @@ export default async function FreighterPage({ params, searchParams }: Props) {
       <Script id={`freighter-${freighter.publicCode}-breadcrumbs`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbStructuredData) }} />
       <Header />
       <main className="listing-detail-page">
+        <div className="container"><ListingShare title={freighter.displayName} url={canonical} /></div>
         <div className="container listing-detail">
           {freighter.status !== "ACTIVE" ? (
             <div className="preview-notice">
