@@ -49,6 +49,7 @@ type PropertyPreview = {
 };
 
 export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { authUserId: string; cityId: string; phone: string; cities: CityOption[] }) {
+  const [step, setStep] = useState<1 | 2>(1);
   const [selectedCityId, setSelectedCityId] = useState(cityId);
   const [selectedNeighborhoodId, setSelectedNeighborhoodId] = useState("");
   const [neighborhoodName, setNeighborhoodName] = useState("");
@@ -83,8 +84,8 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
     { label: "Escreva um título claro com pelo menos 15 caracteres", complete: false },
     { label: "Informe um preço", complete: false },
     { label: "Informe o bairro", complete: false },
-    { label: "Descreva o imóvel com pelo menos 60 caracteres", complete: false },
-    { label: "Adicione pelo menos 3 fotos", complete: false },
+    { label: "Escreva uma descrição com os principais detalhes", complete: false },
+    { label: "Adicione uma foto, se tiver", complete: false },
   ]);
 
   const refreshQuality = useCallback((photoCount = photosRef.current.length) => {
@@ -100,8 +101,8 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
       { label: "Escreva um título claro com pelo menos 15 caracteres", complete: title.length >= 15 },
       { label: "Informe um preço", complete: Number.isFinite(priceCents) && priceCents > 0 },
       { label: "Informe o bairro", complete: neighborhood.length >= 2 },
-      { label: "Descreva o imóvel com pelo menos 60 caracteres", complete: description.length >= 60 },
-      { label: "Adicione pelo menos 3 fotos", complete: photoCount >= 3 },
+      { label: "Descreva o imóvel com pelo menos 60 caracteres", complete: description.length >= 30 },
+      { label: "Adicione pelo menos 3 fotos", complete: photoCount >= 1 },
     ]);
   }, []);
 
@@ -485,17 +486,22 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
       <input ref={imageKeysRef} type="hidden" name="imageKeys" defaultValue="[]" />
       <input ref={videoKeyRef} type="hidden" name="videoKey" defaultValue="" />
       <input ref={mediaOrderRef} type="hidden" name="mediaOrder" defaultValue="[]" />
-      <div className="field-wide"><ListingQualityIndicator items={qualityItems} /></div>
-      <p className="required-fields-note field-wide"><span aria-hidden="true">*</span> Campos obrigatórios</p>
-      <label className="field-wide"><span>Título</span><input name="title" minLength={8} maxLength={120} placeholder="Ex: Casa com 3 quartos no Centro" required /></label>
+      <div className="publish-step" hidden={step !== 1}>
+        <div className="publish-step__heading">
+          <span>ETAPA 1 DE 2</span>
+          <h2>Informações do anúncio</h2>
+          <p>Preencha o básico para começar. Você adiciona os detalhes extras na próxima etapa.</p>
+        </div>
+        <p className="required-fields-note field-wide"><span aria-hidden="true">*</span> Campos obrigatórios</p>
+<label className="field-wide"><span>Título</span><input name="title" minLength={8} maxLength={120} placeholder="Ex: Casa com 3 quartos no Centro" required /></label>
       <label><span>Finalidade</span><select name="purpose" required><option value="RENT">Aluguel</option><option value="SALE">Venda</option></select></label>
       <label><span>Tipo</span><select name="type" required><option value="HOUSE">Casa</option><option value="APARTMENT">Apartamento</option><option value="STUDIO">Kitnet / Studio</option><option value="LAND">Terreno</option><option value="COMMERCIAL_ROOM">Sala comercial</option><option value="WAREHOUSE">Galpão</option><option value="OTHER">Outro</option></select></label>
-      <div className="field-wide property-address-heading">
-        <strong>Localização do imóvel</strong>
-        <span>Informe o CEP para preencher o que estiver disponível. Você poderá completar ou corrigir os dados manualmente.</span>
-      </div>
-      <label className="property-cep-field"><span>CEP</span><div><input name="cep" value={cep} inputMode="numeric" autoComplete="postal-code" maxLength={9} placeholder="00000-000" onChange={event => { const digits = event.target.value.replace(/\D/g, "").slice(0, 8); setCep(digits.replace(/^(\d{5})(\d)/, "$1-$2")); setCepStatus(null); }} onBlur={() => { if (cep.replace(/\D/g, "").length === 8 && !cepStatus) void consultCep(); }} /><button type="button" onClick={() => void consultCep()} disabled={cepLoading}>{cepLoading ? "Consultando..." : "Buscar CEP"}</button></div></label>
-      <label><span>Cidade</span><select name="cityId" value={selectedCityId} onChange={event => { setSelectedCityId(event.target.value); setSelectedNeighborhoodId(""); setNeighborhoodName(""); setCustomNeighborhood(false); setResolvedNeighborhood(null); setCepStatus(null); }} required><option value="">Selecione a cidade</option>{cities.map(city => <option key={city.id} value={city.id}>{city.name} — {city.stateCode}</option>)}</select></label>
+      
+        <div className="field-wide property-address-heading">
+          <strong>Onde fica o imóvel?</strong>
+          <span>O anúncio mostrará apenas a cidade e o bairro.</span>
+        </div>
+<label><span>Cidade</span><select name="cityId" value={selectedCityId} onChange={event => { setSelectedCityId(event.target.value); setSelectedNeighborhoodId(""); setNeighborhoodName(""); setCustomNeighborhood(false); setResolvedNeighborhood(null); setCepStatus(null); }} required><option value="">Selecione a cidade</option>{cities.map(city => <option key={city.id} value={city.id}>{city.name} — {city.stateCode}</option>)}</select></label>
       <label className="property-neighborhood-field">
         <span>Bairro</span>
         <select
@@ -524,26 +530,46 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
         <small>Não encontrou? Escolha “Outro bairro (digitar)”.</small>
       </label>
       {customNeighborhood ? <label className="property-neighborhood-field property-neighborhood-field--custom"><span>Nome do bairro</span><input value={neighborhoodName} maxLength={80} autoComplete="address-level3" placeholder="Digite o nome do bairro" onChange={event => setNeighborhoodName(event.target.value)} required /><small className="property-neighborhood-field__new">Será enviado para revisão antes de entrar na lista oficial.</small></label> : null}
-      <label><span>Rua</span><input name="street" value={street} onChange={event => setStreet(event.target.value)} maxLength={160} autoComplete="address-line1" placeholder="Preenchida pelo CEP" /></label>
+      
+<label><span>Preço</span><MoneyInput /></label>
+      <label><span>WhatsApp do anúncio</span><PhoneInput name="whatsapp" defaultValue={phone} /></label>
+      
+        <label className="field-wide"><span>Descrição</span><textarea name="description" minLength={30} maxLength={3000} rows={4} placeholder="Conte os principais detalhes do imóvel..." required /></label>
+        <button type="button" className="button button--primary field-wide publish-step__next" onClick={() => { if (formRef.current?.reportValidity()) setStep(2); }}>Continuar para fotos e detalhes <span aria-hidden="true">→</span></button>
+      </div>
+
+      <div className="publish-step" hidden={step !== 2}>
+        <div className="publish-step__heading">
+          <span>ETAPA 2 DE 2</span>
+          <h2>Deixe seu anúncio ainda melhor</h2>
+          <p>Essas informações são opcionais. Você pode publicar sem preencher tudo.</p>
+        </div>
+        <div className="field-wide"><ListingQualityIndicator items={qualityItems} /></div>
+        <div className="publish-optional-grid">
+<label><span>Quartos</span><input name="bedrooms" type="number" min="0" max="30" /></label>
+      <label><span>Banheiros</span><input name="bathrooms" type="number" min="0" max="30" /></label>
+      <label><span>Vagas</span><input name="parkingSpots" type="number" min="0" max="30" /></label>
+      
+        </div>
+        <details className="publish-optional-section field-wide">
+          <summary>Adicionar endereço detalhado <span>Opcional</span></summary>
+          <p>Esses dados ficam privados e não aparecem no anúncio público.</p>
+<label className="property-cep-field"><span>CEP</span><div><input name="cep" value={cep} inputMode="numeric" autoComplete="postal-code" maxLength={9} placeholder="00000-000" onChange={event => { const digits = event.target.value.replace(/\D/g, "").slice(0, 8); setCep(digits.replace(/^(\d{5})(\d)/, "$1-$2")); setCepStatus(null); }} onBlur={() => { if (cep.replace(/\D/g, "").length === 8 && !cepStatus) void consultCep(); }} /><button type="button" onClick={() => void consultCep()} disabled={cepLoading}>{cepLoading ? "Consultando..." : "Buscar CEP"}</button></div></label>
+      
+<label><span>Rua</span><input name="street" value={street} onChange={event => setStreet(event.target.value)} maxLength={160} autoComplete="address-line1" placeholder="Preenchida pelo CEP" /></label>
       <label><span>Número</span><input name="addressNumber" maxLength={20} autoComplete="address-line2" placeholder="Ex: 120 ou S/N" /></label>
       <label className="field-wide"><span>Complemento</span><input name="addressComplement" value={addressComplement} onChange={event => setAddressComplement(event.target.value)} maxLength={120} placeholder="Apartamento, bloco ou ponto de referência (opcional)" /></label>
       <p className="property-privacy-note field-wide"><strong>Endereço protegido:</strong> CEP, rua, número e complemento ficam privados. No anúncio público aparecem somente o bairro e a cidade.</p>
       {cepStatus ? <p className={`property-cep-status property-cep-status--${cepStatus.kind} field-wide`} role="status">{cepStatus.message}</p> : null}
-      <label><span>Preço</span><MoneyInput /></label>
-      <label><span>WhatsApp do anúncio</span><PhoneInput name="whatsapp" defaultValue={phone} /></label>
-      <label><span>Quartos</span><input name="bedrooms" type="number" min="0" max="30" /></label>
-      <label><span>Banheiros</span><input name="bathrooms" type="number" min="0" max="30" /></label>
-      <label><span>Vagas</span><input name="parkingSpots" type="number" min="0" max="30" /></label>
-      <label className="field-wide"><span>Descrição</span><textarea name="description" minLength={30} maxLength={3000} rows={7} placeholder="Conte os principais detalhes do imóvel..." required /></label>
-
-      <section className="property-photo-field field-wide" aria-labelledby="property-photo-title">
-        <div className="property-photo-field__heading"><div><strong id="property-photo-title">Fotos do imóvel</strong><span>A primeira foto será a capa do anúncio.</span></div><b>{photos.length}/{PROPERTY_IMAGE_LIMIT}</b></div>
-        <label className="property-photo-picker" htmlFor="property-photos"><span>{optimizingPhotos ? "Otimizando fotos..." : "Adicionar fotos"}</span><small>Até 20 MB por original · conversão automática para WebP</small></label>
-        <input id="property-photos" className="property-photo-input" type="file" accept={PROPERTY_IMAGE_MIME_TYPES.join(",")} multiple onChange={selectPhotos} disabled={uploading || optimizingPhotos || photos.length >= PROPERTY_IMAGE_LIMIT} />
-        {!photos.length ? <p className="property-photo-empty">Você pode publicar sem fotos, mas anúncios com boas imagens costumam receber mais contatos.</p> : null}
-      </section>
-
-      <section className="property-photo-field property-video-field field-wide" aria-labelledby="property-video-title">
+      
+        </details>
+        <section className="property-photo-field field-wide" aria-labelledby="property-photo-title">
+          <div className="property-photo-field__heading"><div><strong id="property-photo-title">Fotos do imóvel</strong><span>Adicione fotos se tiver. Elas ajudam a destacar seu anúncio.</span></div><b>{photos.length}/{PROPERTY_IMAGE_LIMIT}</b></div>
+          <label className="property-photo-picker" htmlFor="property-photos"><span>{optimizingPhotos ? "Otimizando fotos..." : "Adicionar fotos"}</span><small>Até 20 MB por original · conversão automática para WebP</small></label>
+          <input id="property-photos" className="property-photo-input" type="file" accept={PROPERTY_IMAGE_MIME_TYPES.join(",")} multiple onChange={selectPhotos} disabled={uploading || optimizingPhotos || photos.length >= PROPERTY_IMAGE_LIMIT} />
+          {!photos.length ? <p className="property-photo-empty">Você pode publicar sem fotos. Se tiver imagens, elas ajudam as pessoas a conhecer melhor o imóvel.</p> : null}
+        </section>
+        <section className="property-photo-field property-video-field field-wide" aria-labelledby="property-video-title">
         <div className="property-photo-field__heading"><div><strong id="property-video-title">Vídeo do imóvel</strong><span>Mostre os ambientes em um passeio rápido.</span></div><b>{video ? "1/1" : "0/1"}</b></div>
         {!video ? <><label className="property-photo-picker" htmlFor="property-video"><span>Adicionar vídeo</span><small>MP4, WebM, MOV ou M4V · até 20 MB</small></label><input id="property-video" className="property-photo-input" type="file" accept={PROPERTY_VIDEO_MIME_TYPES.join(",")} onChange={selectVideo} disabled={uploading || optimizingPhotos} /></> : <p className="property-photo-empty">O vídeo já está junto às fotos abaixo. Você pode mudar a posição ou removê-lo.</p>}
       </section>
@@ -574,7 +600,9 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
         </section>
       ) : null}
 
+      <button type="button" className="outline-button field-wide publish-step__back" onClick={() => setStep(1)} disabled={uploading || optimizingPhotos}>← Voltar aos dados principais</button>
       <PendingSubmitButton className="button button--primary field-wide" pendingText={optimizingPhotos ? "Otimizando fotos..." : uploading ? progressLabel : "Finalizando publicação..."} busy={uploading || optimizingPhotos}>Enviar para análise</PendingSubmitButton>
+      </div>
     </form>
   );
 }
