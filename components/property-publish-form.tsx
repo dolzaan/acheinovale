@@ -602,6 +602,7 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
 
       <button type="button" className="outline-button field-wide publish-step__back" onClick={() => setStep(1)} disabled={uploading || optimizingPhotos}>← Voltar aos dados principais</button>
       <PendingSubmitButton className="button button--primary field-wide" pendingText={optimizingPhotos ? "Otimizando fotos..." : uploading ? progressLabel : "Finalizando publicação..."} busy={uploading || optimizingPhotos}>Enviar para análise</PendingSubmitButton>
+      </div>
     </form>
   );
 }
