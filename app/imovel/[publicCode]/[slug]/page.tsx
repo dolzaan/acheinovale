@@ -83,6 +83,7 @@ export default async function PropertyPage({ params }: Props) {
     description: property.description,
     image: property.images.map(image => propertyImagePublicUrl(image.storageKey)),
     category: propertyTypes[property.type],
+    sku: property.publicCode,
     url: canonical,
     offers: {
       "@type": "Offer",

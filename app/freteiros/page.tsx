@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Form from "next/form";
 import { redirect } from "next/navigation";
+import { CityDiscovery } from "@/components/city-discovery";
 import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
@@ -74,5 +75,6 @@ export default async function FreightersPage({ searchParams, prettyPath = false 
       <strong>Página {requestedPage}</strong>
       {hasNextPage ? <Link prefetch={false} href={freighterPageHref(selectedCity.slug, query, requestedPage + 1)}>Próxima →</Link> : <span aria-disabled="true">Próxima →</span>}
     </nav> : null}
+    <CityDiscovery category="freteiros" currentSlug={selectedCity.slug} />
   </div></main><MobileNav citySlug={selectedCity?.slug}/></>;
 }

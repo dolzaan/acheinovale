@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { CityDiscovery } from "@/components/city-discovery";
 import { CityTourismVisual } from "@/components/city-tourism-visual";
 import { resolveRequestCity } from "@/lib/location/selected-city";
 import Form from "next/form";
@@ -75,6 +76,7 @@ export default async function HomePage({ searchParams }: Props) {
                 <span>Buscas populares:</span>
                 <Link prefetch={false} href={rentalsHref}>Imóveis para alugar</Link>
                 <Link prefetch={false} href={freightersHref}>Encontrar freteiro</Link>
+                <Link prefetch={false} href="/publicar">Publicar anúncio grátis</Link>
               </div>
             </div>
 
@@ -100,7 +102,7 @@ export default async function HomePage({ searchParams }: Props) {
         <section className="section properties-section">
           <div className="container">
             <div className="section-heading">
-              <div><span className="section-kicker">Novidades por perto</span><h2>Imóveis recentes</h2><p>Boas oportunidades publicadas em {cityName}.</p></div>
+              <div><span className="section-kicker">Acabaram de anunciar no Vale</span><h2>Imóveis recentes</h2><p>Boas oportunidades publicadas em {cityName}.</p></div>
               <Link prefetch={false} className="text-link" href={propertiesHref}>Ver todos <ArrowIcon/></Link>
             </div>
             <div className="property-grid">
@@ -154,6 +156,7 @@ export default async function HomePage({ searchParams }: Props) {
           </div>
         </section>
 
+        <CityDiscovery category="imoveis" currentSlug={city.slug} />
         <section className="container trust-strip">
           <div className="trust-strip__icon"><ShieldIcon size={28}/></div>
           <div><strong>Mais confiança para negociar perto de casa</strong><span>Perfis, avaliações e denúncias ajudam a comunidade a fazer escolhas melhores.</span></div>
