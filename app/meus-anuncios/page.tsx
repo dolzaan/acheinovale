@@ -3,6 +3,7 @@ import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { ClearPropertyDraft } from "@/components/clear-property-draft";
+import { PublishConversionEvent } from "@/components/publish-conversion-event";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
 import { freighterUrl, propertyUrl } from "@/lib/listings/urls";
@@ -36,6 +37,7 @@ export default async function MyListingsPage({ searchParams }: Props) {
 
   return (
     <>
+      {params.criado === "imovel" ? <PublishConversionEvent name="publish_property_submitted" /> : null}
       <Header />
       <main className="account-page">
         <div className="container listings-page">
