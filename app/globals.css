@@ -703,3 +703,16 @@ button { cursor: pointer; }
     width: 100%;
   }
 }
+
+/* Compartilhamento e contato nos anúncios */
+.listing-share { display: grid; gap: 12px; margin: 24px 0; }
+.listing-share__actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.listing-share__actions a, .listing-share__actions button {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 10px 14px; border: 1px solid #d1ddd7; border-radius: 10px;
+  background: #fff; color: #225746; font: inherit; font-weight: 700;
+  cursor: pointer; text-decoration: none;
+}
+@media (max-width: 680px) {
+  .listing-contact-primary { position: sticky; bottom: 76px; z-index: 5; }
+}
