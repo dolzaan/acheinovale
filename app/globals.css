@@ -77,6 +77,8 @@ button { cursor: pointer; }
 .quick-searches { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; margin-top: 15px; font-size: 11px; color: #768b83; }
 .quick-searches span { font-weight: 700; }
 .quick-searches a { padding: 6px 9px; border-radius: 999px; background: rgba(255,255,255,.72); border: 1px solid #ded9ce; color: #526d64; font-weight: 700; }
+.quick-searches__regional { display: inline-flex; align-items: center; gap: 5px; padding: 6px 9px; border-radius: 999px; background: rgba(255,255,255,.86); border: 1px solid #c8d9ce; color: #315b48; font-weight: 800; cursor: pointer; }
+.quick-searches__regional input { width: 13px; height: 13px; margin: 0; accent-color: var(--green-dark); }
 
 .hero__visual { position: relative; z-index: 1; align-self: stretch; display: flex; align-items: center; }
 .valley-card { position: relative; width: 100%; aspect-ratio: 1.1; max-height: 390px; overflow: hidden; border: 8px solid rgba(255,254,250,.82); border-radius: 46% 46% 24px 24px; background: var(--green-soft); box-shadow: 0 28px 70px rgba(23,63,53,.18); }
