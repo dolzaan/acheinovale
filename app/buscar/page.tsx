@@ -12,9 +12,8 @@ export default async function Page({ searchParams }: Props) {
   if (query) next.set("q", query);
 
   if (regional) {
-    // Busca regional: sem filtro de cidade, a página de imóveis pode ser
-    // ampliada futuramente para pesquisar todo o Alto Vale.
-    redirect(next.size ? `/imoveis?${next}` : "/imoveis");
+    next.set("regiao", "1");
+    redirect(`/imoveis?${next}`);
   }
 
   if (city) {
