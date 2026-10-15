@@ -8,7 +8,15 @@ export const dynamic = "force-dynamic";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const cities = await prisma.city.findMany({
     where: { isActive: true },
-    select: { slug: true },
+    select: {
+      slug: true,
+      _count: {
+        select: {
+          properties: { where: { status: "ACTIVE" } },
+          freighterProfiles: { where: { status: "ACTIVE" } },
+        },
+      },
+    },
     orderBy: { name: "asc" },
   });
   const properties = await prisma.property.findMany({
@@ -32,8 +40,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/termos`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${SITE_URL}/privacidade`, changeFrequency: "yearly", priority: 0.3 },
     ...cities.flatMap(city => [
-      { url: `${SITE_URL}/${city.slug}/imoveis`, changeFrequency: "daily" as const, priority: 0.9 },
-      { url: `${SITE_URL}/${city.slug}/freteiros`, changeFrequency: "daily" as const, priority: 0.8 },
+      ...(city._count.properties > 0
+        ? [{ url: `${SITE_URL}/${city.slug}/imoveis`, changeFrequency: "daily" as const, priority: 0.9 }]
+        : []),
+      ...(city._count.freighterProfiles > 0
+        ? [{ url: `${SITE_URL}/${city.slug}/freteiros`, changeFrequency: "daily" as const, priority: 0.8 }]
+        : []),
     ]),
     ...properties.map(property => ({
       url: `${SITE_URL}${propertyUrl(property)}`,
