@@ -30,8 +30,6 @@ const CITY_COORDINATES: Record<string, Coordinates> = {
   "imbuia": { latitude: -27.4908, longitude: -49.4219 },
   "atalanta": { latitude: -27.4211, longitude: -49.7786 },
   "ituporanga": { latitude: -27.4101, longitude: -49.5963 },
-  "imbituba": { latitude: -28.2400, longitude: -48.6700 },
-  "blumenau": { latitude: -26.9194, longitude: -49.0661 },
 };
 
 function normalize(value: string) {
