@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { FreighterMediaEditor } from "@/components/freighter-media-editor";
 import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
+import { PublishConversionEvent } from "@/components/publish-conversion-event";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
 import { freighterImagePublicUrl } from "@/lib/supabase/storage";
@@ -40,6 +41,7 @@ export default async function FreighterMediaPage({ params, searchParams }: Props
 
   return (
     <>
+      {query.cadastro ? <PublishConversionEvent name="publish_freighter_submitted" /> : null}
       <Header />
       <main className="account-page">
         <div className="container publish-page">
