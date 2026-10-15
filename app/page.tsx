@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { CityDiscovery } from "@/components/city-discovery";
+import { AutoDetectCity } from "@/components/auto-detect-city";
 import { CityTourismVisual } from "@/components/city-tourism-visual";
 import { resolveRequestCity } from "@/lib/location/selected-city";
 import Form from "next/form";
@@ -56,6 +57,7 @@ export default async function HomePage({ searchParams }: Props) {
 
   return (
     <>
+      <AutoDetectCity />
       <Header citySlug={city?.slug} />
       <main>
         <section className="hero">
