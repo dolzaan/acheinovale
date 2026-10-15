@@ -65,7 +65,7 @@ export default async function HomePage({ searchParams }: Props) {
               <h1>O que você procura<br/><em>em {cityName}?</em></h1>
               <p>Imóveis e fretes da nossa região, reunidos em um só lugar. Simples, local e direto pelo WhatsApp.</p>
 
-              <Form className="main-search" action="/buscar">
+              <Form id="home-search-form" className="main-search" action="/buscar">
                 {city ? <input type="hidden" name="cidade" value={city.slug} /> : null}
                 <SearchIcon size={22}/>
                 <input name="q" aria-label="O que você procura?" placeholder="Ex: casa para alugar no Centro" />
@@ -74,6 +74,7 @@ export default async function HomePage({ searchParams }: Props) {
 
               <div className="quick-searches" aria-label="Buscas populares">
                 <span>Buscas populares:</span>
+                <label className="quick-searches__regional"><input form="home-search-form" type="checkbox" name="regiao" value="1" /> Toda a região</label>
                 <Link prefetch={false} href={rentalsHref}>Imóveis para alugar</Link>
                 <Link prefetch={false} href={freightersHref}>Encontrar freteiro</Link>
                 <Link prefetch={false} href="/publicar">Publicar anúncio grátis</Link>
