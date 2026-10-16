@@ -13,8 +13,8 @@ function formatCents(digits: string) {
   return brlNumberFormatter.format(Number(digits) / 100);
 }
 
-export function MoneyInput({ name = "price" }: { name?: string }) {
-  const [digits, setDigits] = useState("");
+export function MoneyInput({ name = "price", defaultCents }: { name?: string; defaultCents?: number }) {
+  const [digits, setDigits] = useState(defaultCents ? String(Math.min(defaultCents, MAX_PRICE_CENTS)) : "");
 
   function updateValue(value: string) {
     const nextDigits = value.replace(/\D/g, "").replace(/^0+(?=\d)/, "");

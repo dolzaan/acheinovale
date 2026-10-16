@@ -6,11 +6,15 @@ import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
 import { UserAvatar } from "@/components/user-avatar";
 import { PropertyGallery } from "@/components/property-gallery";
-import { FreighterTrackedContact } from "@/components/freighter-tracked-contact";
-import { PendingSubmitButton } from "@/components/pending-submit-button";
+import { TrackedWhatsappContact } from "@/components/tracked-whatsapp-contact";
+import { FavoriteButton } from "@/components/favorite-button";
+import { FreighterReviews } from "@/components/freighter-reviews";
+import { ListingReportForm } from "@/components/listing-report-form";
 import { PinIcon, StarIcon, TruckIcon } from "@/components/icons";
 import { getCurrentUser } from "@/lib/auth/current-user";
+import { prisma } from "@/lib/db";
 import { getPublicFreighter } from "@/lib/listings/public";
+import { FREIGHTER_REPORT_REASONS } from "@/lib/listings/report-reasons";
 import { freighterUrl } from "@/lib/listings/urls";
 import { freighterImagePublicUrl } from "@/lib/supabase/storage";
 import { formatBrazilianPhone } from "@/lib/validation/profile";
@@ -19,7 +23,7 @@ import { reportFreighter } from "../../actions";
 
 type Props = {
   params: Promise<{ publicCode: string; slug: string }>;
-  searchParams: Promise<{ denuncia?: string }>;
+  searchParams: Promise<{ denuncia?: string; avaliacao?: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -51,12 +55,15 @@ export default async function FreighterPage({ params, searchParams }: Props) {
   const freighter = await getPublicFreighter(publicCode);
   if (!freighter) notFound();
 
+  const viewer = await getCurrentUser();
   if (freighter.status !== "ACTIVE") {
-    const viewer = await getCurrentUser();
     if (!viewer || (viewer.id !== freighter.userId && viewer.role !== "ADMIN")) {
       notFound();
     }
   }
+  const isFavorite = viewer
+    ? Boolean(await prisma.favorite.findFirst({ where: { userId: viewer.id, freighterProfileId: freighter.id }, select: { id: true } }))
+    : false;
 
   if (slug !== freighter.slug) permanentRedirect(freighterUrl(freighter));
 
@@ -145,28 +152,20 @@ export default async function FreighterPage({ params, searchParams }: Props) {
                 <h2>Sobre o serviço</h2>
                 <p>{freighter.description}</p>
               </section>
+              {freighter.status === "ACTIVE" ? <FreighterReviews profileId={freighter.id} ownerId={freighter.userId} reviews={freighter.reviews} viewerId={viewer?.id ?? null} loginHref={`/entrar?next=${encodeURIComponent(`${freighterUrl(freighter)}#avaliacoes`)}`} status={query.avaliacao} /> : null}
             </article>
 
             <aside className="listing-contact-card">
               <small>Informações de preço</small>
               <strong className="listing-contact-card__name">{freighter.priceNote || "Solicite um orçamento"}</strong>
-              <FreighterTrackedContact publicCode={freighter.publicCode} whatsappUrl={whatsappUrl} />
+              <TrackedWhatsappContact kind="freteiros" publicCode={freighter.publicCode} whatsappUrl={whatsappUrl} />
+              {freighter.status === "ACTIVE" ? <FavoriteButton kind="freteiro" id={freighter.id} saved={isFavorite} /> : null}
               <div className="listing-owner">
                 <UserAvatar image={freighter.user.image} name={freighter.displayName} />
                 <div><small>Responsável</small><b>{freighter.user.name || freighter.displayName}</b></div>
               </div>
               <p>WhatsApp do serviço: {formatBrazilianPhone(freighter.whatsapp)}</p>
-              {query.denuncia === "enviada" ? <p className="listing-report-success" role="status">Obrigado. A denúncia foi enviada para análise.</p> : null}
-              {query.denuncia === "limite" ? <p className="listing-report-error" role="alert">Limite diário de denúncias atingido.</p> : null}
-              {query.denuncia === "erro" ? <p className="listing-report-error" role="alert">Não foi possível enviar essa denúncia.</p> : null}
-              <details className="listing-report">
-                <summary>Denunciar este perfil</summary>
-                <form action={reportFreighter.bind(null, freighter.id)}>
-                  <label><span>Motivo</span><select name="reason" required defaultValue=""><option value="" disabled>Selecione</option><option>Contato incorreto</option><option>Suspeita de fraude</option><option>Serviço inexistente</option><option>Conteúdo inadequado</option><option>Outro</option></select></label>
-                  <label><span>Detalhes (opcional)</span><textarea name="details" maxLength={500} rows={3} /></label>
-                  <PendingSubmitButton pendingText="Enviando...">Enviar denúncia</PendingSubmitButton>
-                </form>
-              </details>
+              {viewer?.id !== freighter.userId ? <ListingReportForm action={reportFreighter.bind(null, freighter.id)} reasons={FREIGHTER_REPORT_REASONS} summary="Denunciar este perfil" status={query.denuncia} /> : null}
             </aside>
           </div>
         </div>

@@ -6,9 +6,15 @@ import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
 import { PropertyGallery } from "@/components/property-gallery";
 import { UserAvatar } from "@/components/user-avatar";
+import { FavoriteButton } from "@/components/favorite-button";
+import { ListingReportForm } from "@/components/listing-report-form";
+import { TrackedWhatsappContact } from "@/components/tracked-whatsapp-contact";
 import { BathIcon, BedIcon, HomeIcon, PinIcon } from "@/components/icons";
 import { getCurrentUser } from "@/lib/auth/current-user";
+import { prisma } from "@/lib/db";
 import { getPublicProperty } from "@/lib/listings/public";
+import { PROPERTY_REPORT_REASONS } from "@/lib/listings/report-reasons";
+import { reportProperty } from "../../actions";
 import { propertyUrl } from "@/lib/listings/urls";
 import { propertyImagePublicUrl, propertyVideoPublicUrl } from "@/lib/supabase/storage";
 import { formatBrazilianPhone } from "@/lib/validation/profile";
@@ -16,6 +22,7 @@ import { SITE_URL } from "@/lib/site";
 
 type Props = {
   params: Promise<{ publicCode: string; slug: string }>;
+  searchParams: Promise<{ denuncia?: string }>;
 };
 
 const propertyTypes = {
@@ -59,17 +66,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function PropertyPage({ params }: Props) {
-  const { publicCode, slug } = await params;
+export default async function PropertyPage({ params, searchParams }: Props) {
+  const [{ publicCode, slug }, query] = await Promise.all([params, searchParams]);
   const property = await getPublicProperty(publicCode);
   if (!property) notFound();
 
+  const viewer = await getCurrentUser();
   if (property.status !== "ACTIVE") {
-    const viewer = await getCurrentUser();
     if (!viewer || (viewer.id !== property.ownerId && viewer.role !== "ADMIN")) {
       notFound();
     }
   }
+  const isFavorite = viewer
+    ? Boolean(await prisma.favorite.findFirst({ where: { userId: viewer.id, propertyId: property.id }, select: { id: true } }))
+    : false;
 
   if (slug !== property.slug) permanentRedirect(propertyUrl(property));
 
@@ -150,14 +160,16 @@ export default async function PropertyPage({ params }: Props) {
               <strong>{formatPrice(property.priceCents)}</strong>
               {property.purpose === "RENT" ? <span>por mês</span> : null}
               <div className="listing-contact-actions">
-                <a className="button button--primary listing-contact-primary" href={whatsappUrl} target="_blank" rel="noreferrer">Conversar no WhatsApp</a>
+                <TrackedWhatsappContact kind="imoveis" publicCode={property.publicCode} whatsappUrl={whatsappUrl} className="button button--primary listing-contact-primary" />
                 <ListingShare title={property.title} url={canonical} />
               </div>
+              {property.status === "ACTIVE" ? <FavoriteButton kind="imovel" id={property.id} saved={isFavorite} /> : null}
               <div className="listing-owner">
                 <UserAvatar image={property.owner.image} name={property.owner.name} />
                 <div><small>Anunciante</small><b>{property.owner.name || "Usuário do AcheiNoVale"}</b></div>
               </div>
               <p>WhatsApp do anúncio: {formatBrazilianPhone(property.whatsapp)}</p>
+              {viewer?.id !== property.ownerId ? <ListingReportForm action={reportProperty.bind(null, property.id)} reasons={PROPERTY_REPORT_REASONS} summary="Denunciar este anúncio" status={query.denuncia} /> : null}
             </aside>
           </div>
         </div>

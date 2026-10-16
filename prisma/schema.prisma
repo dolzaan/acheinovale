@@ -141,6 +141,9 @@ model Property {
   approximateLng     Decimal?        @map("longitude_aproximada") @db.Decimal(9, 6)
   privateAddressData Json?           @map("dados_endereco_privado")
   publishedAt        DateTime?       @map("publicado_em")
+  // Última vez em que o anunciante confirmou que o imóvel continua disponível.
+  // Nulo = conta a partir de publishedAt.
+  availabilityConfirmedAt DateTime?  @map("disponibilidade_confirmada_em")
   moderationNote     String?         @map("observacao_moderacao")
   moderatedAt        DateTime?       @map("moderado_em")
   moderatedById      String?         @map("id_moderador")
@@ -151,6 +154,7 @@ model Property {
   videos             PropertyVideo[]
   favorites          Favorite[]
   reports            Report[]
+  metrics            PropertyMetricDaily[]
 
   @@index([cityId, status, purpose, createdAt])
   @@index([cityId, status, publishedAt, createdAt])
@@ -261,6 +265,19 @@ model FreighterMetricDaily {
   @@unique([profileId, date])
   @@index([profileId, date])
   @@map("metricas_diarias_freteiros")
+}
+
+model PropertyMetricDaily {
+  id             String   @id @default(cuid())
+  propertyId     String   @map("id_imovel")
+  property       Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  date           DateTime @map("data") @db.Date
+  views          Int      @default(0) @map("visualizacoes")
+  whatsappClicks Int      @default(0) @map("cliques_whatsapp")
+  updatedAt      DateTime @updatedAt @map("atualizado_em")
+
+  @@unique([propertyId, date])
+  @@map("metricas_diarias_imoveis")
 }
 
 model Review {

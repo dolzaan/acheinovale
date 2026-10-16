@@ -11,6 +11,7 @@ export default function robots(): MetadataRoute.Robots {
         "/api/",
         "/auth/",
         "/entrar",
+        "/favoritos",
         "/meus-anuncios",
         "/perfil",
         "/publicar/",

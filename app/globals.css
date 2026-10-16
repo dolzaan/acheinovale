@@ -841,3 +841,28 @@ button { cursor: pointer; }
 /* No cartão de contato o botão fica à direita: o menu abre alinhado à direita. */
 .listing-contact-actions .listing-share__menu,
 .listing-contact-actions .listing-share__status { left: auto; right: 0; }
+
+/* Confirmação periódica de disponibilidade em "Meus anúncios" */
+.manager-card__availability { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; max-width: 610px; margin-top: 11px; padding: 10px 12px; border-radius: 9px; background: var(--green-soft); }
+.manager-card__availability p { flex: 1 1 260px; margin: 0; color: var(--green-dark); font-size: 11px; line-height: 1.55; }
+.manager-card__availability button { padding: 8px 12px; border: 0; border-radius: 8px; color: #fff; background: var(--green); font: inherit; font-size: 11px; font-weight: 800; cursor: pointer; }
+
+/* Favoritos */
+.favorite-form { margin: 0 0 14px; }
+.favorite-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 42px; padding: 0 14px; border: 1px solid #d5e1d9; border-radius: 11px; color: var(--green); background: #fff; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+.favorite-button:hover { background: #f2f6f3; }
+.favorite-button.is-saved { color: #b23a3a; border-color: #f0c9c9; background: #fdf2f2; }
+.favorite-button.is-saved svg { fill: currentColor; }
+.property-card__body .favorite-form { margin: 12px 0 0; }
+
+/* Avaliações de freteiros */
+.freighter-reviews__list { display: grid; gap: 14px; margin: 14px 0; padding: 0; list-style: none; }
+.freighter-reviews__list li { display: flex; align-items: flex-start; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.freighter-reviews__list li > div { display: grid; gap: 3px; min-width: 0; }
+.freighter-reviews__list small { color: var(--muted); }
+.freighter-reviews__list p { margin: 4px 0 0; }
+.freighter-reviews__stars { display: inline-flex; gap: 2px; color: #d6dcd8; }
+.freighter-reviews__stars .is-filled { color: var(--brand-gold, #e4a030); }
+.freighter-reviews__rating { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; padding: 0; border: 0; }
+.freighter-reviews__rating legend { margin-bottom: 6px; font-weight: 800; }
+.freighter-reviews__rating label { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border: 1px solid #d5e1d9; border-radius: 9px; cursor: pointer; }

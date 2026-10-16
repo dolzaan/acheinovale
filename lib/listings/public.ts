@@ -25,7 +25,8 @@ export const getPublicFreighter = cache(async (publicCode: string) => {
       images: { orderBy: { position: "asc" } },
       reviews: {
         where: { isVisible: true },
-        select: { rating: true },
+        orderBy: { createdAt: "desc" },
+        select: { id: true, rating: true, comment: true, createdAt: true, authorId: true, author: { select: { name: true, image: true } } },
       },
     },
   });

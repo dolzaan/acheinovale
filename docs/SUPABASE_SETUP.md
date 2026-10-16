@@ -77,6 +77,8 @@ Os cookies de sessão são `httpOnly`, `sameSite` e `secure` em produção por m
 
 Cadastre as mesmas variáveis em **Project Settings → Environment Variables**.
 
+Defina também `CRON_SECRET` com um valor aleatório longo. O cron diário configurado em `vercel.json` chama `/api/cron/expirar-anuncios`, que pausa imóveis sem confirmação de disponibilidade há 60 dias (45 dias até o aviso + 15 de tolerância). Sem essa variável, a rota recusa a chamada e nada é pausado.
+
 No build de produção, `scripts/build.mjs` reaplica algumas migrations idempotentes listadas no próprio script (índices, limites de requisição, métricas e políticas de upload). As demais migrations Prisma devem ser aplicadas conscientemente com `npm run db:migrate:deploy`.
 
 ## Estrutura

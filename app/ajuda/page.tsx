@@ -32,7 +32,17 @@ export default function HelpPage() {
 
       <section>
         <h2>Posso editar meu anúncio?</h2>
-        <p>Entre na sua conta e abra “Meus anúncios”. Nos imóveis, você pode alterar fotos e vídeo, pausar ou arquivar o anúncio; para corrigir outros dados, <Link href="/contato">fale com o Achei no Vale</Link>. No perfil de freteiro, use “Editar cadastro” ou “Editar fotos”. Alterações no conteúdo público voltam para análise.</p>
+        <p>Sim. Entre na sua conta e abra “Meus anúncios”. Nos imóveis, use “Editar dados” para mudar preço, descrição, bairro e outras informações, ou “Editar mídias” para fotos e vídeo; o código do anúncio é mantido. No perfil de freteiro, use “Editar cadastro” ou “Editar fotos”. Alterações no conteúdo público voltam para análise.</p>
+      </section>
+
+      <section>
+        <h2>Por que pedem para confirmar que meu imóvel continua disponível?</h2>
+        <p>Para manter o catálogo atualizado, depois de 45 dias aparece em “Meus anúncios” a pergunta “Este imóvel ainda está disponível?”. Se não houver confirmação em 15 dias, o anúncio é pausado automaticamente. Para voltar a exibi-lo, basta reativá-lo em “Meus anúncios”.</p>
+      </section>
+
+      <section>
+        <h2>Como salvar anúncios nos favoritos?</h2>
+        <p>Entre na sua conta e use “Salvar nos favoritos” no anúncio do imóvel ou no perfil do freteiro. Os itens salvos ficam em <Link href="/favoritos">Favoritos</Link>.</p>
       </section>
 
       <section>
@@ -47,7 +57,7 @@ export default function HelpPage() {
 
       <section>
         <h2>Como denunciar um anúncio?</h2>
-        <p>No perfil de um freteiro, use a opção “Denunciar este perfil” e explique o problema. Para denunciar um imóvel ou complementar as informações, <Link href="/contato">fale com o Achei no Vale</Link> informando o código do anúncio.</p>
+        <p>Abra o anúncio ou o perfil do freteiro, use a opção “Denunciar” e explique o problema. Se precisar complementar as informações, <Link href="/contato">fale com o Achei no Vale</Link> informando o código do anúncio.</p>
       </section>
 
       <section>
