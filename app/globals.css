@@ -769,3 +769,33 @@ button { cursor: pointer; }
   .publish-optional-section { padding: 14px; }
   .publish-optional-section summary { align-items: flex-start; }
 }
+
+
+/* Ações principais do anúncio lado a lado */
+.listing-contact-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  margin: 22px 0;
+}
+.listing-contact-actions > .listing-contact-primary {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  white-space: nowrap;
+}
+.listing-contact-actions .listing-share {
+  display: block;
+  flex: 0 0 auto;
+  margin: 0;
+}
+.listing-contact-actions .listing-share > strong { display: none; }
+.listing-contact-actions .listing-share__main-button {
+  min-height: 50px;
+  white-space: nowrap;
+}
+@media (max-width: 420px) {
+  .listing-contact-actions { gap: 8px; }
+  .listing-contact-actions > .listing-contact-primary { padding-inline: 10px; font-size: 12px; }
+  .listing-contact-actions .listing-share__main-button { padding-inline: 12px; font-size: 12px; }
+}
