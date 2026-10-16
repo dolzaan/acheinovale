@@ -847,3 +847,22 @@ button { cursor: pointer; }
 .listing-contact-actions .listing-share__brand-facebook { fill: #1877f2; }
 .listing-contact-actions .listing-share__main-button:hover .listing-share__brand-whatsapp,
 .listing-contact-actions .listing-share__main-button:hover .listing-share__brand-facebook { fill: #fff; }
+
+.listing-contact-actions .listing-share__share-icon {
+  display: block;
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.listing-contact-actions .listing-share__option-icon svg {
+  display: block;
+  width: 17px;
+  height: 17px;
+  fill: currentColor;
+}
+.listing-contact-actions .listing-share__option-icon--whatsapp { background: #e8f8ee; color: #1da851; }
+.listing-contact-actions .listing-share__option-icon--facebook { background: #eaf2ff; color: #1877f2; }
