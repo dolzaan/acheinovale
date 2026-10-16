@@ -27,12 +27,14 @@ export function ListingShare({ title, url }: { title: string; url: string }) {
         <button
           className="listing-share__main-button"
           type="button"
+          aria-label={copied ? "Link copiado" : "Compartilhar anúncio"}
+          title="Compartilhar anúncio"
           aria-expanded={open}
           aria-haspopup="true"
           onClick={() => setOpen(value => !value)}
         >
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.7 10.6 6.6-4.2M8.7 13.4l6.6 4.2"/></svg>
-          {copied ? "Link copiado!" : "Compartilhar"}
+          <span className="listing-share__button-label">{copied ? "Link copiado!" : "Compartilhar"}</span>
         </button>
         {open ? (
           <div className="listing-share__menu" role="group" aria-label="Escolha onde compartilhar">
