@@ -45,8 +45,9 @@ export async function moderateProperty(formData: FormData) {
   const intent = parseIntent(formData);
   if (!id || !intent) redirect("/admin/anuncios?erro=acao");
 
-  const property = await prisma.property.findUnique({ where: { id } });
+  const property = await prisma.property.findUnique({ where: { id }, include: { neighborhood: { select: { needsReview: true } } } });
   if (!property) redirect("/admin/anuncios?erro=nao-encontrado");
+  if (intent === "approve" && property.neighborhood.needsReview) redirect("/admin/anuncios?erro=bairro-pendente");
 
   const note = field(formData, "note").slice(0, 500);
   const next = decision(intent, note);

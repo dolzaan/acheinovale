@@ -32,7 +32,7 @@ export default function HelpPage() {
 
       <section>
         <h2>Posso editar meu anúncio?</h2>
-        <p>Sim. Entre na sua conta, abra “Meus anúncios” ou o seu perfil de freteiro e escolha a opção de editar. Depois de salvar, algumas alterações podem passar por uma nova análise.</p>
+        <p>Entre na sua conta e abra “Meus anúncios”. Nos imóveis, você pode alterar fotos e vídeo, pausar ou arquivar o anúncio; para corrigir outros dados, <Link href="/contato">fale com o Achei no Vale</Link>. No perfil de freteiro, use “Editar cadastro” ou “Editar fotos”. Alterações no conteúdo público voltam para análise.</p>
       </section>
 
       <section>
@@ -47,7 +47,7 @@ export default function HelpPage() {
 
       <section>
         <h2>Como denunciar um anúncio?</h2>
-        <p>Abra o anúncio, use a opção “Denunciar” e explique o problema. Se precisar complementar as informações, <Link href="/contato">fale com o Achei no Vale</Link>.</p>
+        <p>No perfil de um freteiro, use a opção “Denunciar este perfil” e explique o problema. Para denunciar um imóvel ou complementar as informações, <Link href="/contato">fale com o Achei no Vale</Link> informando o código do anúncio.</p>
       </section>
 
       <section>

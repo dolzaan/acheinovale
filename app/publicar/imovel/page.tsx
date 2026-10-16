@@ -5,6 +5,7 @@ import { PublishConversionEvent } from "@/components/publish-conversion-event";
 import { PropertyPublishForm } from "@/components/property-publish-form";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
+import { PROPERTY_IMAGE_LIMIT } from "@/lib/supabase/storage";
 
 type Props = { searchParams: Promise<{ erro?: string }> };
 
@@ -32,7 +33,7 @@ export default async function NewPropertyPage({ searchParams }: Props) {
       <Header />
       <main className="account-page">
         <div className="container form-page">
-          <div className="account-heading"><span className="section-kicker">Novo anúncio</span><h1>Publicar imóvel</h1><p>Preencha os dados e adicione até 10 fotos e um vídeo para apresentar melhor o imóvel.</p></div>
+          <div className="account-heading"><span className="section-kicker">Novo anúncio</span><h1>Publicar imóvel</h1><p>Preencha os dados e adicione até {PROPERTY_IMAGE_LIMIT} fotos e um vídeo para apresentar melhor o imóvel.</p></div>
           {params.erro ? <p className="form-alert">{errorMessages[params.erro] || "Revise os campos informados."}</p> : null}
           <PropertyPublishForm
             authUserId={user.authUserId}

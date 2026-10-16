@@ -47,7 +47,7 @@ export default function SecurityPage() {
 
       <section>
         <h2>Proteja sua conta</h2>
-        <p>Use uma senha exclusiva, não compartilhe links de acesso e encerre a sessão em aparelhos públicos. O Achei no Vale nunca solicita sua senha ou código de autenticação pelo WhatsApp.</p>
+        <p>O acesso ao Achei no Vale é feito pela sua conta Google: proteja-a com uma senha exclusiva e verificação em duas etapas, não compartilhe links de acesso e encerre a sessão em aparelhos públicos. O Achei no Vale nunca solicita sua senha ou código de autenticação pelo WhatsApp.</p>
       </section>
 
       <section>

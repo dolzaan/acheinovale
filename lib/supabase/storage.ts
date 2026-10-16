@@ -42,12 +42,6 @@ const PROPERTY_VIDEO_EXTENSIONS: Record<string, string> = {
   "video/x-m4v": "m4v",
 };
 
-export function createStoragePath(userId: string, originalName: string) {
-  const extension = originalName.split(".").pop()?.toLowerCase() || "jpg";
-  const safeExtension = /^[a-z0-9]{2,5}$/.test(extension) ? extension : "jpg";
-  return `${userId}/${crypto.randomUUID()}.${safeExtension}`;
-}
-
 export function createProfileImagePath(authUserId: string, mimeType: string) {
   const extension = PROFILE_IMAGE_EXTENSIONS[mimeType] ?? "jpg";
   return `${authUserId}/profile/${crypto.randomUUID()}.${extension}`;

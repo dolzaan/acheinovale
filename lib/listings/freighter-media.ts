@@ -1,5 +1,6 @@
 import "server-only";
 
+import { releasePropertyMediaUploadGrants } from "@/lib/listings/property-media";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   freighterImagePublicUrl,
@@ -60,5 +61,6 @@ export async function verifyFreighterImages(keys: string[], authUserId: string) 
 export async function removeFreighterImages(keys: string[]) {
   if (!keys.length) return;
   const { error } = await createAdminClient().storage.from(STORAGE_BUCKETS.freighters).remove(keys);
+  await releasePropertyMediaUploadGrants(keys);
   if (error) throw error;
 }

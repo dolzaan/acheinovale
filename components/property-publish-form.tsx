@@ -84,8 +84,8 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
     { label: "Escreva um título claro com pelo menos 15 caracteres", complete: false },
     { label: "Informe um preço", complete: false },
     { label: "Informe o bairro", complete: false },
-    { label: "Escreva uma descrição com os principais detalhes", complete: false },
-    { label: "Adicione uma foto, se tiver", complete: false },
+    { label: "Descreva o imóvel com pelo menos 60 caracteres", complete: false },
+    { label: "Adicione pelo menos 3 fotos", complete: false },
   ]);
 
   const refreshQuality = useCallback((photoCount = photosRef.current.length) => {
@@ -101,8 +101,8 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
       { label: "Escreva um título claro com pelo menos 15 caracteres", complete: title.length >= 15 },
       { label: "Informe um preço", complete: Number.isFinite(priceCents) && priceCents > 0 },
       { label: "Informe o bairro", complete: neighborhood.length >= 2 },
-      { label: "Descreva o imóvel com pelo menos 60 caracteres", complete: description.length >= 30 },
-      { label: "Adicione pelo menos 3 fotos", complete: photoCount >= 1 },
+      { label: "Descreva o imóvel com pelo menos 60 caracteres", complete: description.length >= 60 },
+      { label: "Adicione pelo menos 3 fotos", complete: photoCount >= 3 },
     ]);
   }, []);
 
