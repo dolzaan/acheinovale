@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { notifyAdminsPending, sendLater } from "@/lib/email/notifications";
 import { requireFreighterOwner } from "@/lib/listings/authorization";
 import { isFreighterImageKey, removeFreighterImages, verifyFreighterImages } from "@/lib/listings/freighter-media";
 import { releasePropertyMediaUploadGrants } from "@/lib/listings/property-media";
@@ -86,5 +87,6 @@ export async function updateFreighterImages(profileId: string, formData: FormDat
   revalidatePublicListings();
   revalidatePath("/meus-anuncios");
   revalidatePath(freighterUrl(profile));
+  if (contentChanged) sendLater(() => notifyAdminsPending({ what: "Fotos de freteiro alteradas", title: profile.displayName, path: "/admin/anuncios?tipo=freteiros&status=PENDING" }));
   redirect(`/meus-anuncios/${profileId}/freteiro-midias?salvo=1${contentChanged ? "&revisao=1" : ""}`);
 }

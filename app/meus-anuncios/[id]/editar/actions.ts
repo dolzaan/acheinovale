@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { notifyAdminsPending, sendLater } from "@/lib/email/notifications";
 import { requirePropertyOwner } from "@/lib/listings/authorization";
 import { parsePropertyDetails } from "@/lib/listings/property-details";
 import { revalidatePublicListings } from "@/lib/listings/public-cache";
@@ -54,5 +55,6 @@ export async function updatePropertyDetails(propertyId: string, formData: FormDa
   revalidatePath("/meus-anuncios");
   revalidatePath(propertyUrl(property));
   revalidatePath(propertyUrl(updated));
+  if (needsReview) sendLater(() => notifyAdminsPending({ what: "Imóvel alterado e enviado para nova análise", title: details.title, path: "/admin/anuncios?tipo=imoveis&status=PENDING" }));
   redirect(`${editPath}?salvo=1${needsReview ? "&revisao=1" : ""}`);
 }

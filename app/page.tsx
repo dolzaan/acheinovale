@@ -12,7 +12,7 @@ import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { SiteFooter } from "@/components/footer";
 import { UserAvatar } from "@/components/user-avatar";
 import { getHomeListings } from "@/lib/listings/public-cache";
-import { freighterUrl, propertyUrl } from "@/lib/listings/urls";
+import { freighterUrl, propertyCatalogPath, propertyUrl } from "@/lib/listings/urls";
 import { propertyImagePublicUrl } from "@/lib/supabase/storage";
 import { SITE_URL } from "@/lib/site";
 import {
@@ -51,9 +51,7 @@ export default async function HomePage({ searchParams }: Props) {
   const cityName = city.name;
   const propertiesHref = `/${city.slug}/imoveis`;
   const freightersHref = `/${city.slug}/freteiros`;
-  const rentalsHref = city.slug === "rio-do-sul"
-    ? "/rio-do-sul/imoveis/aluguel"
-    : `${propertiesHref}?finalidade=aluguel`;
+  const rentalsHref = propertyCatalogPath(city.slug, "aluguel");
 
   return (
     <>

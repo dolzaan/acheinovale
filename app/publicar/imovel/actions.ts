@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { notifyAdminsPending, sendLater } from "@/lib/email/notifications";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { normalizeCep } from "@/lib/location/cep";
 import { parsePropertyDetails, resolveCepLocation } from "@/lib/listings/property-details";
@@ -111,5 +112,6 @@ export async function createProperty(formData: FormData) {
     redirect("/publicar/imovel?erro=salvar");
   }
   await releasePropertyMediaUploadGrants(uploadedMediaKeys);
+  sendLater(() => notifyAdminsPending({ what: "Novo imóvel enviado para análise", title: details.title, path: "/admin/anuncios?tipo=imoveis&status=PENDING" }));
   redirect("/meus-anuncios?criado=imovel");
 }

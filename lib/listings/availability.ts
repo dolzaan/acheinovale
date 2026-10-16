@@ -29,9 +29,22 @@ export function needsAvailabilityConfirmation(property: AvailabilityDates, now =
   return availabilityDeadline(property).askFrom <= now;
 }
 
+/** Um novo lembrete só é devido se nenhum foi enviado desde a última confirmação. */
+export function reminderIsDue(property: AvailabilityDates & { availabilityReminderSentAt: Date | null }) {
+  return !property.availabilityReminderSentAt || property.availabilityReminderSentAt < lastConfirmation(property);
+}
+
+/** Imóveis ativos que já passaram do prazo de aviso (confirmação há mais de 45 dias). */
+export function availabilityAskWhere(now = new Date()): Prisma.PropertyWhereInput {
+  return staleSinceWhere(new Date(now.getTime() - AVAILABILITY_CONFIRM_AFTER_DAYS * DAY_MS));
+}
+
 /** Imóveis ativos cuja última confirmação ultrapassou o prazo total (aviso + tolerância). */
 export function expiredAvailabilityWhere(now = new Date()): Prisma.PropertyWhereInput {
-  const cutoff = new Date(now.getTime() - (AVAILABILITY_CONFIRM_AFTER_DAYS + AVAILABILITY_GRACE_DAYS) * DAY_MS);
+  return staleSinceWhere(new Date(now.getTime() - (AVAILABILITY_CONFIRM_AFTER_DAYS + AVAILABILITY_GRACE_DAYS) * DAY_MS));
+}
+
+function staleSinceWhere(cutoff: Date): Prisma.PropertyWhereInput {
   return {
     status: "ACTIVE",
     OR: [

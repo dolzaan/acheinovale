@@ -18,6 +18,8 @@ type Props = {
   ownerId: string;
   reviews: Review[];
   viewerId: string | null;
+  /** O visitante abriu o WhatsApp deste freteiro enquanto estava logado. */
+  hasContacted: boolean;
   loginHref: string;
   status?: string;
 };
@@ -28,7 +30,7 @@ function formatDate(value: Date) {
   return new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric", timeZone: "America/Sao_Paulo" }).format(value);
 }
 
-export function FreighterReviews({ profileId, ownerId, reviews, viewerId, loginHref, status }: Props) {
+export function FreighterReviews({ profileId, ownerId, reviews, viewerId, hasContacted, loginHref, status }: Props) {
   const ownReview = viewerId ? reviews.find(review => review.authorId === viewerId) : undefined;
   const canReview = viewerId !== ownerId;
 
@@ -38,6 +40,7 @@ export function FreighterReviews({ profileId, ownerId, reviews, viewerId, loginH
       {status === "enviada" ? <p className="listing-report-success" role="status">Obrigado! Sua avaliação foi publicada.</p> : null}
       {status === "limite" ? <p className="listing-report-error" role="alert">Limite diário de avaliações atingido.</p> : null}
       {status === "erro" ? <p className="listing-report-error" role="alert">Não foi possível salvar a avaliação.</p> : null}
+      {status === "contato" ? <p className="listing-report-error" role="alert">Para avaliar, fale primeiro com o freteiro pelo botão “Conversar no WhatsApp” desta página.</p> : null}
 
       {reviews.length ? (
         <ul className="freighter-reviews__list">
@@ -56,7 +59,9 @@ export function FreighterReviews({ profileId, ownerId, reviews, viewerId, loginH
       ) : <p>Este profissional ainda não recebeu avaliações.</p>}
 
       {canReview ? (
-        viewerId ? (
+        viewerId && !ownReview && !hasContacted ? (
+          <p>Para avaliar, fale primeiro com este freteiro pelo botão “Conversar no WhatsApp” desta página, com sua conta conectada. Assim as avaliações vêm de quem realmente entrou em contato.</p>
+        ) : viewerId ? (
           <details className="listing-report freighter-reviews__form" open={Boolean(status && status !== "enviada")}>
             <summary>{ownReview ? "Editar minha avaliação" : "Avaliar este freteiro"}</summary>
             <form action={submitReview.bind(null, profileId)}>
@@ -70,7 +75,7 @@ export function FreighterReviews({ profileId, ownerId, reviews, viewerId, loginH
               <PendingSubmitButton pendingText="Enviando...">{ownReview ? "Atualizar avaliação" : "Publicar avaliação"}</PendingSubmitButton>
             </form>
           </details>
-        ) : <p><Link href={loginHref}>Entre na sua conta</Link> para avaliar este freteiro.</p>
+        ) : <p><Link href={loginHref}>Entre na sua conta</Link> para avaliar este freteiro. A avaliação fica disponível depois que você fala com ele pelo WhatsApp desta página.</p>
       ) : null}
     </section>
   );

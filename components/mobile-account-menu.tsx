@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { signOut } from "@/app/auth/actions";
-import { HeartIcon, PlusIcon, UserIcon } from "./icons";
+import { HeartIcon, PlusIcon, SearchIcon, UserIcon } from "./icons";
 import { UserAvatar } from "./user-avatar";
 import { useAccountSession } from "./account-session-provider";
 
@@ -92,6 +92,10 @@ export function MobileAccountMenu() {
               <Link prefetch={false} href="/favoritos" onClick={closeMenu}>
                 <span className="mobile-account-menu__icon"><HeartIcon size={21} /></span>
                 <span><strong>Favoritos</strong><small>Itens que você salvou</small></span>
+              </Link>
+              <Link prefetch={false} href="/alertas" onClick={closeMenu}>
+                <span className="mobile-account-menu__icon"><SearchIcon size={21} /></span>
+                <span><strong>Alertas de imóveis</strong><small>Buscas que avisam por e-mail</small></span>
               </Link>
             </nav>
 

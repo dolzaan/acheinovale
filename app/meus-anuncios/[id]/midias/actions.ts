@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { notifyAdminsPending, sendLater } from "@/lib/email/notifications";
 import { requirePropertyOwner } from "@/lib/listings/authorization";
 import {
   isPropertyImageKey,
@@ -123,5 +124,6 @@ export async function updatePropertyMedia(propertyId: string, formData: FormData
   revalidatePublicListings();
   revalidatePath("/meus-anuncios");
   revalidatePath(propertyUrl(property));
+  if (contentChanged) sendLater(() => notifyAdminsPending({ what: "Fotos ou vídeo de imóvel alterados", title: property.title, path: "/admin/anuncios?tipo=imoveis&status=PENDING" }));
   redirect(`/meus-anuncios/${propertyId}/midias?salvo=1${contentChanged ? "&revisao=1" : ""}`);
 }

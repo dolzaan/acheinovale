@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
+import { notifyModerationDecision, sendLater } from "@/lib/email/notifications";
 import { freighterUrl, propertyUrl } from "@/lib/listings/urls";
 import { revalidatePublicListings, revalidatePublicLocations } from "@/lib/listings/public-cache";
 import { normalizeNeighborhoodName } from "@/lib/location/neighborhood";
@@ -45,7 +46,7 @@ export async function moderateProperty(formData: FormData) {
   const intent = parseIntent(formData);
   if (!id || !intent) redirect("/admin/anuncios?erro=acao");
 
-  const property = await prisma.property.findUnique({ where: { id }, include: { neighborhood: { select: { needsReview: true } } } });
+  const property = await prisma.property.findUnique({ where: { id }, include: { neighborhood: { select: { needsReview: true } }, owner: { select: { email: true, name: true } } } });
   if (!property) redirect("/admin/anuncios?erro=nao-encontrado");
   if (intent === "approve" && property.neighborhood.needsReview) redirect("/admin/anuncios?erro=bairro-pendente");
 
@@ -62,6 +63,7 @@ export async function moderateProperty(formData: FormData) {
   });
 
   refreshModerationPages(propertyUrl(property));
+  sendLater(() => notifyModerationDecision({ to: property.owner.email, name: property.owner.name, kind: "imovel", title: property.title, intent, note: next.moderationNote, path: propertyUrl(property) }));
   redirect(`/admin/anuncios?concluido=${intent}`);
 }
 
@@ -71,7 +73,7 @@ export async function moderateFreighter(formData: FormData) {
   const intent = parseIntent(formData);
   if (!id || !intent) redirect("/admin/anuncios?erro=acao");
 
-  const freighter = await prisma.freighterProfile.findUnique({ where: { id } });
+  const freighter = await prisma.freighterProfile.findUnique({ where: { id }, include: { user: { select: { email: true, name: true } } } });
   if (!freighter) redirect("/admin/anuncios?erro=nao-encontrado");
 
   const note = field(formData, "note").slice(0, 500);
@@ -87,6 +89,7 @@ export async function moderateFreighter(formData: FormData) {
   });
 
   refreshModerationPages(freighterUrl(freighter));
+  sendLater(() => notifyModerationDecision({ to: freighter.user.email, name: freighter.user.name, kind: "freteiro", title: freighter.displayName, intent, note: next.moderationNote, path: freighterUrl(freighter) }));
   redirect(`/admin/anuncios?concluido=${intent}`);
 }
 

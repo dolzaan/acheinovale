@@ -20,6 +20,7 @@ if (process.env.VERCEL_ENV === "production") {
     // Precisa vir depois de security_hardening, que recria a mesma política sem a exigência para freteiros.
     "prisma/migrations/20261015120000_freighter_upload_grants/migration.sql",
     "prisma/migrations/20261016120000_property_lifecycle/migration.sql",
+    "prisma/migrations/20261017120000_emails_alerts_contacts/migration.sql",
   ];
 
   for (const migration of productionMigrations) {

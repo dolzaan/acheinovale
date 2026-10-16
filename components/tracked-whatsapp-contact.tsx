@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 type Props = {
@@ -11,6 +12,7 @@ type Props = {
 
 /** Link de WhatsApp que registra uma visualização por sessão e cada clique no contato. */
 export function TrackedWhatsappContact({ kind, publicCode, whatsappUrl, className = "button button--primary" }: Props) {
+  const router = useRouter();
   const endpoint = `/api/${kind}/${encodeURIComponent(publicCode)}/evento`;
 
   useEffect(() => {
@@ -35,7 +37,10 @@ export function TrackedWhatsappContact({ kind, publicCode, whatsappUrl, classNam
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ type: "whatsapp" }),
       keepalive: true,
-    });
+    })
+      // No perfil de freteiro, o contato libera a avaliação: atualiza a página ao voltar.
+      .then(() => { if (kind === "freteiros") router.refresh(); })
+      .catch(() => undefined);
   }
 
   return <a className={className} href={whatsappUrl} target="_blank" rel="noreferrer" onClick={trackWhatsapp}>Conversar no WhatsApp</a>;
