@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
+import { notifyAdminsPending, sendLater } from "@/lib/email/notifications";
 import { PROPERTY_REPORT_REASONS } from "@/lib/listings/report-reasons";
 import { propertyUrl } from "@/lib/listings/urls";
 import { checkRateLimit } from "@/lib/security/rate-limit";
@@ -29,6 +30,7 @@ export async function reportProperty(propertyId: string, formData: FormData) {
     await prisma.report.create({
       data: { reporterId: user.id, propertyId: property.id, reason, details: details || null },
     });
+    sendLater(() => notifyAdminsPending({ what: `Nova denúncia de imóvel (${reason})`, title: property.title, path: "/admin/denuncias" }));
   }
   redirect(`${destination}?denuncia=enviada`);
 }

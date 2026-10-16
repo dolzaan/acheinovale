@@ -1,25 +1,19 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import PropertiesPage from "@/app/imoveis/page";
-import { prisma } from "@/lib/db";
+import { catalogBreadcrumbs, catalogPathWithFilters, getCatalogCity, type CatalogFilters } from "@/lib/listings/catalog-pages";
+import { isPurposeSlug } from "@/lib/listings/urls";
 import { SITE_URL } from "@/lib/site";
 
 type Props = {
   params: Promise<{ cidade: string }>;
-  searchParams: Promise<Record<string, string | undefined>>;
+  searchParams: Promise<CatalogFilters>;
 };
-
-async function getCity(slug: string) {
-  return prisma.city.findFirst({
-    where: { slug, isActive: true },
-    select: { name: true, slug: true },
-  });
-}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { cidade } = await params;
-  const city = await getCity(cidade);
+  const city = await getCatalogCity(cidade);
   if (!city) return {};
   const description = `Casas, apartamentos e terrenos para venda ou aluguel em ${city.name}.`;
   return {
@@ -32,15 +26,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CityPropertiesPage({ params, searchParams }: Props) {
   const [{ cidade }, filters] = await Promise.all([params, searchParams]);
-  const city = await getCity(cidade);
+  const city = await getCatalogCity(cidade);
   if (!city) notFound();
-  const breadcrumbs = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Início", item: SITE_URL },
-      { "@type": "ListItem", position: 2, name: "Imóveis em " + city.name, item: `${SITE_URL}/${city.slug}/imoveis` },
-    ],
-  };
+  // Links antigos com ?finalidade= passam a usar o caminho próprio da finalidade.
+  if (isPurposeSlug(filters.finalidade)) permanentRedirect(catalogPathWithFilters(city.slug, filters.finalidade, filters.bairro, filters));
+
+  const breadcrumbs = catalogBreadcrumbs([{ name: `Imóveis em ${city.name}`, path: `/${city.slug}/imoveis` }]);
   return <><Script id="breadcrumbs-imoveis-cidade" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }} /><PropertiesPage searchParams={Promise.resolve({ ...filters, cidade: city.slug })} prettyPath /></>;
 }

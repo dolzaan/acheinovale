@@ -10,6 +10,7 @@ import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { PropertyLocationFilter } from "@/components/property-location-filter";
+import { SaveSearchForm } from "@/components/save-search-form";
 import { BathIcon, BedIcon, FilterIcon, HomeIcon, PinIcon, SearchIcon } from "@/components/icons";
 import { prisma } from "@/lib/db";
 import { getActiveLocations, getPublicPropertiesPage } from "@/lib/listings/public-cache";
@@ -36,6 +37,7 @@ type SearchParams = {
   ordem?: string;
   pagina?: string;
   regiao?: string;
+  alerta?: string;
 };
 
 type Props = { searchParams: Promise<SearchParams>; prettyPath?: boolean };
@@ -43,25 +45,13 @@ type Props = { searchParams: Promise<SearchParams>; prettyPath?: boolean };
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const params = await searchParams;
   const city = await resolveRequestCity(params.cidade);
+  // Com ?cidade= a página redireciona para o caminho da cidade, que tem metadados próprios.
   const regional = params.regiao === "1";
-  const isRioDoSulRental = params.cidade === "rio-do-sul" && params.finalidade === "aluguel" && !regional;
-  const title = regional
-    ? "Imóveis em toda a região | AcheiNoVale"
-    : isRioDoSulRental
-      ? "Imóveis para alugar em Rio do Sul, SC | Achei no Vale"
-      : `Imóveis em ${city.name} | AcheiNoVale`;
+  const title = regional ? "Imóveis em toda a região | AcheiNoVale" : `Imóveis em ${city.name} | AcheiNoVale`;
   const description = regional
     ? "Busque casas, apartamentos e terrenos anunciados nas cidades atendidas pelo Achei no Vale."
-    : isRioDoSulRental
-      ? "Encontre casas, apartamentos e imóveis para alugar em Rio do Sul. Veja fotos, preços, bairros e fale direto com o anunciante."
-      : `Casas, apartamentos e terrenos para venda ou aluguel em ${city.name} e região.`;
-  const canonical = regional
-    ? `${SITE_URL}/imoveis`
-    : isRioDoSulRental
-      ? `${SITE_URL}/rio-do-sul/imoveis/aluguel`
-      : params.cidade
-        ? `${SITE_URL}/${city.slug}/imoveis`
-        : `${SITE_URL}/imoveis`;
+    : `Casas, apartamentos e terrenos para venda ou aluguel em ${city.name} e região.`;
+  const canonical = `${SITE_URL}/imoveis`;
   return {
     title,
     description,
@@ -110,21 +100,24 @@ function buildFilterUrl(params: SearchParams, changes: Partial<SearchParams>) {
   const merged = { ...params, ...changes };
   if (merged.regiao === "1") delete merged.cidade;
   if (!Object.prototype.hasOwnProperty.call(changes, "pagina")) delete merged.pagina;
+  delete merged.alerta;
+  if (merged.ordem === "recentes") delete merged.ordem;
   Object.entries(merged).forEach(([key, value]) => {
     if (value) next.set(key, value);
   });
   const citySlug = next.get("cidade");
   next.delete("cidade");
-  const activeKeys = Array.from(next.keys());
-  if (
-    citySlug === "rio-do-sul"
-    && next.get("finalidade") === "aluguel"
-    && activeKeys.every(key => key === "finalidade")
-  ) {
-    return "/rio-do-sul/imoveis/aluguel";
+  let destination = citySlug ? `/${encodeURIComponent(citySlug)}/imoveis` : "/imoveis";
+  // Cidade + finalidade (+ bairro) viram caminho próprio, indexável:
+  // /rio-do-sul/imoveis/aluguel/centro. Os demais filtros seguem na query.
+  const purposeSlug = next.get("finalidade");
+  if (citySlug && (purposeSlug === "aluguel" || purposeSlug === "venda")) {
+    const neighborhoodSlug = next.get("bairro");
+    destination = `${destination}/${purposeSlug}${neighborhoodSlug ? `/${encodeURIComponent(neighborhoodSlug)}` : ""}`;
+    next.delete("finalidade");
+    next.delete("bairro");
   }
   const query = next.toString();
-  const destination = citySlug ? `/${encodeURIComponent(citySlug)}/imoveis` : "/imoveis";
   return query ? `${destination}?${query}` : destination;
 }
 
@@ -264,6 +257,7 @@ export default async function PropertiesPage({ searchParams, prettyPath = false 
   const sortFields = [
     ["q", query],
     ["regiao", regional ? "1" : undefined],
+    ["cidade", regional ? undefined : selectedCity?.slug],
     ["finalidade", params.finalidade],
     ["tipo", explicitType],
     ["bairro", selectedNeighborhood?.slug],
@@ -278,14 +272,17 @@ export default async function PropertiesPage({ searchParams, prettyPath = false 
   ].filter((field): field is [string, string] => Boolean(field[1]));
   const selectedCityName = regional ? "Alto Vale" : selectedCity?.name ?? "todas as cidades";
   const clearFiltersHref = selectedCity ? `/${selectedCity.slug}/imoveis` : "/imoveis";
-  const catalogAction = selectedCity ? `/${selectedCity.slug}/imoveis` : "/imoveis";
+  const catalogAction = "/imoveis";
   const regionalSearchParams = new URLSearchParams();
   if (query) regionalSearchParams.set("q", query);
   regionalSearchParams.set("regiao", "1");
   const regionalHref = `/imoveis?${regionalSearchParams.toString()}`;
   const locationToggleHref = regional ? `/${requestedCity.slug}/imoveis` : regionalHref;
   const locationToggleLabel = regional ? `Buscar somente em ${requestedCity.name}` : "Buscar em toda a região";
-  const catalogTitle = regional && purpose === "RENT"
+  const purposePhrase = purpose === "RENT" ? "para alugar" : purpose === "SALE" ? "à venda" : "";
+  const catalogTitle = selectedNeighborhood && selectedCity
+    ? `Imóveis ${purposePhrase ? `${purposePhrase} ` : ""}no bairro ${selectedNeighborhood.name}, ${selectedCity.name}`
+    : regional && purpose === "RENT"
     ? "Imóveis para alugar no Alto Vale"
     : regional && purpose === "SALE"
       ? "Imóveis à venda no Alto Vale"
@@ -294,14 +291,27 @@ export default async function PropertiesPage({ searchParams, prettyPath = false 
         : purpose === "SALE" && selectedCity
           ? `Imóveis à venda em ${selectedCity.name}`
           : regional ? "Imóveis no Alto Vale" : "Imóveis";
-  const catalogDescription = regional
+  const catalogDescription = selectedNeighborhood && selectedCity
+    ? `Veja casas, apartamentos e outros imóveis ${purposePhrase || "para comprar ou alugar"} no bairro ${selectedNeighborhood.name}, em ${selectedCity.name}. Compare preços e fale diretamente com o anunciante.`
+    : regional
     ? "Encontre casas, apartamentos e terrenos anunciados em todas as cidades atendidas pelo Achei no Vale."
     : purpose === "RENT" && selectedCity
       ? `Encontre casas, apartamentos e outros imóveis para alugar em ${selectedCity.name}. Compare preços, bairros e fale diretamente com o anunciante.`
       : purpose === "SALE" && selectedCity
         ? `Encontre casas, apartamentos e terrenos à venda em ${selectedCity.name}, publicados por pessoas da região.`
         : "Encontre casas, apartamentos e terrenos publicados por pessoas da região.";
-  const isRioDoSulRental = purpose === "RENT" && selectedCity?.slug === "rio-do-sul";
+  // Texto de apoio só nas páginas indexáveis de cidade + finalidade (+ bairro), sem outros filtros.
+  const showSeoCopy = Boolean(selectedCity && explicitPurpose && requestedPage === 1 && !query && advancedFilterCount === (selectedNeighborhood ? 1 : 0));
+  const seoPlace = selectedNeighborhood && selectedCity ? `no bairro ${selectedNeighborhood.name}, em ${selectedCity.name}` : `em ${selectedCity?.name ?? ""}`;
+  const saveSearchCriteria = {
+    cidade: regional ? undefined : selectedCity?.slug,
+    bairro: selectedNeighborhood?.slug,
+    finalidade: purpose === "RENT" ? "aluguel" : purpose === "SALE" ? "venda" : undefined,
+    tipo: type,
+    precoMin: minimumPrice !== undefined ? String(minimumPrice / 100) : undefined,
+    precoMax: maximumPrice !== undefined ? String(maximumPrice / 100) : undefined,
+    quartos: minimumBedrooms !== undefined ? String(minimumBedrooms) : undefined,
+  };
   const itemListStructuredData = properties.length
     ? {
       "@context": "https://schema.org",
@@ -349,15 +359,16 @@ export default async function PropertiesPage({ searchParams, prettyPath = false 
       <Link prefetch={false} className={params.mobiliado === "1" ? "is-active" : ""} href={buildFilterUrl(params, { mobiliado: params.mobiliado === "1" ? undefined : "1" })}>Mobiliado</Link>
     </nav>
     <div className="catalog-results-bar"><p><strong>{resultCount}</strong> {resultCount === 1 ? "imóvel encontrado" : "imóveis encontrados"}{properties.length ? <small> · exibindo {firstVisibleResult}–{lastVisibleResult}</small> : null}</p><Form action={catalogAction}>{sortFields.map(([name, value]) => <input key={name} type="hidden" name={name} value={value}/>) }<label><span>Ordenar por</span><select name="ordem" defaultValue={order}><option value="recentes">Mais recentes</option><option value="preco-menor">Menor preço</option><option value="preco-maior">Maior preço</option></select></label><PendingSubmitButton pendingText="Ordenando..." navigation>Ordenar</PendingSubmitButton></Form></div>
+    <SaveSearchForm criteria={saveSearchCriteria} backPath={buildFilterUrl(params, {})} status={params.alerta} />
     {properties.length ? <div className="property-grid catalog-grid">{properties.map(property => <article className="property-card" key={property.id}><Link prefetch={false} className={property.images[0] ? "catalog-property-image" : "catalog-image-placeholder"} href={propertyUrl(property)} aria-label={`Ver ${property.title}`}>{property.images[0] ? <Image src={propertyImagePublicUrl(property.images[0].storageKey)} alt={property.images[0].altText || property.title} fill sizes="(max-width: 680px) 100vw, (max-width: 1000px) 50vw, 33vw" /> : <><HomeIcon size={42}/><span>Ver imóvel</span></>}</Link><div className="property-card__body"><span className="property-card__purpose">{property.purpose === "RENT" ? "Aluguel" : "Venda"} · {propertyTypeLabels.get(property.type)}</span><span className="property-card__location"><PinIcon size={15}/>{property.neighborhood.name}, {property.city.name}</span><h3><Link prefetch={false} href={propertyUrl(property)}>{property.title}</Link></h3><div className="property-card__features">{property.bedrooms !== null ? <span><BedIcon/>{property.bedrooms} quartos</span> : null}{property.bathrooms !== null ? <span><BathIcon/>{property.bathrooms} banh.</span> : null}{property.areaM2 ? <span>{property.areaM2.toString()} m²</span> : null}</div><div className="property-card__price"><strong>{formatPrice(property.priceCents)}</strong><span>{property.purpose === "RENT" ? "/mês" : ""}</span></div><Link prefetch={false} className="button button--primary property-card__cta" href={propertyUrl(property)} aria-label={`Ver imóvel: ${property.title}`}>Ver imóvel</Link><small className="catalog-code">{property.publicCode.toUpperCase()}</small></div></article>)}</div> : <div className="empty-state catalog-empty"><strong>Nenhum imóvel encontrado.</strong><p>{hasFilters ? "Tente remover alguns filtros para ampliar a busca." : "Os anúncios aprovados aparecerão aqui. Publique o primeiro imóvel."}</p>{hasFilters ? <Link prefetch={false} className="button button--secondary" href={clearFiltersHref}>Limpar filtros</Link> : <Link prefetch={false} className="button button--primary" href="/publicar/imovel">Publicar imóvel</Link>}</div>}
     {properties.length && totalPages > 1 ? <nav className="catalog-pagination" aria-label="Paginação dos imóveis">
       {requestedPage > 1 ? <Link prefetch={false} href={buildFilterUrl(params, { pagina: requestedPage === 2 ? undefined : String(requestedPage - 1) })}>← Anterior</Link> : <span aria-disabled="true">← Anterior</span>}
       <strong>Página {requestedPage} de {totalPages}</strong>
       {requestedPage < totalPages ? <Link prefetch={false} href={buildFilterUrl(params, { pagina: String(requestedPage + 1) })}>Próxima →</Link> : <span aria-disabled="true">Próxima →</span>}
     </nav> : null}
-    {isRioDoSulRental && requestedPage === 1 && !query && advancedFilterCount === 0 ? <section className="catalog-seo-copy" aria-labelledby="rentals-rio-do-sul-guide">
-      <h2 id="rentals-rio-do-sul-guide">Aluguel de imóveis em Rio do Sul</h2>
-      <p>Compare casas, apartamentos, kitnets e outros imóveis disponíveis para aluguel em Rio do Sul. Os anúncios reúnem preço, fotos, características e localização para facilitar sua busca.</p>
+    {showSeoCopy ? <section className="catalog-seo-copy" aria-labelledby="catalog-seo-guide">
+      <h2 id="catalog-seo-guide">{purpose === "RENT" ? "Aluguel" : "Compra"} de imóveis {seoPlace}</h2>
+      <p>Compare casas, apartamentos, kitnets e outros imóveis {purpose === "RENT" ? "disponíveis para aluguel" : "à venda"} {seoPlace}. Os anúncios reúnem preço, fotos, características e localização para facilitar sua busca.</p>
       <p>Ao encontrar uma opção interessante, você pode falar diretamente com o anunciante pelo WhatsApp. Antes de negociar ou fazer pagamentos, confira os dados do imóvel e siga as orientações de segurança do Achei no Vale.</p>
     </section> : null}
     <CityDiscovery category="imoveis" currentSlug={selectedCity?.slug} />

@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { notifyAdminsPending, sendLater } from "@/lib/email/notifications";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { checkRateLimit } from "@/lib/security/rate-limit";
 import { normalizeBrazilianPhone } from "@/lib/validation/profile";
@@ -134,5 +135,6 @@ export async function saveFreighterProfile(formData: FormData) {
   }
 
   revalidatePublicListings();
+  sendLater(() => notifyAdminsPending({ what: existing ? "Cadastro de freteiro alterado" : "Novo cadastro de freteiro", title: displayName, path: "/admin/anuncios?tipo=freteiros&status=PENDING" }));
   redirect(`/meus-anuncios/${savedProfileId}/freteiro-midias?cadastro=salvo`);
 }

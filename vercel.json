@@ -5,6 +5,7 @@
   "outputDirectory": ".next",
   "regions": ["gru1"],
   "crons": [
-    { "path": "/api/cron/expirar-anuncios", "schedule": "0 9 * * *" }
+    { "path": "/api/cron/expirar-anuncios", "schedule": "0 9 * * *" },
+    { "path": "/api/cron/alertas-imoveis", "schedule": "0 11 * * *" }
   ]
 }

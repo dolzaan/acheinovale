@@ -27,6 +27,7 @@ export function HeaderAccount() {
         <Link prefetch={false} href="/meus-anuncios">Meus anúncios</Link>
         {user.role === "ADMIN" ? <Link prefetch={false} href="/admin/anuncios">Moderar anúncios</Link> : null}
         <Link prefetch={false} href="/favoritos">Favoritos</Link>
+        <Link prefetch={false} href="/alertas">Alertas de imóveis</Link>
         <form action={signOut}><PendingSubmitButton pendingText="Saindo...">Sair</PendingSubmitButton></form>
       </div>
     </details>

@@ -41,6 +41,16 @@ export default function HelpPage() {
       </section>
 
       <section>
+        <h2>Como receber avisos de imóveis novos?</h2>
+        <p>No catálogo de imóveis, aplique os filtros que quiser e use “Criar alerta para esta busca”. Você recebe no máximo um e-mail por dia com os imóveis novos compatíveis e pode cancelar pelo próprio e-mail ou em “Alertas de imóveis”.</p>
+      </section>
+
+      <section>
+        <h2>Como avaliar um freteiro?</h2>
+        <p>Entre na sua conta, abra o perfil do freteiro e fale com ele pelo botão “Conversar no WhatsApp”. Depois disso a opção de avaliação fica disponível no perfil. Assim, as avaliações vêm de quem realmente entrou em contato.</p>
+      </section>
+
+      <section>
         <h2>Como salvar anúncios nos favoritos?</h2>
         <p>Entre na sua conta e use “Salvar nos favoritos” no anúncio do imóvel ou no perfil do freteiro. Os itens salvos ficam em <Link href="/favoritos">Favoritos</Link>.</p>
       </section>

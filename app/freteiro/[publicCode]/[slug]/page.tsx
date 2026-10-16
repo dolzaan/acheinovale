@@ -61,9 +61,12 @@ export default async function FreighterPage({ params, searchParams }: Props) {
       notFound();
     }
   }
-  const isFavorite = viewer
-    ? Boolean(await prisma.favorite.findFirst({ where: { userId: viewer.id, freighterProfileId: freighter.id }, select: { id: true } }))
-    : false;
+  const [isFavorite, hasContacted] = viewer
+    ? await Promise.all([
+      prisma.favorite.findFirst({ where: { userId: viewer.id, freighterProfileId: freighter.id }, select: { id: true } }).then(Boolean),
+      prisma.freighterContact.findUnique({ where: { userId_profileId: { userId: viewer.id, profileId: freighter.id } }, select: { id: true } }).then(Boolean),
+    ])
+    : [false, false];
 
   if (slug !== freighter.slug) permanentRedirect(freighterUrl(freighter));
 
@@ -152,7 +155,7 @@ export default async function FreighterPage({ params, searchParams }: Props) {
                 <h2>Sobre o serviço</h2>
                 <p>{freighter.description}</p>
               </section>
-              {freighter.status === "ACTIVE" ? <FreighterReviews profileId={freighter.id} ownerId={freighter.userId} reviews={freighter.reviews} viewerId={viewer?.id ?? null} loginHref={`/entrar?next=${encodeURIComponent(`${freighterUrl(freighter)}#avaliacoes`)}`} status={query.avaliacao} /> : null}
+              {freighter.status === "ACTIVE" ? <FreighterReviews profileId={freighter.id} ownerId={freighter.userId} reviews={freighter.reviews} viewerId={viewer?.id ?? null} hasContacted={hasContacted} loginHref={`/entrar?next=${encodeURIComponent(`${freighterUrl(freighter)}#avaliacoes`)}`} status={query.avaliacao} /> : null}
             </article>
 
             <aside className="listing-contact-card">

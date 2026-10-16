@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
+import { notifyAdminsPending, sendLater } from "@/lib/email/notifications";
 import { revalidatePublicListings } from "@/lib/listings/public-cache";
 import { FREIGHTER_REPORT_REASONS } from "@/lib/listings/report-reasons";
 import { freighterUrl } from "@/lib/listings/urls";
@@ -31,6 +32,7 @@ export async function reportFreighter(profileId: string, formData: FormData) {
     await prisma.report.create({
       data: { reporterId: user.id, freighterProfileId: profile.id, reason, details: details || null },
     });
+    sendLater(() => notifyAdminsPending({ what: `Nova denúncia de freteiro (${reason})`, title: profile.displayName, path: "/admin/denuncias" }));
   }
   redirect(`${destination}?denuncia=enviada`);
 }
@@ -46,6 +48,12 @@ export async function submitReview(profileId: string, formData: FormData) {
   const commentValue = formData.get("comment");
   const comment = typeof commentValue === "string" ? commentValue.trim().slice(0, 600) : "";
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) redirect(`${destination}?avaliacao=erro#avaliacoes`);
+
+  const [contact, ownReview] = await Promise.all([
+    prisma.freighterContact.findUnique({ where: { userId_profileId: { userId: user.id, profileId: profile.id } }, select: { id: true } }),
+    prisma.review.findUnique({ where: { authorId_profileId: { authorId: user.id, profileId: profile.id } }, select: { id: true } }),
+  ]);
+  if (!contact && !ownReview) redirect(`${destination}?avaliacao=contato#avaliacoes`);
 
   const rateLimit = await checkRateLimit({ scope: "avaliar-freteiro", identifier: user.id, limit: 10, windowSeconds: 24 * 60 * 60 });
   if (!rateLimit.allowed) redirect(`${destination}?avaliacao=limite#avaliacoes`);

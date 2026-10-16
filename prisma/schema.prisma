@@ -76,6 +76,8 @@ model User {
   favorites                  Favorite[]
   reviews                    Review[]
   reports                    Report[]
+  savedSearches              SavedSearch[]
+  freighterContacts          FreighterContact[]
   moderatedProperties        Property[]         @relation("PropertyModerator")
   moderatedFreighterProfiles FreighterProfile[] @relation("FreighterModerator")
 
@@ -95,6 +97,7 @@ model City {
   properties        Property[]
   freighterProfiles FreighterProfile[]
   users             User[]
+  savedSearches     SavedSearch[]
 
   @@index([isActive])
   @@map("cidades")
@@ -107,6 +110,7 @@ model Neighborhood {
   cityId      String     @map("id_cidade")
   city        City       @relation(fields: [cityId], references: [id])
   properties  Property[]
+  savedSearches SavedSearch[]
   needsReview Boolean    @default(false) @map("precisa_revisao")
 
   @@unique([cityId, slug])
@@ -144,6 +148,8 @@ model Property {
   // Última vez em que o anunciante confirmou que o imóvel continua disponível.
   // Nulo = conta a partir de publishedAt.
   availabilityConfirmedAt DateTime?  @map("disponibilidade_confirmada_em")
+  // Último lembrete por e-mail; um novo só sai depois de uma nova confirmação.
+  availabilityReminderSentAt DateTime? @map("lembrete_disponibilidade_enviado_em")
   moderationNote     String?         @map("observacao_moderacao")
   moderatedAt        DateTime?       @map("moderado_em")
   moderatedById      String?         @map("id_moderador")
@@ -218,6 +224,7 @@ model FreighterProfile {
   favorites       Favorite[]
   reports         Report[]
   metrics         FreighterMetricDaily[]
+  contacts        FreighterContact[]
 
   @@index([cityId, status, availableToday])
   @@index([cityId, status, updatedAt])
@@ -352,4 +359,41 @@ model MediaUploadGrant {
   @@index([authUserId, expiresAt])
   @@index([expiresAt])
   @@map("autorizacoes_upload_midia")
+}
+
+// Registra que um usuário logado abriu o WhatsApp de um freteiro: requisito para avaliá-lo.
+model FreighterContact {
+  id        String           @id @default(cuid())
+  userId    String           @map("id_usuario")
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profileId String           @map("id_perfil")
+  profile   FreighterProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  createdAt DateTime         @default(now()) @map("criado_em")
+
+  @@unique([userId, profileId])
+  @@map("contatos_whatsapp_freteiros")
+}
+
+// Busca salva com envio de resumo diário por e-mail de imóveis novos compatíveis.
+model SavedSearch {
+  id               String           @id @default(cuid())
+  userId           String           @map("id_usuario")
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cityId           String?          @map("id_cidade")
+  city             City?            @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  neighborhoodId   String?          @map("id_bairro")
+  neighborhood     Neighborhood?    @relation(fields: [neighborhoodId], references: [id], onDelete: Cascade)
+  purpose          PropertyPurpose? @map("finalidade")
+  type             PropertyType?    @map("tipo")
+  minPriceCents    Int?             @map("preco_minimo_centavos")
+  maxPriceCents    Int?             @map("preco_maximo_centavos")
+  minBedrooms      Int?             @map("quartos_minimo")
+  isActive         Boolean          @default(true) @map("ativo")
+  unsubscribeToken String           @unique @map("token_cancelamento")
+  lastNotifiedAt   DateTime?        @map("ultimo_envio_em")
+  createdAt        DateTime         @default(now()) @map("criado_em")
+
+  @@index([isActive])
+  @@index([userId])
+  @@map("alertas_imoveis")
 }

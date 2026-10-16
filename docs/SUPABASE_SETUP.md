@@ -77,7 +77,13 @@ Os cookies de sessão são `httpOnly`, `sameSite` e `secure` em produção por m
 
 Cadastre as mesmas variáveis em **Project Settings → Environment Variables**.
 
-Defina também `CRON_SECRET` com um valor aleatório longo. O cron diário configurado em `vercel.json` chama `/api/cron/expirar-anuncios`, que pausa imóveis sem confirmação de disponibilidade há 60 dias (45 dias até o aviso + 15 de tolerância). Sem essa variável, a rota recusa a chamada e nada é pausado.
+Defina também `CRON_SECRET` com um valor aleatório longo. O cron diário configurado em `vercel.json` chama `/api/cron/expirar-anuncios`, que pausa imóveis sem confirmação de disponibilidade há 60 dias (45 dias até o aviso + 15 de tolerância). Sem essa variável, a rota recusa a chamada e nada é pausado. O mesmo segredo protege `/api/cron/alertas-imoveis`, que envia o resumo diário dos alertas de imóveis.
+
+### E-mail (SMTP)
+
+Defina `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` e `EMAIL_FROM` (opcionalmente `SMTP_SECURE`) com os dados do provedor de e-mail. Use um remetente do domínio próprio e configure SPF e DKIM no DNS para os e-mails não caírem no spam. Sem essas variáveis, nada é enviado e o restante do site funciona normalmente.
+
+Os e-mails enviados são: aprovação, reprovação ou pausa de anúncios; lembrete de confirmação de disponibilidade e aviso de pausa automática; aviso aos administradores quando há anúncio, alteração ou denúncia para analisar; e o resumo diário dos alertas de imóveis, que só é enviado a quem criou um alerta e pode ser cancelado pelo link do próprio e-mail.
 
 No build de produção, `scripts/build.mjs` reaplica algumas migrations idempotentes listadas no próprio script (índices, limites de requisição, métricas e políticas de upload). As demais migrations Prisma devem ser aplicadas conscientemente com `npm run db:migrate:deploy`.
 
