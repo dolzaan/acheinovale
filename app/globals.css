@@ -831,3 +831,19 @@ button { cursor: pointer; }
   white-space: nowrap;
   border: 0;
 }
+
+.listing-contact-actions .listing-share__brand-logos {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+.listing-contact-actions .listing-share__brand-logos svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+.listing-contact-actions .listing-share__brand-whatsapp { fill: #25d366; }
+.listing-contact-actions .listing-share__brand-facebook { fill: #1877f2; }
+.listing-contact-actions .listing-share__main-button:hover .listing-share__brand-whatsapp,
+.listing-contact-actions .listing-share__main-button:hover .listing-share__brand-facebook { fill: #fff; }
