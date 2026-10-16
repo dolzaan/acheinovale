@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requirePropertyOwner, requireFreighterOwner } from "@/lib/listings/authorization";
+import { AUTO_PAUSE_NOTE } from "@/lib/listings/availability";
 import { revalidatePublicListings } from "@/lib/listings/public-cache";
 
 export async function pauseProperty(formData: FormData) {
@@ -14,9 +15,27 @@ export async function pauseProperty(formData: FormData) {
   if (property.status === "PAUSED" && !property.publishedAt) {
     throw new Error("Este anúncio precisa ser aprovado antes de ser ativado.");
   }
-  const nextStatus = property.status === "PAUSED" ? "ACTIVE" : "PAUSED";
-  await prisma.property.update({ where: { id }, data: { status: nextStatus } });
+  const reactivating = property.status === "PAUSED";
+  await prisma.property.update({
+    where: { id },
+    data: reactivating
+      ? {
+        status: "ACTIVE",
+        // Reativar é uma confirmação de que o imóvel continua disponível.
+        availabilityConfirmedAt: new Date(),
+        ...(property.moderationNote === AUTO_PAUSE_NOTE ? { moderationNote: null } : {}),
+      }
+      : { status: "PAUSED" },
+  });
   revalidatePublicListings();
+  revalidatePath("/meus-anuncios");
+}
+
+export async function confirmPropertyAvailability(formData: FormData) {
+  const id = String(formData.get("id") || "");
+  const { property } = await requirePropertyOwner(id);
+  if (property.status !== "ACTIVE") throw new Error("Somente anúncios ativos podem ser confirmados.");
+  await prisma.property.update({ where: { id }, data: { availabilityConfirmedAt: new Date() } });
   revalidatePath("/meus-anuncios");
 }
 

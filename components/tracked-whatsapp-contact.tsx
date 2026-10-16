@@ -2,11 +2,19 @@
 
 import { useEffect } from "react";
 
-export function FreighterTrackedContact({ publicCode, whatsappUrl }: { publicCode: string; whatsappUrl: string }) {
-  const endpoint = `/api/freteiros/${encodeURIComponent(publicCode)}/evento`;
+type Props = {
+  kind: "freteiros" | "imoveis";
+  publicCode: string;
+  whatsappUrl: string;
+  className?: string;
+};
+
+/** Link de WhatsApp que registra uma visualização por sessão e cada clique no contato. */
+export function TrackedWhatsappContact({ kind, publicCode, whatsappUrl, className = "button button--primary" }: Props) {
+  const endpoint = `/api/${kind}/${encodeURIComponent(publicCode)}/evento`;
 
   useEffect(() => {
-    const key = `acheinovale:freteiro:view:${publicCode}`;
+    const key = `acheinovale:${kind}:view:${publicCode}`;
     try {
       if (sessionStorage.getItem(key)) return;
       sessionStorage.setItem(key, "1");
@@ -19,7 +27,7 @@ export function FreighterTrackedContact({ publicCode, whatsappUrl }: { publicCod
       body: JSON.stringify({ type: "view" }),
       keepalive: true,
     });
-  }, [endpoint, publicCode]);
+  }, [endpoint, kind, publicCode]);
 
   function trackWhatsapp() {
     void fetch(endpoint, {
@@ -30,5 +38,5 @@ export function FreighterTrackedContact({ publicCode, whatsappUrl }: { publicCod
     });
   }
 
-  return <a className="button button--primary" href={whatsappUrl} target="_blank" rel="noreferrer" onClick={trackWhatsapp}>Conversar no WhatsApp</a>;
+  return <a className={className} href={whatsappUrl} target="_blank" rel="noreferrer" onClick={trackWhatsapp}>Conversar no WhatsApp</a>;
 }
