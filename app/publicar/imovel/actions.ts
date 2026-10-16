@@ -208,7 +208,7 @@ export async function createProperty(formData: FormData) {
     await prisma.property.create({ data: {
       publicCode: createPublicCode(),
       slug: propertySlug(title, neighborhood.name, neighborhood.city.name),
-      ownerId: user.id, cityId, neighborhoodId,
+      ownerId: user.id, cityId: neighborhood.cityId, neighborhoodId: neighborhood.id,
       title, description, priceCents, whatsapp,
       purpose: purpose as "RENT" | "SALE", type: type as "HOUSE" | "APARTMENT" | "STUDIO" | "LAND" | "COMMERCIAL_ROOM" | "WAREHOUSE" | "OTHER",
       bedrooms: bedrooms.value,

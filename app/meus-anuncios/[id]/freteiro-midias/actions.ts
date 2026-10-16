@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireFreighterOwner } from "@/lib/listings/authorization";
 import { isFreighterImageKey, removeFreighterImages, verifyFreighterImages } from "@/lib/listings/freighter-media";
+import { releasePropertyMediaUploadGrants } from "@/lib/listings/property-media";
 import { freighterUrl } from "@/lib/listings/urls";
 import { revalidatePublicListings } from "@/lib/listings/public-cache";
 import { FREIGHTER_IMAGE_LIMIT } from "@/lib/supabase/storage";
@@ -80,6 +81,7 @@ export async function updateFreighterImages(profileId: string, formData: FormDat
     redirect(`/meus-anuncios/${profileId}/freteiro-midias?erro=salvar`);
   }
 
+  await releasePropertyMediaUploadGrants(newKeys);
   await cleanup(removedImages.map(image => image.storageKey));
   revalidatePublicListings();
   revalidatePath("/meus-anuncios");

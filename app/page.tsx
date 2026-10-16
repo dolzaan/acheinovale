@@ -139,7 +139,7 @@ export default async function HomePage({ searchParams }: Props) {
         <section className="section freighters-section">
           <div className="container">
             <div className="section-heading">
-              <div><span className="section-kicker section-kicker--orange">Quem resolve por aqui</span><h2>Freteiros em destaque</h2><p>Profissionais avaliados que atendem {cityName} e região.</p></div>
+              <div><span className="section-kicker section-kicker--orange">Quem resolve por aqui</span><h2>Freteiros em destaque</h2><p>Profissionais que atendem {cityName} e região.</p></div>
               <Link prefetch={false} className="text-link" href={freightersHref}>Ver todos <ArrowIcon/></Link>
             </div>
             <div className="freighter-grid">

@@ -8,10 +8,6 @@ export function slugify(value: string) {
     .slice(0, 70);
 }
 
-export function uniqueSlug(value: string) {
-  return `${slugify(value) || "anuncio"}-${crypto.randomUUID().slice(0, 8)}`;
-}
-
 export function createPublicCode() {
   return `anv-${crypto.randomUUID().replaceAll("-", "").slice(0, 10)}`;
 }

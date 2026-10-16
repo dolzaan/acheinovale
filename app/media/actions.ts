@@ -132,6 +132,11 @@ export async function authorizePropertyMediaUploads(requests: PropertyMediaUploa
     return { ok: false as const, message: "Seu limite de armazenamento de mídias foi atingido." };
   }
 
+  return createUploadGrants(authUserId, requests);
+}
+
+// As políticas do Storage só aceitam uploads com uma autorização válida e recente.
+async function createUploadGrants(authUserId: string, requests: PropertyMediaUploadRequest[]) {
   try {
     const expiresAt = new Date(Date.now() + GRANT_TTL_MS);
     await prisma.$transaction(async tx => {
@@ -200,5 +205,5 @@ export async function authorizeFreighterImageUploads(requests: PropertyMediaUplo
   if ((data?.length ?? 0) + requests.length > 30 || storedBytes + requestedBytes > 60 * 1024 * 1024) {
     return { ok: false as const, message: "Seu limite de armazenamento de fotos foi atingido." };
   }
-  return { ok: true as const };
+  return createUploadGrants(authUserId, requests);
 }
