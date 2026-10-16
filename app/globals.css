@@ -721,26 +721,32 @@ button { cursor: pointer; }
 .listing-share__main-button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .listing-share__menu {
   position: absolute; z-index: 20; top: calc(100% + 8px); left: 0;
-  display: grid; gap: 3px; width: 205px; padding: 7px;
+  display: flex; gap: 6px; padding: 7px;
   border: 1px solid #e0e7e2; border-radius: 13px; background: #fff;
   box-shadow: 0 12px 32px rgba(24,53,42,.16);
 }
 .listing-share__menu a, .listing-share__menu button {
-  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 42px;
-  padding: 8px 10px; border: 0; border-radius: 8px; background: transparent;
-  color: var(--ink); font: inherit; font-size: 13px; font-weight: 650;
-  text-align: left; text-decoration: none; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 46px; height: 46px; padding: 0; border: 0; border-radius: 10px;
+  background: transparent; cursor: pointer;
 }
 .listing-share__menu a:hover, .listing-share__menu button:hover { background: #f2f6f3; }
 .listing-share__option-icon {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 27px; height: 27px; flex: 0 0 27px; border-radius: 8px;
-  color: #fff; font-size: 16px; font-weight: 800;
+  width: 36px; height: 36px; border-radius: 10px;
 }
-.listing-share__option-icon--whatsapp { background: #218b55; }
-.listing-share__option-icon--facebook { background: #1877f2; }
-.listing-share__option-icon--copy { background: #eaf0ec; color: var(--ink); }
-.listing-share__option-icon--other { background: #eaf0ec; color: var(--ink); font-size: 12px; }
+.listing-share__option-icon svg { display: block; width: 20px; height: 20px; }
+.listing-share__option-icon--whatsapp { background: #e8f8ee; color: #1da851; }
+.listing-share__option-icon--facebook { background: #eaf2ff; color: #1877f2; }
+.listing-share__option-icon--whatsapp svg, .listing-share__option-icon--facebook svg { fill: currentColor; }
+.listing-share__option-icon--copy { background: #eaf0ec; color: var(--green); }
+.listing-share__option-icon--copy svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.listing-share__status:empty { display: none; }
+.listing-share__status {
+  position: absolute; z-index: 20; top: calc(100% + 8px); left: 0;
+  padding: 6px 10px; border-radius: 8px; background: var(--green); color: #fff;
+  font-size: 12px; font-weight: 700; white-space: nowrap;
+}
 @media (max-width: 680px) {
   .listing-contact-primary { position: sticky; bottom: 76px; z-index: 5; }
 }
@@ -832,41 +838,6 @@ button { cursor: pointer; }
   border: 0;
 }
 
-.listing-contact-actions .listing-share__brand-logos {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-}
-.listing-contact-actions .listing-share__brand-logos svg {
-  display: block;
-  width: 18px;
-  height: 18px;
-}
-.listing-contact-actions .listing-share__brand-whatsapp { fill: #25d366; }
-.listing-contact-actions .listing-share__brand-facebook { fill: #1877f2; }
-.listing-contact-actions .listing-share__main-button:hover .listing-share__brand-whatsapp,
-.listing-contact-actions .listing-share__main-button:hover .listing-share__brand-facebook { fill: #fff; }
-
-/* Opções WhatsApp/Facebook exibidas apenas com suas logos */
-.listing-share__menu a[aria-label="Compartilhar no WhatsApp"],
-.listing-share__menu a[aria-label="Compartilhar no Facebook"] {
-  justify-content: center;
-  min-height: 46px;
-}
-.listing-share__menu .listing-share__option-icon--whatsapp,
-.listing-share__menu .listing-share__option-icon--facebook {
-  width: 34px;
-  height: 34px;
-  flex-basis: 34px;
-  border-radius: 10px;
-}
-.listing-share__menu .listing-share__option-icon--whatsapp svg,
-.listing-share__menu .listing-share__option-icon--facebook svg {
-  display: block;
-  width: 20px;
-  height: 20px;
-  fill: currentColor;
-}
-.listing-share__menu .listing-share__option-icon--whatsapp { background: #e8f8ee; color: #1da851; }
-.listing-share__menu .listing-share__option-icon--facebook { background: #eaf2ff; color: #1877f2; }
+/* No cartão de contato o botão fica à direita: o menu abre alinhado à direita. */
+.listing-contact-actions .listing-share__menu,
+.listing-contact-actions .listing-share__status { left: auto; right: 0; }
