@@ -19,6 +19,7 @@ import { propertyUrl } from "@/lib/listings/urls";
 import { propertyImagePublicUrl, propertyVideoPublicUrl } from "@/lib/supabase/storage";
 import { formatBrazilianPhone } from "@/lib/validation/profile";
 import { SITE_URL } from "@/lib/site";
+import { formatArea, formatCount } from "@/lib/format";
 
 type Props = {
   params: Promise<{ publicCode: string; slug: string }>;
@@ -144,10 +145,10 @@ export default async function PropertyPage({ params, searchParams }: Props) {
               <h1>{property.title}</h1>
               <div className="listing-facts">
                 <span>{propertyTypes[property.type]}</span>
-                {property.bedrooms !== null ? <span><BedIcon />{property.bedrooms} quartos</span> : null}
-                {property.bathrooms !== null ? <span><BathIcon />{property.bathrooms} banheiros</span> : null}
-                {property.parkingSpots !== null ? <span>{property.parkingSpots} vagas</span> : null}
-                {property.areaM2 ? <span>{property.areaM2.toString()} m²</span> : null}
+                {property.bedrooms !== null ? <span><BedIcon />{formatCount(property.bedrooms, "quarto", "quartos")}</span> : null}
+                {property.bathrooms !== null ? <span><BathIcon />{formatCount(property.bathrooms, "banheiro", "banheiros")}</span> : null}
+                {property.parkingSpots !== null ? <span>{formatCount(property.parkingSpots, "vaga", "vagas")}</span> : null}
+                {property.areaM2 ? <span>{formatArea(property.areaM2)}</span> : null}
               </div>
               <section className="listing-description">
                 <h2>Sobre o imóvel</h2>

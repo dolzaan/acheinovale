@@ -27,6 +27,7 @@ import {
   StarIcon,
   TruckIcon,
 } from "@/components/icons";
+import { formatArea, formatCount, formatRating } from "@/lib/format";
 
 type Props = { searchParams: Promise<{ cidade?: string | string[] }> };
 
@@ -119,9 +120,9 @@ export default async function HomePage({ searchParams }: Props) {
                     <span className="property-card__location"><PinIcon size={15}/>{property.neighborhood.name}, {property.city.name}</span>
                     <h3><Link prefetch={false} href={propertyUrl(property)}>{property.title}</Link></h3>
                     <div className="property-card__features">
-                      {property.bedrooms !== null ? <span><BedIcon/>{property.bedrooms} quartos</span> : null}
+                      {property.bedrooms !== null ? <span><BedIcon/>{formatCount(property.bedrooms, "quarto", "quartos")}</span> : null}
                       {property.bathrooms !== null ? <span><BathIcon/>{property.bathrooms} banh.</span> : null}
-                      {property.areaM2 ? <span>{property.areaM2.toString()} m²</span> : null}
+                      {property.areaM2 ? <span>{formatArea(property.areaM2)}</span> : null}
                     </div>
                     <div className="property-card__price"><strong>{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(property.priceCents / 100)}</strong><span>{property.purpose === "RENT" ? "/mês" : ""}</span></div>
                     <Link prefetch={false} className="button button--secondary property-card__cta" href={propertyUrl(property)}>Ver imóvel</Link>
@@ -146,7 +147,7 @@ export default async function HomePage({ searchParams }: Props) {
                   <div className="freighter-card__top"><UserAvatar image={freighter.user.image} name={freighter.displayName} size="lg" /></div>
                   <h3>{freighter.displayName}</h3>
                   <span className="freighter-location"><PinIcon size={15}/>{freighter.city.name}</span>
-                  {(() => { const rating = freighter.reviews.length ? freighter.reviews.reduce((sum, review) => sum + review.rating, 0) / freighter.reviews.length : null; return <div className="rating"><StarIcon/><strong>{rating ? rating.toFixed(1) : "Novo"}</strong><span>{rating ? `(${freighter.reviews.length} avaliações)` : "no AcheiNoVale"}</span></div>; })()}
+                  {(() => { const rating = freighter.reviews.length ? freighter.reviews.reduce((sum, review) => sum + review.rating, 0) / freighter.reviews.length : null; return <div className="rating"><StarIcon/><strong>{rating ? formatRating(rating) : "Novo"}</strong><span>{rating ? `(${formatCount(freighter.reviews.length, "avaliação", "avaliações")})` : "no AcheiNoVale"}</span></div>; })()}
                   <div className="service-tags">{freighter.services.filter(service => !service.name.startsWith("Atende: ")).slice(0, 4).map((service) => <span key={service.id}>{service.name.replace("Veículo: ", "")}</span>)}</div>
                   <Link prefetch={false} className="outline-button" href={freighterUrl(freighter)}>Ver perfil <ArrowIcon/></Link>
                 </article>

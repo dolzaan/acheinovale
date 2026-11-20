@@ -13,7 +13,9 @@ export function PropertyGallery({ images, videos, title }: { images: GalleryImag
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [durations, setDurations] = useState<Record<string, number>>({});
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isZoomed, setIsZoomed] = useState(false);
   const pointerStart = useRef<number | null>(null);
+  const activePointers = useRef(new Set<number>());
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const lightboxRef = useRef<HTMLDivElement>(null);
   const media = useMemo<GalleryMedia[]>(() => [
@@ -27,6 +29,7 @@ export function PropertyGallery({ images, videos, title }: { images: GalleryImag
     return media.slice(0, 5);
   }, [media]);
   const activeMedia = activeIndex === null ? null : media[activeIndex];
+  const isOpen = activeIndex !== null;
 
   function formatDuration(seconds?: number) {
     if (!seconds || !Number.isFinite(seconds)) return "";
@@ -51,24 +54,34 @@ export function PropertyGallery({ images, videos, title }: { images: GalleryImag
     setActiveIndex(current => current === null ? null : (current + 1) % media.length);
   }, [media.length]);
 
+  // Roda só ao abrir e fechar: trocar de mídia não pode mover o foco para "Fechar".
   useEffect(() => {
-    if (activeIndex === null) return;
+    if (!isOpen) return;
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     closeButtonRef.current?.focus();
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") setActiveIndex(null);
+      // As setas do vídeo com foco controlam a reprodução, não a galeria.
+      if (event.target instanceof HTMLVideoElement) return;
       if (event.key === "ArrowLeft") showPrevious();
       if (event.key === "ArrowRight") showNext();
     }
 
+    const viewport = window.visualViewport;
+    function handleViewportResize() { setIsZoomed((viewport?.scale ?? 1) > 1.01); }
+
     window.addEventListener("keydown", handleKeyDown);
+    viewport?.addEventListener("resize", handleViewportResize);
     return () => {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
+      viewport?.removeEventListener("resize", handleViewportResize);
+      opener?.focus();
     };
-  }, [activeIndex, showNext, showPrevious]);
+  }, [isOpen, showNext, showPrevious]);
 
   useEffect(() => {
     function handleFullscreenChange() { setIsFullscreen(Boolean(document.fullscreenElement)); }
@@ -77,11 +90,19 @@ export function PropertyGallery({ images, videos, title }: { images: GalleryImag
   }, []);
 
   function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    activePointers.current.add(event.pointerId);
     if (event.target instanceof HTMLVideoElement) return;
-    pointerStart.current = event.clientX;
+    // Com dois dedos é pinça (zoom), e com a foto ampliada o arraste move a imagem: não troca de mídia.
+    pointerStart.current = activePointers.current.size === 1 && !isZoomed ? event.clientX : null;
+  }
+
+  function handlePointerEnd(event: ReactPointerEvent<HTMLDivElement>) {
+    activePointers.current.delete(event.pointerId);
+    if (event.type === "pointercancel") pointerStart.current = null;
   }
 
   function handlePointerUp(event: ReactPointerEvent<HTMLDivElement>) {
+    handlePointerEnd(event);
     if (event.target instanceof HTMLVideoElement) return;
     if (pointerStart.current === null) return;
     const distance = event.clientX - pointerStart.current;
@@ -114,7 +135,7 @@ export function PropertyGallery({ images, videos, title }: { images: GalleryImag
       ) : null}
 
       {activeIndex !== null && activeMedia ? (
-        <div ref={lightboxRef} className="photo-lightbox" role="dialog" aria-modal="true" aria-label={`Galeria de fotos e vídeos de ${title}`} onPointerDown={handlePointerDown} onPointerUp={handlePointerUp}>
+        <div ref={lightboxRef} className={isZoomed ? "photo-lightbox photo-lightbox--zoomed" : "photo-lightbox"} role="dialog" aria-modal="true" aria-label={`Galeria de fotos e vídeos de ${title}`} onPointerDown={handlePointerDown} onPointerUp={handlePointerUp} onPointerCancel={handlePointerEnd}>
           <button ref={closeButtonRef} className="photo-lightbox__close" type="button" onClick={() => setActiveIndex(null)} aria-label="Fechar galeria">×</button>
           <button className="photo-lightbox__fullscreen" type="button" onClick={toggleFullscreen} aria-label={isFullscreen ? "Sair da tela cheia" : "Abrir em tela cheia"}>{isFullscreen ? "Sair da tela cheia" : "Tela cheia"}</button>
           {media.length > 1 ? <button className="photo-lightbox__arrow photo-lightbox__arrow--previous" type="button" onClick={showPrevious} aria-label="Mídia anterior">‹</button> : null}

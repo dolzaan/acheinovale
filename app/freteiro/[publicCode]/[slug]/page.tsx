@@ -20,6 +20,7 @@ import { freighterImagePublicUrl } from "@/lib/supabase/storage";
 import { formatBrazilianPhone } from "@/lib/validation/profile";
 import { SITE_URL } from "@/lib/site";
 import { reportFreighter } from "../../actions";
+import { formatCount, formatRating } from "@/lib/format";
 
 type Props = {
   params: Promise<{ publicCode: string; slug: string }>;
@@ -144,7 +145,7 @@ export default async function FreighterPage({ params, searchParams }: Props) {
               <span className="listing-location"><PinIcon size={17} />{freighter.city.name}</span>
               <h1>{freighter.displayName}</h1>
               <div className="listing-facts">
-                {rating ? <span><StarIcon />{rating.toFixed(1)} ({freighter.reviews.length})</span> : <span>Novo no AcheiNoVale</span>}
+                {rating ? <span><StarIcon />{formatRating(rating)} ({formatCount(freighter.reviews.length, "avaliação", "avaliações")})</span> : <span>Novo no AcheiNoVale</span>}
               </div>
               <div className="service-tags service-tags--detail">
                 {services.map((service) => <span key={service.id}>{service.name}</span>)}
