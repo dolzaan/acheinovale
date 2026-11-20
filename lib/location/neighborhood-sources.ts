@@ -152,3 +152,13 @@ export async function loadNeighborhoodSuggestions(city: { name: string; stateCod
     officialSource: official ? { source: official.source, sourceUrl: official.sourceUrl, confidence: official.confidence } : null,
   };
 }
+
+/**
+ * Bairros da lista da prefeitura (sem o OpenStreetMap), para adicionar em todas as cidades de
+ * uma vez. Localidades rurais entram só quando pedidas.
+ */
+export async function loadOfficialNeighborhoods(city: { name: string; stateCode: string; ibgeCode: string | null }, includeRural: boolean) {
+  const ibgeCode = await findMunicipalityIbgeCode(city).catch(() => null);
+  if (!ibgeCode) return [];
+  return officialSuggestions(ibgeCode).filter(suggestion => suggestion.kind === "official" || (includeRural && suggestion.kind === "rural"));
+}

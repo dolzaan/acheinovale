@@ -303,6 +303,11 @@
 .neighborhood-import fieldset small { color: var(--muted); font-size: .75rem; }
 .neighborhood-import__actions { display: flex; align-items: center; gap: 16px; }
 .neighborhood-import__credit { color: var(--muted); font-size: .75rem; }
+.neighborhood-import-all { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 18px; padding: 20px 24px; border: 1px solid var(--brand-line); border-radius: 20px; background: white; }
+.neighborhood-import-all > div { display: grid; gap: 8px; max-width: 640px; }
+.neighborhood-import-all h2 { margin: 0; color: var(--brand-green); font-size: 1.25rem; }
+.neighborhood-import-all p { margin: 0; color: var(--muted); font-size: .875rem; line-height: 1.5; }
+.neighborhood-import-all .checkbox-field { display: flex; align-items: center; gap: 8px; font-size: .875rem; }
 @media (max-width: 680px) { .neighborhood-manager { padding: 18px 14px; }.neighborhood-manager__summary { align-items: flex-start; flex-direction: column; }.neighborhood-manager__create, .neighborhood-manager__item { grid-template-columns: 1fr; }.neighborhood-manager__item small { align-self: auto; }.admin-heading__links { width: 100%; }.admin-heading__links .button { flex: 1; } }
 
 /* A calmer mobile header: one primary action per area and a full-width city selector. */
