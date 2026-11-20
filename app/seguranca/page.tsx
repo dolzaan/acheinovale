@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function SecurityPage() {
   return (
     <SupportPage
-      eyebrow="Negocie com cuidado"
+     
       title="Segurança"
       description="O Achei no Vale aproxima pessoas da região. Antes de fechar qualquer negócio, faça verificações simples e mantenha a conversa segura."
       current="seguranca"

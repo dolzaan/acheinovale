@@ -42,7 +42,6 @@ export default async function PropertyMediaPage({ params, searchParams }: Props)
         <div className="container publish-page">
           <Link className="back-link" href="/meus-anuncios">← Voltar para meus anúncios</Link>
           <div className="account-heading">
-            <span className="section-kicker">Galeria do anúncio</span>
             <h1>Fotos e vídeo</h1>
             <p>{property.title}</p>
           </div>

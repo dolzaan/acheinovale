@@ -33,7 +33,6 @@ export default async function FavoritesPage() {
       <main id="conteudo" className="account-page">
         <div className="container listings-page">
           <div className="account-heading">
-            <span className="section-kicker">Sua área</span>
             <h1>Favoritos</h1>
             <p>Imóveis e freteiros que você salvou para consultar depois. Anúncios pausados ou removidos deixam de aparecer aqui.</p>
           </div>

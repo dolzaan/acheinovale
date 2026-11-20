@@ -21,13 +21,14 @@ const statusMessages: Record<string, { kind: "success" | "error"; text: string }
 };
 
 /** Salva os filtros atuais do catálogo como um alerta de e-mail. */
-export function SaveSearchForm({ criteria, backPath, status }: { criteria: SaveSearchCriteria; backPath: string; status?: string }) {
+export function SaveSearchForm({ criteria, backPath, status, open = false }: { criteria: SaveSearchCriteria; backPath: string; status?: string; open?: boolean }) {
   const message = status ? statusMessages[status] : undefined;
   return (
     <section className="save-search" aria-label="Alerta de imóveis novos">
       {message ? <p className={message.kind === "success" ? "form-success" : "form-alert"} role="status">{message.text} {status === "criado" || status === "maximo" ? <Link href="/alertas">Ver meus alertas</Link> : null}</p> : null}
-      <details className="save-search__details">
-        <summary>Criar alerta para esta busca</summary>
+      {/* Aberto quando a busca não tem resultados: o alerta é a ação principal nesse caso. */}
+      <details className="save-search__details" open={open}>
+        <summary>{open ? "Me avise quando aparecer um imóvel assim" : "Criar alerta para esta busca"}</summary>
         <form action={createSavedSearch}>
           <input type="hidden" name="voltar" value={backPath} />
           {Object.entries(criteria).map(([name, value]) => value ? <input key={name} type="hidden" name={name} value={value} /> : null)}

@@ -53,6 +53,9 @@ export default async function HomePage({ searchParams }: Props) {
   const propertiesHref = `/${city.slug}/imoveis`;
   const freightersHref = `/${city.slug}/freteiros`;
   const rentalsHref = propertyCatalogPath(city.slug, "aluguel");
+  const salesHref = propertyCatalogPath(city.slug, "venda");
+  // Cidade sem nenhum anúncio: um bloco só de lançamento em vez de duas seções vazias.
+  const cityIsEmpty = !properties.length && !freighters.length;
 
   return (
     <>
@@ -73,13 +76,12 @@ export default async function HomePage({ searchParams }: Props) {
                 <PendingSubmitButton aria-label="Buscar" pendingText="Buscando…" navigation><SearchIcon size={20}/><span>Buscar</span></PendingSubmitButton>
               </Form>
 
-              <div className="quick-searches" aria-label="Buscas populares">
-                <span>Buscas populares:</span>
-                <label className="quick-searches__regional"><input form="home-search-form" type="checkbox" name="regiao" value="1" /> Toda a região</label>
+              <nav className="quick-searches" aria-label="Atalhos de busca">
                 <Link prefetch={false} href={rentalsHref}>Imóveis para alugar</Link>
+                <Link prefetch={false} href={salesHref}>Imóveis à venda</Link>
                 <Link prefetch={false} href={freightersHref}>Encontrar freteiro</Link>
-                <Link prefetch={false} href="/publicar">Publicar anúncio grátis</Link>
-              </div>
+                <Link prefetch={false} href="/imoveis?regiao=1">Imóveis em toda a região</Link>
+              </nav>
             </div>
 
             <CityTourismVisual citySlug={city?.slug} cityName={cityName} />
@@ -101,10 +103,31 @@ export default async function HomePage({ searchParams }: Props) {
           </div>
         </section>
 
+        {cityIsEmpty ? (
+          <section className="section launch-section" aria-labelledby="launch-title">
+            <div className="container">
+              <h2 id="launch-title">O Achei no Vale está chegando em {cityName}</h2>
+              <p>Os primeiros anúncios da cidade vão aparecer aqui. Enquanto isso:</p>
+              <div className="launch-options">
+                <div>
+                  <h3>Procura um imóvel?</h3>
+                  <p>Deixe um alerta e avisamos por e-mail quando aparecer um imóvel em {cityName}.</p>
+                  <Link prefetch={false} className="button button--primary" href={propertiesHref}>Criar alerta de imóveis</Link>
+                </div>
+                <div>
+                  <h3>Tem algo para anunciar?</h3>
+                  <p>Imóvel para alugar ou vender, ou seu serviço de frete. É grátis.</p>
+                  <Link prefetch={false} className="button button--secondary" href="/publicar">Anunciar grátis</Link>
+                </div>
+              </div>
+            </div>
+          </section>
+        ) : (
+          <>
         <section className="section properties-section">
           <div className="container">
             <div className="section-heading">
-              <div><span className="section-kicker">Acabaram de anunciar no Vale</span><h2>Imóveis recentes</h2><p>Boas oportunidades publicadas em {cityName}.</p></div>
+              <div><h2>Imóveis recentes</h2><p>Anunciados em {cityName}.</p></div>
               <Link prefetch={false} className="text-link" href={propertiesHref}>Ver todos <ArrowIcon/></Link>
             </div>
             <div className="property-grid">
@@ -130,15 +153,15 @@ export default async function HomePage({ searchParams }: Props) {
                 </article>
               ))}
             </div>
-            {!properties.length ? <div className="empty-state home-empty"><strong>Ainda não há imóveis em {cityName}.</strong><p>Seja a primeira pessoa a publicar uma oportunidade nesta cidade.</p><Link prefetch={false} className="button button--primary" href="/publicar/imovel">Publicar imóvel</Link></div> : null}
+            {!properties.length ? <p className="home-empty-note">Ainda não há imóveis anunciados em {cityName}. <Link prefetch={false} href={propertiesHref}>Criar um alerta</Link> para saber quando aparecer.</p> : null}
             <Link prefetch={false} className="mobile-more-button" href={propertiesHref}>Ver todos os imóveis <ArrowIcon/></Link>
           </div>
         </section>
 
-        <section className="section freighters-section">
+          <section className="section freighters-section">
           <div className="container">
             <div className="section-heading">
-              <div><span className="section-kicker section-kicker--orange">Quem resolve por aqui</span><h2>Freteiros em destaque</h2><p>Profissionais que atendem {cityName} e região.</p></div>
+              <div><h2>Freteiros em destaque</h2><p>Profissionais que atendem {cityName} e região.</p></div>
               <Link prefetch={false} className="text-link" href={freightersHref}>Ver todos <ArrowIcon/></Link>
             </div>
             <div className="freighter-grid">
@@ -153,10 +176,12 @@ export default async function HomePage({ searchParams }: Props) {
                 </article>
               ))}
             </div>
-            {!freighters.length ? <div className="empty-state home-empty"><strong>Ainda não há freteiros cadastrados em {cityName}.</strong><p>Cadastre seu serviço para começar a receber contatos da região.</p><Link prefetch={false} className="button button--primary" href="/publicar/frete">Cadastrar como freteiro</Link></div> : null}
+            {!freighters.length ? <p className="home-empty-note">Ainda não há freteiros anunciados em {cityName}. Faz fretes? <Link prefetch={false} href="/publicar/frete">Anuncie seu serviço de graça</Link>.</p> : null}
             <Link prefetch={false} className="mobile-more-button" href={freightersHref}>Encontrar um freteiro <ArrowIcon/></Link>
           </div>
         </section>
+          </>
+        )}
 
         <CityDiscovery category="imoveis" currentSlug={city.slug} />
         <section className="container trust-strip">
@@ -165,11 +190,12 @@ export default async function HomePage({ searchParams }: Props) {
           <Link prefetch={false} href="/seguranca">Dicas de segurança <ArrowIcon/></Link>
         </section>
 
-        <section className="container publish-banner">
+        {/* Com a cidade vazia, o bloco de lançamento já faz este convite. */}
+        {!cityIsEmpty ? <section className="container publish-banner">
           <div className="publish-banner__art" aria-hidden="true"><BuildingIcon size={52}/><TruckIcon size={59}/></div>
-          <div><span className="section-kicker section-kicker--light">Tem algo para anunciar?</span><h2>Encontre gente da região interessada.</h2><p>Publique seu imóvel ou apresente seu serviço de frete. É simples e gratuito.</p></div>
-          <Link prefetch={false} className="button button--light" href="/publicar">Publicar grátis <ArrowIcon/></Link>
-        </section>
+          <div><h2>Tem algo para anunciar?</h2><p>Anuncie seu imóvel ou serviço de frete para gente da região. É grátis.</p></div>
+          <Link prefetch={false} className="button button--light" href="/publicar">Anunciar grátis</Link>
+        </section> : null}
       </main>
 
       <SiteFooter />

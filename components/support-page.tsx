@@ -5,21 +5,19 @@ import { MobileNav } from "./mobile-nav";
 import { SiteFooter } from "./footer";
 
 type SupportPageProps = {
-  eyebrow: string;
   title: string;
   description: string;
   current: "seguranca" | "ajuda";
   children: ReactNode;
 };
 
-export function SupportPage({ eyebrow, title, description, current, children }: SupportPageProps) {
+export function SupportPage({ title, description, current, children }: SupportPageProps) {
   return (
     <>
       <Header />
       <main id="conteudo" className="legal-page support-page">
         <div className="container legal-layout">
           <header className="legal-heading">
-            <span className="section-kicker">{eyebrow}</span>
             <h1>{title}</h1>
             <p>{description}</p>
           </header>
