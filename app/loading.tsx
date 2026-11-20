@@ -10,7 +10,7 @@ export default function Loading() {
           <div className="loading-skeleton loading-skeleton--action" />
         </div>
       </header>
-      <main className="page-loading__main">
+      <main id="conteudo" className="page-loading__main">
         <div className="container page-loading__content">
           <div className="page-loading__heading">
             <div className="loading-skeleton loading-skeleton--eyebrow" />
@@ -22,7 +22,7 @@ export default function Loading() {
             <div className="loading-skeleton loading-skeleton--card" />
             <div className="loading-skeleton loading-skeleton--card" />
           </div>
-          <p className="page-loading__label"><span className="button-spinner" aria-hidden="true" /> Carregando conteúdo...</p>
+          <p className="page-loading__label"><span className="button-spinner" aria-hidden="true" /> Carregando conteúdo…</p>
         </div>
       </main>
     </div>

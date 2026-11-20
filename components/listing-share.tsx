@@ -9,6 +9,7 @@ export function ListingShare({ title, url }: { title: string; url: string }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const message = `Confira no Achei no Vale: ${title} — ${url}`;
   const whatsapp = `https://wa.me/?text=${encodeURIComponent(message)}`;
   const facebook = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
@@ -16,10 +17,17 @@ export function ListingShare({ title, url }: { title: string; url: string }) {
   useEffect(() => {
     if (!open) return;
     function close(event: KeyboardEvent | PointerEvent) {
-      if (event instanceof KeyboardEvent ? event.key === "Escape" : event.target instanceof Node && !wrapRef.current?.contains(event.target)) setOpen(false);
+      if (event instanceof KeyboardEvent) {
+        if (event.key !== "Escape") return;
+        // Se o foco estava numa opção do menu, volta para o botão em vez de se perder.
+        if (wrapRef.current?.contains(document.activeElement)) buttonRef.current?.focus();
+        setOpen(false);
+      } else if (event.target instanceof Node && !wrapRef.current?.contains(event.target)) {
+        setOpen(false);
+      }
     }
     document.addEventListener("keydown", close);
-    document.addEventListener("pointerdown", close);
+    document.addEventListener("pointerdown", close, { passive: true });
     return () => {
       document.removeEventListener("keydown", close);
       document.removeEventListener("pointerdown", close);
@@ -38,10 +46,11 @@ export function ListingShare({ title, url }: { title: string; url: string }) {
   }
 
   return (
-    <nav className="listing-share" aria-label="Compartilhar anúncio">
+    <section className="listing-share" aria-label="Compartilhar anúncio">
       <strong>Compartilhe este anúncio</strong>
       <div className="listing-share__menu-wrap" ref={wrapRef}>
         <button
+          ref={buttonRef}
           className="listing-share__main-button"
           type="button"
           aria-label="Compartilhar anúncio"
@@ -68,6 +77,6 @@ export function ListingShare({ title, url }: { title: string; url: string }) {
         ) : null}
         <span className="listing-share__status" role="status">{copied ? "Link copiado!" : ""}</span>
       </div>
-    </nav>
+    </section>
   );
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { getActiveLocations } from "@/lib/listings/public-cache";
+import { getActiveCityOptions } from "@/lib/listings/public-cache";
 
 export const dynamic = "force-dynamic";
 
@@ -54,7 +54,7 @@ export async function GET() {
     return NextResponse.json({ city: null }, { headers: { "Cache-Control": "private, no-store" } });
   }
 
-  const activeCities = await getActiveLocations();
+  const activeCities = await getActiveCityOptions();
   const ipCity = requestHeaders.get("x-vercel-ip-city");
   if (ipCity) {
     const normalizedIpCity = normalize(decodeURIComponentSafe(ipCity));

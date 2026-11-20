@@ -90,7 +90,7 @@ export function NavigationProgress() {
 
   return (
     <div className="route-progress" role="status" aria-live="polite">
-      <span className="sr-only">Carregando a próxima página...</span>
+      <span className="sr-only">Carregando a próxima página…</span>
     </div>
   );
 }

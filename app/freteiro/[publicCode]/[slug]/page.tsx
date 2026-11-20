@@ -20,6 +20,7 @@ import { freighterImagePublicUrl } from "@/lib/supabase/storage";
 import { formatBrazilianPhone } from "@/lib/validation/profile";
 import { SITE_URL } from "@/lib/site";
 import { reportFreighter } from "../../actions";
+import { formatCount, formatRating } from "@/lib/format";
 
 type Props = {
   params: Promise<{ publicCode: string; slug: string }>;
@@ -50,25 +51,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function FreighterPage({ params, searchParams }: Props) {
-  const { publicCode, slug } = await params;
-  const query = await searchParams;
-  const freighter = await getPublicFreighter(publicCode);
+  const [{ publicCode, slug }, query] = await Promise.all([params, searchParams]);
+  // Sem cookie de sessão, getCurrentUser retorna na hora; com sessão, roda junto com o perfil.
+  const [freighter, viewer] = await Promise.all([getPublicFreighter(publicCode), getCurrentUser()]);
   if (!freighter) notFound();
 
-  const viewer = await getCurrentUser();
   if (freighter.status !== "ACTIVE") {
     if (!viewer || (viewer.id !== freighter.userId && viewer.role !== "ADMIN")) {
       notFound();
     }
   }
+  if (slug !== freighter.slug) permanentRedirect(freighterUrl(freighter));
+
   const [isFavorite, hasContacted] = viewer
     ? await Promise.all([
       prisma.favorite.findFirst({ where: { userId: viewer.id, freighterProfileId: freighter.id }, select: { id: true } }).then(Boolean),
       prisma.freighterContact.findUnique({ where: { userId_profileId: { userId: viewer.id, profileId: freighter.id } }, select: { id: true } }).then(Boolean),
     ])
     : [false, false];
-
-  if (slug !== freighter.slug) permanentRedirect(freighterUrl(freighter));
 
   const rating = freighter.reviews.length
     ? freighter.reviews.reduce((sum, review) => sum + review.rating, 0) / freighter.reviews.length
@@ -116,7 +116,7 @@ export default async function FreighterPage({ params, searchParams }: Props) {
       <Script id={`freighter-${freighter.publicCode}-jsonld`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceStructuredData) }} />
       <Script id={`freighter-${freighter.publicCode}-breadcrumbs`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbStructuredData) }} />
       <Header />
-      <main className="listing-detail-page">
+      <main id="conteudo" className="listing-detail-page">
         <div className="container"><ListingShare title={freighter.displayName} url={canonical} /></div>
         <div className="container listing-detail">
           {freighter.status !== "ACTIVE" ? (
@@ -144,7 +144,7 @@ export default async function FreighterPage({ params, searchParams }: Props) {
               <span className="listing-location"><PinIcon size={17} />{freighter.city.name}</span>
               <h1>{freighter.displayName}</h1>
               <div className="listing-facts">
-                {rating ? <span><StarIcon />{rating.toFixed(1)} ({freighter.reviews.length})</span> : <span>Novo no AcheiNoVale</span>}
+                {rating ? <span><StarIcon />{formatRating(rating)} ({formatCount(freighter.reviews.length, "avaliação", "avaliações")})</span> : <span>Novo no AcheiNoVale</span>}
               </div>
               <div className="service-tags service-tags--detail">
                 {services.map((service) => <span key={service.id}>{service.name}</span>)}

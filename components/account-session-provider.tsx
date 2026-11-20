@@ -20,6 +20,18 @@ export function AccountSessionProvider({ children }: { children: React.ReactNode
   const [session, setSession] = useState<AccountSession>({ user: null, loading: true });
 
   useEffect(() => {
+    // Sem cookie de sessão do Supabase (o mesmo teste do proxy.ts), o visitante é anônimo:
+    // não precisa chamar a API a cada página carregada.
+    const hasAuthCookie = document.cookie.split(";").some(cookie => {
+      const name = cookie.trim().split("=")[0];
+      return name.startsWith("sb-") && name.includes("-auth-token");
+    });
+    if (!hasAuthCookie) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- o cookie só existe no navegador.
+      setSession({ user: null, loading: false });
+      return;
+    }
+
     const controller = new AbortController();
 
     fetch("/api/conta", {

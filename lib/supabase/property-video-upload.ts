@@ -1,9 +1,10 @@
 "use client";
 
-import { Upload } from "tus-js-client";
 import { propertyVideoUploadEndpoint, STORAGE_BUCKETS } from "@/lib/supabase/storage";
 
-export function uploadPropertyVideo(file: File, storageKey: string, accessToken: string, onProgress: (percentage: number) => void) {
+export async function uploadPropertyVideo(file: File, storageKey: string, accessToken: string, onProgress: (percentage: number) => void) {
+  // Só quem envia vídeo baixa o cliente de upload retomável.
+  const { Upload } = await import("tus-js-client");
   return new Promise<void>((resolve, reject) => {
     const upload = new Upload(file, {
       endpoint: propertyVideoUploadEndpoint(),

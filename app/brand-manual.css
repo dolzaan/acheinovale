@@ -194,4 +194,6 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  /* Indicadores de carregamento são infinitos: com .01ms piscariam. Ficam lentos, como em globals.css. */
+  .route-progress::after, .button-spinner, .loading-skeleton::after { animation-duration: 2s !important; }
 }

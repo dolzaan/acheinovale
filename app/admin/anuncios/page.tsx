@@ -53,14 +53,14 @@ function ActionForms({ id, status, action, canApprove = true }: { id: string; st
         <form action={action}>
           <input type="hidden" name="id" value={id} />
           <input type="hidden" name="intent" value="approve" />
-          <PendingSubmitButton className="moderation-button moderation-button--approve" pendingText="Publicando...">Aprovar e publicar</PendingSubmitButton>
+          <PendingSubmitButton className="moderation-button moderation-button--approve" pendingText="Publicando…">Aprovar e publicar</PendingSubmitButton>
         </form>
       ) : status === "ACTIVE" ? (
         <form action={action}>
           <input type="hidden" name="id" value={id} />
           <input type="hidden" name="intent" value="pause" />
           <input name="note" maxLength={500} aria-label="Motivo da pausa" placeholder="Motivo da pausa (opcional)" />
-          <PendingSubmitButton className="moderation-button" pendingText="Pausando...">Pausar</PendingSubmitButton>
+          <PendingSubmitButton className="moderation-button" pendingText="Pausando…">Pausar</PendingSubmitButton>
         </form>
       ) : <span className="moderation-location-warning">Revise o bairro antes de publicar.</span>}
       {status !== "REJECTED" && status !== "ACTIVE" ? (
@@ -68,7 +68,7 @@ function ActionForms({ id, status, action, canApprove = true }: { id: string; st
           <input type="hidden" name="id" value={id} />
           <input type="hidden" name="intent" value="reject" />
           <input name="note" minLength={5} maxLength={500} required aria-label="Motivo da reprovação" placeholder="Explique o que precisa ser corrigido" />
-          <PendingSubmitButton className="moderation-button moderation-button--reject" pendingText="Reprovando...">Reprovar</PendingSubmitButton>
+          <PendingSubmitButton className="moderation-button moderation-button--reject" pendingText="Reprovando…">Reprovar</PendingSubmitButton>
         </form>
       ) : null}
     </div>
@@ -113,7 +113,7 @@ export default async function ModerationPage({ searchParams }: Props) {
   return (
     <>
       <Header />
-      <main className="account-page admin-page">
+      <main id="conteudo" className="account-page admin-page">
         <div className="container admin-shell">
           <div className="account-heading admin-heading">
             <span className="section-kicker">Administração</span>
@@ -144,7 +144,7 @@ export default async function ModerationPage({ searchParams }: Props) {
                     <input type="hidden" name="id" value={neighborhood.id} />
                     <div><strong>{neighborhood.city.name} — {neighborhood.city.stateCode}</strong><small>{neighborhood._count.properties} {neighborhood._count.properties === 1 ? "imóvel associado" : "imóveis associados"}</small></div>
                     <label><span>Nome do bairro</span><input name="name" defaultValue={neighborhood.name} minLength={2} maxLength={80} required /></label>
-                    <PendingSubmitButton className="moderation-button moderation-button--approve" pendingText="Salvando...">Aprovar ou mesclar</PendingSubmitButton>
+                    <PendingSubmitButton className="moderation-button moderation-button--approve" pendingText="Salvando…">Aprovar ou mesclar</PendingSubmitButton>
                   </form>
                 ))}
               </div>

@@ -19,7 +19,7 @@ export function ListingReportForm({ action, reasons, summary, status }: Props) {
         <form action={action}>
           <label><span>Motivo</span><select name="reason" required defaultValue=""><option value="" disabled>Selecione</option>{reasons.map(reason => <option key={reason}>{reason}</option>)}</select></label>
           <label><span>Detalhes (opcional)</span><textarea name="details" maxLength={500} rows={3} /></label>
-          <PendingSubmitButton pendingText="Enviando...">Enviar denúncia</PendingSubmitButton>
+          <PendingSubmitButton pendingText="Enviando…">Enviar denúncia</PendingSubmitButton>
         </form>
       </details>
     </>

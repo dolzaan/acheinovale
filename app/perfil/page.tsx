@@ -32,7 +32,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   return (
     <>
       <Header />
-      <main className="account-page">
+      <main id="conteudo" className="account-page">
         <div className="container account-layout">
           <aside className="profile-summary">
             <UserAvatar image={user.image} name={user.name} size="lg" />
@@ -58,7 +58,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
               <label><span>Email</span><input value={user.email} disabled /><small>O email é gerenciado pela sua conta Google.</small></label>
               <label><span>Cidade</span><select name="cityId" defaultValue={user.cityId || ""} required><option value="" disabled>Selecione sua cidade</option>{cities.map((city) => <option key={city.id} value={city.id}>{city.name} — {city.stateCode}</option>)}</select></label>
               <label><span>WhatsApp</span><PhoneInput defaultValue={user.phone || ""} /><small>Usado como contato somente nos anúncios em que você decidir divulgá-lo.</small></label>
-              <PendingSubmitButton className="button button--primary" pendingText="Salvando perfil...">Salvar perfil</PendingSubmitButton>
+              <PendingSubmitButton className="button button--primary" pendingText="Salvando perfil…">Salvar perfil</PendingSubmitButton>
             </form>
           </section>
         </div>

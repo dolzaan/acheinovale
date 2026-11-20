@@ -25,7 +25,7 @@ export function HeaderSearch({ citySlug }: { citySlug?: string }) {
       if (event.key === "Escape") setIsOpen(false);
     }
 
-    document.addEventListener("pointerdown", closeOnOutsideClick);
+    document.addEventListener("pointerdown", closeOnOutsideClick, { passive: true });
     document.addEventListener("keydown", closeOnEscape);
 
     return () => {
@@ -57,13 +57,14 @@ export function HeaderSearch({ citySlug }: { citySlug?: string }) {
               name="q"
               type="search"
               maxLength={80}
-              placeholder="Ex: casa para alugar no Centro"
+              placeholder="Ex: casa para alugar no Centro…"
+              autoComplete="off"
               aria-label="Pesquisar no AcheiNoVale"
               required
             />
             <PendingSubmitButton
               className="header-search__submit"
-              pendingText="Buscando..."
+              pendingText="Buscando…"
               navigation
             >
               Buscar

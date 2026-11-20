@@ -77,6 +77,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="pt-BR">
       <body>
+        <a className="skip-link" href="#conteudo">Pular para o conteúdo</a>
         <Script
           id="organization-jsonld"
           type="application/ld+json"

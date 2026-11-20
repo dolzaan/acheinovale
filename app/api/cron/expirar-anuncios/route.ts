@@ -4,12 +4,16 @@ import { isEmailConfigured } from "@/lib/email/mailer";
 import { notifyAutoPaused, notifyAvailabilityReminder } from "@/lib/email/notifications";
 import { AUTO_PAUSE_NOTE, availabilityAskWhere, availabilityDeadline, expiredAvailabilityWhere, reminderIsDue } from "@/lib/listings/availability";
 import { revalidatePublicListings } from "@/lib/listings/public-cache";
+import { forEachWithConcurrency } from "@/lib/performance/concurrency";
 import { isAuthorizedCronRequest } from "@/lib/security/cron";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const BATCH_SIZE = 200;
+const EMAIL_CONCURRENCY = 4;
+// Para de iniciar envios antes do maxDuration; lembretes não enviados ficam para o próximo dia.
+const TIME_BUDGET_MS = 45_000;
 
 // Executado diariamente pelo Vercel Cron (vercel.json).
 export async function GET(request: Request) {
@@ -17,6 +21,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
   }
   const now = new Date();
+  const startedAt = Date.now();
+  const withinBudget = () => Date.now() - startedAt < TIME_BUDGET_MS;
   const ownerSelect = { owner: { select: { email: true } } } as const;
 
   // 1. Pausa os anúncios sem confirmação no prazo total.
@@ -31,7 +37,9 @@ export async function GET(request: Request) {
       data: { status: "PAUSED", moderationNote: AUTO_PAUSE_NOTE },
     });
     revalidatePublicListings();
-    for (const property of expired) await notifyAutoPaused({ to: property.owner.email, title: property.title });
+    await forEachWithConcurrency(expired, EMAIL_CONCURRENCY, async property => {
+      await notifyAutoPaused({ to: property.owner.email, title: property.title });
+    }, withinBudget);
   }
 
   // 2. Lembra por e-mail quem entrou no prazo de confirmação. Sem SMTP, o aviso
@@ -43,13 +51,15 @@ export async function GET(request: Request) {
       select: { id: true, title: true, availabilityConfirmedAt: true, availabilityReminderSentAt: true, publishedAt: true, createdAt: true, ...ownerSelect },
       take: BATCH_SIZE * 2,
     });
-    for (const property of candidates.filter(reminderIsDue).slice(0, BATCH_SIZE)) {
+    const sentIds: string[] = [];
+    await forEachWithConcurrency(candidates.filter(reminderIsDue).slice(0, BATCH_SIZE), EMAIL_CONCURRENCY, async property => {
       const sent = await notifyAvailabilityReminder({ to: property.owner.email, title: property.title, pauseAt: availabilityDeadline(property).pauseAt });
-      if (sent) {
-        await prisma.property.update({ where: { id: property.id }, data: { availabilityReminderSentAt: now } });
-        reminded += 1;
-      }
+      if (sent) sentIds.push(property.id);
+    }, withinBudget);
+    if (sentIds.length) {
+      await prisma.property.updateMany({ where: { id: { in: sentIds } }, data: { availabilityReminderSentAt: now } });
     }
+    reminded = sentIds.length;
   }
 
   console.info(JSON.stringify({ level: "info", message: "availability_cron", paused: expired.length, reminded }));

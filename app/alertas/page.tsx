@@ -20,7 +20,7 @@ export default async function AlertsPage({ searchParams }: Props) {
   return (
     <>
       <Header />
-      <main className="account-page">
+      <main id="conteudo" className="account-page">
         <div className="container listings-page">
           <div className="account-heading">
             <span className="section-kicker">Sua área</span>
@@ -43,7 +43,7 @@ export default async function AlertsPage({ searchParams }: Props) {
                     <p>Criado em {alert.createdAt.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}{alert.lastNotifiedAt ? ` · último envio em ${alert.lastNotifiedAt.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}` : ""}</p>
                   </div>
                   <div className="manager-card__actions">
-                    <form action={deleteSavedSearch}><input type="hidden" name="id" value={alert.id} /><PendingSubmitButton pendingText="Removendo...">Remover alerta</PendingSubmitButton></form>
+                    <form action={deleteSavedSearch}><input type="hidden" name="id" value={alert.id} /><PendingSubmitButton pendingText="Removendo…" confirmMessage="Remover este alerta? Você deixa de receber e-mails desta busca.">Remover alerta</PendingSubmitButton></form>
                   </div>
                 </article>
               ))}

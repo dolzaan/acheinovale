@@ -8,13 +8,16 @@ type PendingSubmitButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "t
   pendingText?: string;
   busy?: boolean;
   navigation?: boolean;
+  /** Pergunta antes de enviar, para ações que não dá para desfazer. */
+  confirmMessage?: string;
 };
 
 export function PendingSubmitButton({
   children,
-  pendingText = "Carregando...",
+  pendingText = "Carregando…",
   busy = false,
   navigation = false,
+  confirmMessage,
   disabled,
   className = "",
   onClick,
@@ -30,6 +33,10 @@ export function PendingSubmitButton({
   }, []);
 
   function handleClick(event: React.MouseEvent<HTMLButtonElement>) {
+    if (confirmMessage && !window.confirm(confirmMessage)) {
+      event.preventDefault();
+      return;
+    }
     onClick?.(event);
     if (!navigation || event.defaultPrevented || !event.currentTarget.form?.checkValidity()) return;
     timeoutRef.current = setTimeout(() => {

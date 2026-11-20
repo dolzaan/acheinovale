@@ -6,7 +6,6 @@ import { updatePropertyMedia } from "@/app/meus-anuncios/[id]/midias/actions";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { PropertyMediaOrganizer, type PropertyOrganizerItem } from "@/components/property-media-organizer";
 import { optimizePropertyImages } from "@/lib/images/optimize-property-image";
-import { createClient } from "@/lib/supabase/client";
 import { uploadPropertyVideo } from "@/lib/supabase/property-video-upload";
 import {
   createPropertyImagePath,
@@ -128,6 +127,8 @@ export function PropertyMediaEditor({ propertyId, authUserId, initialItems }: { 
     setPhotoProgress(0);
     setVideoProgress(0);
     const form = event.currentTarget;
+    // O cliente do Supabase só é necessário no envio; fica fora do carregamento inicial.
+    const { createClient } = await import("@/lib/supabase/client");
     const supabase = createClient();
     const uploadedKeys: string[] = [];
     try {
@@ -177,14 +178,14 @@ export function PropertyMediaEditor({ propertyId, authUserId, initialItems }: { 
 
   const newPhotos = items.filter(item => !item.existing && item.kind === "image").length;
   const newVideo = items.some(item => !item.existing && item.kind === "video");
-  const progress = newVideo && photoProgress >= newPhotos ? `Enviando vídeo ${videoProgress}%...` : `Enviando fotos ${photoProgress}/${newPhotos}...`;
+  const progress = newVideo && photoProgress >= newPhotos ? `Enviando vídeo ${videoProgress}%…` : `Enviando fotos ${photoProgress}/${newPhotos}…`;
 
   return (
     <form className="property-media-editor listing-form" action={saveAction} onSubmit={handleSubmit}>
       <input ref={payloadRef} type="hidden" name="mediaOrder" defaultValue="[]" />
       <section className="property-photo-field field-wide">
         <div className="property-photo-field__heading"><div><strong>Fotos do imóvel</strong><span>Escolha a capa e organize a ordem da galeria.</span></div><b>{images.length}/{PROPERTY_IMAGE_LIMIT}</b></div>
-        <label className="property-photo-picker" htmlFor="edit-property-photos"><span>{optimizingPhotos ? "Otimizando fotos..." : "Adicionar ou substituir fotos"}</span><small>Até 20 MB por original · conversão automática para WebP</small></label>
+        <label className="property-photo-picker" htmlFor="edit-property-photos"><span>{optimizingPhotos ? "Otimizando fotos…" : "Adicionar ou substituir fotos"}</span><small>Até 20 MB por original · conversão automática para WebP</small></label>
         <input id="edit-property-photos" className="property-photo-input" type="file" accept={PROPERTY_IMAGE_MIME_TYPES.join(",")} multiple onChange={selectPhotos} disabled={saving || optimizingPhotos || images.length >= PROPERTY_IMAGE_LIMIT} />
       </section>
       <section className="property-photo-field field-wide">
@@ -194,7 +195,7 @@ export function PropertyMediaEditor({ propertyId, authUserId, initialItems }: { 
       <div className="field-wide"><PropertyMediaOrganizer items={items} coverId={coverId} disabled={saving || optimizingPhotos} onMove={move} onReorder={reorder} onRemove={removeItem} onSetCover={setCover} /></div>
       {!items.length ? <p className="property-photo-empty field-wide">O anúncio ficará sem mídias. Você pode adicionar novas fotos agora ou salvar assim mesmo.</p> : null}
       {error ? <p className="property-photo-error field-wide" role="alert">{error}</p> : null}
-      <PendingSubmitButton className="button button--primary field-wide" busy={saving || optimizingPhotos} pendingText={optimizingPhotos ? "Otimizando fotos..." : saving ? progress : "Salvando..."}>Salvar mídias</PendingSubmitButton>
+      <PendingSubmitButton className="button button--primary field-wide" busy={saving || optimizingPhotos} pendingText={optimizingPhotos ? "Otimizando fotos…" : saving ? progress : "Salvando…"}>Salvar mídias</PendingSubmitButton>
     </form>
   );
 }

@@ -6,7 +6,6 @@ import { updateFreighterImages } from "@/app/meus-anuncios/[id]/freteiro-midias/
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { PropertyMediaOrganizer, type PropertyOrganizerItem } from "@/components/property-media-organizer";
 import { optimizePropertyImages } from "@/lib/images/optimize-property-image";
-import { createClient } from "@/lib/supabase/client";
 import {
   createFreighterImagePath,
   FREIGHTER_IMAGE_LIMIT,
@@ -96,6 +95,8 @@ export function FreighterMediaEditor({ profileId, authUserId, initialItems }: { 
     setError("");
     setProgress(0);
     const form = event.currentTarget;
+    // O cliente do Supabase só é necessário no envio; fica fora do carregamento inicial.
+    const { createClient } = await import("@/lib/supabase/client");
     const supabase = createClient();
     const uploadedKeys: string[] = [];
     try {
@@ -130,13 +131,13 @@ export function FreighterMediaEditor({ profileId, authUserId, initialItems }: { 
       <input ref={payloadRef} type="hidden" name="imageOrder" defaultValue="[]" />
       <section className="property-photo-field field-wide">
         <div className="property-photo-field__heading"><div><strong>Fotos do serviço</strong><span>A primeira foto será a capa. Arraste para organizar a galeria.</span></div><b>{items.length}/{FREIGHTER_IMAGE_LIMIT}</b></div>
-        <label className="property-photo-picker" htmlFor="freighter-photos"><span>{optimizing ? "Otimizando fotos..." : "Adicionar fotos"}</span><small>Até 20 MB por original · conversão automática para WebP</small></label>
+        <label className="property-photo-picker" htmlFor="freighter-photos"><span>{optimizing ? "Otimizando fotos…" : "Adicionar fotos"}</span><small>Até 20 MB por original · conversão automática para WebP</small></label>
         <input id="freighter-photos" className="property-photo-input" type="file" accept={PROPERTY_IMAGE_MIME_TYPES.join(",")} multiple onChange={selectPhotos} disabled={saving || optimizing || items.length >= FREIGHTER_IMAGE_LIMIT} />
       </section>
       <div className="field-wide"><PropertyMediaOrganizer items={items} coverId={items[0]?.id ?? null} disabled={saving || optimizing} onMove={move} onReorder={reorder} onRemove={removeItem} onSetCover={setCover} /></div>
       {!items.length ? <p className="property-photo-empty field-wide">Adicione fotos do veículo e de trabalhos realizados para transmitir mais confiança.</p> : null}
       {error ? <p className="property-photo-error field-wide" role="alert">{error}</p> : null}
-      <PendingSubmitButton className="button button--primary field-wide" busy={saving || optimizing} pendingText={optimizing ? "Otimizando fotos..." : saving ? `Enviando fotos ${progress}/${items.filter(item => !item.existing).length}...` : "Salvando..."}>Salvar fotos</PendingSubmitButton>
+      <PendingSubmitButton className="button button--primary field-wide" busy={saving || optimizing} pendingText={optimizing ? "Otimizando fotos…" : saving ? `Enviando fotos ${progress}/${items.filter(item => !item.existing).length}…` : "Salvando…"}>Salvar fotos</PendingSubmitButton>
     </form>
   );
 }

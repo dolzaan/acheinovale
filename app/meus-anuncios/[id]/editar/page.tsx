@@ -22,26 +22,26 @@ const errorMessages: Record<string, string> = {
 type PrivateAddress = { cep?: string | null; logradouro?: string | null; numero?: string | null; complemento?: string | null };
 
 export default async function EditPropertyPage({ params, searchParams }: Props) {
-  const { id } = await params;
-  const query = await searchParams;
+  const [{ id }, query] = await Promise.all([params, searchParams]);
   const user = await requireCurrentUser(`/meus-anuncios/${id}/editar`);
-  const property = await prisma.property.findFirst({
-    where: { id, ownerId: user.id, status: { not: "ARCHIVED" } },
-    include: { neighborhood: { select: { id: true, name: true } } },
-  });
+  const [property, cities] = await Promise.all([
+    prisma.property.findFirst({
+      where: { id, ownerId: user.id, status: { not: "ARCHIVED" } },
+      include: { neighborhood: { select: { id: true, name: true } } },
+    }),
+    prisma.city.findMany({
+      where: { isActive: true },
+      include: { neighborhoods: { where: { needsReview: false }, orderBy: { name: "asc" }, select: { id: true, name: true } } },
+      orderBy: { name: "asc" },
+    }),
+  ]);
   if (!property) notFound();
-
-  const cities = await prisma.city.findMany({
-    where: { isActive: true },
-    include: { neighborhoods: { where: { needsReview: false }, orderBy: { name: "asc" }, select: { id: true, name: true } } },
-    orderBy: { name: "asc" },
-  });
   const address = (property.privateAddressData ?? {}) as PrivateAddress;
 
   return (
     <>
       <Header />
-      <main className="account-page">
+      <main id="conteudo" className="account-page">
         <div className="container form-page">
           <Link className="back-link" href="/meus-anuncios">← Voltar para meus anúncios</Link>
           <div className="account-heading"><span className="section-kicker">Editar anúncio · Código {property.publicCode.toUpperCase()}</span><h1>Dados do imóvel</h1><p>Para alterar fotos e vídeo, use <Link href={`/meus-anuncios/${property.id}/midias`}>Editar mídias</Link>.</p></div>

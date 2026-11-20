@@ -75,17 +75,18 @@ export async function createProperty(formData: FormData) {
   if (!imageKeys || videoKey === null || !mediaOrder) redirect("/publicar/imovel?erro=fotos");
   const uploadedMediaKeys = [...imageKeys, ...(videoKey ? [videoKey] : [])];
 
-  const parsed = await parsePropertyDetails(formData);
+  // Os dados do formulário e as mídias enviadas são conferidos ao mesmo tempo.
+  const [parsed, imagesAreValid, videoIsValid] = await Promise.all([
+    parsePropertyDetails(formData),
+    verifyPropertyImages(imageKeys, user.authUserId),
+    verifyPropertyVideo(videoKey, user.authUserId),
+  ]);
   if (!parsed.ok) {
     await removeUploadedMedia(uploadedMediaKeys);
     redirect(`/publicar/imovel?erro=${parsed.error}`);
   }
   const { neighborhood, privateAddressData, ...details } = parsed.details;
 
-  const [imagesAreValid, videoIsValid] = await Promise.all([
-    verifyPropertyImages(imageKeys, user.authUserId),
-    verifyPropertyVideo(videoKey, user.authUserId),
-  ]);
   if (!imagesAreValid || !videoIsValid) {
     await removeUploadedMedia(uploadedMediaKeys);
     redirect("/publicar/imovel?erro=fotos");

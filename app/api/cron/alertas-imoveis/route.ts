@@ -3,6 +3,7 @@ import { alertMatchWhere, describeAlert } from "@/lib/alerts/saved-search";
 import { prisma } from "@/lib/db";
 import { absoluteUrl, isEmailConfigured, sendEmail } from "@/lib/email/mailer";
 import { propertyUrl } from "@/lib/listings/urls";
+import { forEachWithConcurrency } from "@/lib/performance/concurrency";
 import { isAuthorizedCronRequest } from "@/lib/security/cron";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +11,11 @@ export const maxDuration = 60;
 
 const MAX_ALERTS_PER_RUN = 500;
 const MAX_PROPERTIES_PER_ALERT = 10;
+// Usuários processados ao mesmo tempo: sobrepõe o envio SMTP de um com as consultas de outro
+// sem enfileirar demais no pool de 2 conexões do Prisma.
+const USER_CONCURRENCY = 3;
+// Para de iniciar novos usuários antes do maxDuration; os restantes ficam para a próxima execução.
+const TIME_BUDGET_MS = 45_000;
 
 function money(cents: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(cents / 100);
@@ -23,6 +29,7 @@ export async function GET(request: Request) {
   if (!isEmailConfigured()) return NextResponse.json({ skipped: "SMTP não configurado." });
 
   const now = new Date();
+  const startedAt = Date.now();
   const alerts = await prisma.savedSearch.findMany({
     where: { isActive: true, user: { isBlocked: false } },
     include: { user: { select: { email: true } }, city: { select: { name: true } }, neighborhood: { select: { name: true } } },
@@ -31,15 +38,28 @@ export async function GET(request: Request) {
   });
 
   const byUser = new Map<string, typeof alerts>();
-  for (const alert of alerts) byUser.set(alert.userId, [...(byUser.get(alert.userId) ?? []), alert]);
+  for (const alert of alerts) {
+    const userAlerts = byUser.get(alert.userId);
+    if (userAlerts) userAlerts.push(alert);
+    else byUser.set(alert.userId, [alert]);
+  }
 
   let emails = 0;
-  for (const userAlerts of byUser.values()) {
+  let processedUsers = 0;
+  await forEachWithConcurrency([...byUser.values()], USER_CONCURRENCY, async userAlerts => {
     const sections = [];
     for (const alert of userAlerts) {
       const properties = await prisma.property.findMany({
         where: alertMatchWhere(alert, alert.lastNotifiedAt ?? alert.createdAt),
-        include: { city: { select: { name: true } }, neighborhood: { select: { name: true } } },
+        select: {
+          title: true,
+          publicCode: true,
+          slug: true,
+          purpose: true,
+          priceCents: true,
+          city: { select: { name: true } },
+          neighborhood: { select: { name: true } },
+        },
         orderBy: { publishedAt: "desc" },
         take: MAX_PROPERTIES_PER_ALERT,
       });
@@ -70,8 +90,10 @@ export async function GET(request: Request) {
       await prisma.savedSearch.updateMany({ where: { id: { in: userAlerts.map(alert => alert.id) } }, data: { lastNotifiedAt: now } });
       if (withResults.length) emails += 1;
     }
-  }
+    processedUsers += 1;
+  }, () => Date.now() - startedAt < TIME_BUDGET_MS);
 
-  console.info(JSON.stringify({ level: "info", message: "property_alerts_cron", alerts: alerts.length, emails }));
-  return NextResponse.json({ alerts: alerts.length, emails });
+  const pendingUsers = byUser.size - processedUsers;
+  console.info(JSON.stringify({ level: "info", message: "property_alerts_cron", alerts: alerts.length, emails, pendingUsers }));
+  return NextResponse.json({ alerts: alerts.length, emails, pendingUsers });
 }

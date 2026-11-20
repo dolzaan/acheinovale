@@ -16,7 +16,7 @@ export function SupportPage({ eyebrow, title, description, current, children }: 
   return (
     <>
       <Header />
-      <main className="legal-page support-page">
+      <main id="conteudo" className="legal-page support-page">
         <div className="container legal-layout">
           <header className="legal-heading">
             <span className="section-kicker">{eyebrow}</span>

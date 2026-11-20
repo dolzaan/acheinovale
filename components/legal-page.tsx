@@ -14,7 +14,7 @@ export function LegalPage({ eyebrow, title, description, children }: LegalPagePr
   return (
     <>
       <Header />
-      <main className="legal-page">
+      <main id="conteudo" className="legal-page">
         <div className="container legal-layout">
           <header className="legal-heading">
             <span className="section-kicker">{eyebrow}</span>
