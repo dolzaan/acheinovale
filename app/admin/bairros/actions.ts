@@ -61,3 +61,30 @@ export async function updateNeighborhood(formData: FormData) {
   revalidatePublicLocations();
   redirect(destination(source.city.slug, "concluido=salvo"));
 }
+
+/** Adiciona de uma vez os bairros marcados na lista sugerida pelo OpenStreetMap. */
+export async function importNeighborhoods(formData: FormData) {
+  await requireAdmin("/admin/bairros");
+  const cityId = field(formData, "cityId");
+  const city = await prisma.city.findFirst({ where: { id: cityId, isActive: true }, select: { id: true, slug: true } });
+  if (!city) redirect("/admin/bairros?erro=dados");
+
+  const bySlug = new Map<string, string>();
+  for (const value of formData.getAll("name")) {
+    if (typeof value !== "string") continue;
+    const name = normalizeNeighborhoodName(value);
+    const slug = slugify(name);
+    if (name.length >= 2 && name.length <= 80 && slug) bySlug.set(slug, name);
+  }
+  if (!bySlug.size || bySlug.size > 300) redirect(destination(city.slug, "erro=selecao"));
+
+  // Bairros que já existem (inclusive os digitados por anunciantes) ficam como estão.
+  const { count } = await prisma.neighborhood.createMany({
+    data: [...bySlug].map(([slug, name]) => ({ cityId: city.id, name, slug, needsReview: false })),
+    skipDuplicates: true,
+  });
+
+  revalidatePath("/admin/bairros");
+  revalidatePublicLocations();
+  redirect(destination(city.slug, `concluido=importados&quantidade=${count}`));
+}

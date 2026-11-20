@@ -291,6 +291,18 @@
 .neighborhood-manager__list { display: grid; gap: 9px; }
 .neighborhood-manager__item { grid-template-columns: minmax(220px,1fr) 100px auto; padding: 12px 14px; border: 1px solid var(--brand-line); border-radius: 13px; }
 .neighborhood-manager__item small { align-self: center; color: var(--muted); font-size: .75rem; }
+.neighborhood-import__start { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 14px 16px; border: 1px dashed var(--brand-line); border-radius: 14px; }
+.neighborhood-import__start p { margin: 0; color: var(--muted); font-size: .875rem; }
+.neighborhood-import { display: grid; gap: 12px; padding: 18px; border: 1px solid var(--brand-green); border-radius: 14px; }
+.neighborhood-import h3 { margin: 0; color: var(--brand-green); font-size: 1.125rem; }
+.neighborhood-import > p { margin: 0; color: var(--muted); font-size: .875rem; line-height: 1.5; }
+.neighborhood-import fieldset { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px 14px; margin: 0; padding: 0; border: 0; }
+.neighborhood-import fieldset label { display: flex; align-items: baseline; gap: 8px; padding: 6px 0; }
+.neighborhood-import fieldset input { min-height: 0; width: 16px; height: 16px; flex: 0 0 auto; accent-color: var(--brand-green); }
+.neighborhood-import fieldset span { color: var(--ink); font-size: .9375rem; font-weight: 600; }
+.neighborhood-import fieldset small { color: var(--muted); font-size: .75rem; }
+.neighborhood-import__actions { display: flex; align-items: center; gap: 16px; }
+.neighborhood-import__credit { color: var(--muted); font-size: .75rem; }
 @media (max-width: 680px) { .neighborhood-manager { padding: 18px 14px; }.neighborhood-manager__summary { align-items: flex-start; flex-direction: column; }.neighborhood-manager__create, .neighborhood-manager__item { grid-template-columns: 1fr; }.neighborhood-manager__item small { align-self: auto; }.admin-heading__links { width: 100%; }.admin-heading__links .button { flex: 1; } }
 
 /* A calmer mobile header: one primary action per area and a full-width city selector. */
