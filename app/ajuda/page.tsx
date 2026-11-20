@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function HelpPage() {
   return (
     <SupportPage
-      eyebrow="Respostas rápidas"
+     
       title="Central de ajuda"
       description="Encontre orientações para pesquisar, publicar e administrar seus anúncios de imóveis e serviços de frete."
       current="ajuda"
@@ -22,12 +22,12 @@ export default function HelpPage() {
 
       <section>
         <h2>Como publicar um imóvel?</h2>
-        <p>Acesse <Link href="/publicar">Publicar anúncio</Link>, escolha “Imóvel” e preencha os campos obrigatórios marcados com asterisco. Inclua fotos claras, preço, bairro e uma descrição objetiva para melhorar a qualidade do anúncio.</p>
+        <p>Acesse <Link href="/publicar">Anunciar grátis</Link>, escolha “Imóvel” e preencha os campos obrigatórios marcados com asterisco. Inclua fotos claras, preço, bairro e uma descrição objetiva para melhorar a qualidade do anúncio.</p>
       </section>
 
       <section>
         <h2>Como cadastrar meus serviços de frete?</h2>
-        <p>Acesse <Link href="/publicar/frete">Publicar anúncio de frete</Link>, informe as cidades atendidas, os tipos de serviço, o WhatsApp e adicione imagens do veículo ou do trabalho quando disponíveis.</p>
+        <p>Acesse <Link href="/publicar/frete">Anunciar serviço de frete</Link>, informe as cidades atendidas, os tipos de serviço, o WhatsApp e adicione imagens do veículo ou do trabalho quando disponíveis.</p>
       </section>
 
       <section>

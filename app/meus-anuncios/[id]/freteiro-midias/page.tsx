@@ -46,7 +46,7 @@ export default async function FreighterMediaPage({ params, searchParams }: Props
       <main id="conteudo" className="account-page">
         <div className="container publish-page">
           <Link className="back-link" href="/meus-anuncios">← Voltar para meus anúncios</Link>
-          <div className="account-heading"><span className="section-kicker">Galeria do freteiro</span><h1>Fotos do serviço</h1><p>{profile.displayName}</p></div>
+          <div className="account-heading"><h1>Fotos do serviço</h1><p>{profile.displayName}</p></div>
           {query.cadastro ? <div className="form-success" role="status"><strong>Cadastro salvo.</strong><p>Agora você pode adicionar fotos do veículo e dos serviços realizados.</p></div> : null}
           {query.salvo ? <div className="form-success" role="status"><strong>Fotos salvas.</strong>{query.revisao ? <p>Como o conteúdo público mudou, o cadastro voltou para análise.</p> : <p>A nova ordem já foi aplicada.</p>}</div> : null}
           {query.erro ? <p className="form-alert" role="alert">{errorMessages[query.erro] || "Não foi possível concluir a alteração."}</p> : null}

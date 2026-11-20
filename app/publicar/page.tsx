@@ -12,7 +12,6 @@ export default function PublishPage() {
       <main id="conteudo" className="account-page">
         <div className="container publish-page">
           <div className="account-heading">
-            <span className="section-kicker">Anuncie para sua região</span>
             <h1>O que você quer anunciar?</h1>
             <p>Escolha uma opção para começar. Você só precisará entrar na sua conta quando for continuar com a publicação.</p>
           </div>

@@ -217,6 +217,11 @@
   .city-tourism-visual .regional-signature { top: 12px; right: 12px; padding: 8px 10px; font-size: .75rem; }
   .city-tourism-visual .photo-credits { margin: 8px 4px 0; }
   .city-tourism-empty { min-height: 260px; }
+  /* No celular a foto da cidade vem antes do título, numa faixa baixa, para a
+     identidade da cidade aparecer já na primeira tela sem empurrar a busca. */
+  .city-tourism-visual.hero__visual.regional-visual { order: -1; padding: 0; }
+  .city-tourism-visual .regional-photo--main { height: 150px; border-top-left-radius: 36px; }
+  .city-tourism-visual .regional-signature { display: none; }
 }
 
 /* Publishing assistance: editable locations, drafts and an in-form preview. */

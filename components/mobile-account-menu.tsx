@@ -101,7 +101,7 @@ export function MobileAccountMenu() {
             </nav>
 
             <Link prefetch={false} className="button button--primary mobile-account-menu__publish" href="/publicar" onClick={closeMenu}>
-              <PlusIcon size={19} /> Publicar anúncio
+              <PlusIcon size={19} /> Anunciar grátis
             </Link>
             <form action={signOut}>
               <button type="submit" className="mobile-account-menu__signout">Sair da conta</button>

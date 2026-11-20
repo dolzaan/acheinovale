@@ -3,9 +3,13 @@ import { CITY_COOKIE_NAME, normalizeCitySlug } from "@/lib/location/city-prefere
 import { updateSession } from "@/lib/supabase/proxy";
 
 export async function proxy(request: NextRequest) {
-  // Visitante que já escolheu a cidade vai direto para a home dela, antes de
-  // renderizar a home padrão. O redirecionamento não recebe cabeçalho de CDN.
-  if (request.nextUrl.pathname === "/" && !request.nextUrl.searchParams.has("cidade")
+  // Visitante que já escolheu a cidade vai direto para a página dela (home e catálogos
+  // sem cidade na URL), em vez da cidade padrão. A cidade entra na URL, então o cache
+  // da CDN continua separado por cidade; o redirecionamento não recebe cabeçalho de CDN.
+  const { pathname, searchParams } = request.nextUrl;
+  const usesSavedCity = pathname === "/" || pathname === "/freteiros"
+    || (pathname === "/imoveis" && searchParams.get("regiao") !== "1");
+  if (usesSavedCity && !searchParams.has("cidade")
     && (request.method === "GET" || request.method === "HEAD")) {
     const savedSlug = normalizeCitySlug(request.cookies.get(CITY_COOKIE_NAME)?.value);
     if (savedSlug) {

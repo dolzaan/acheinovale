@@ -62,12 +62,12 @@ export default async function MyListingsPage({ searchParams }: Props) {
         <div className="container listings-page">
           {params.criado === "imovel" ? <ClearPropertyDraft ownerKey={user.authUserId || user.id} /> : null}
           <div className="account-heading account-heading--row">
-            <div><span className="section-kicker">Sua área</span><h1>Meus anúncios</h1><p>Gerencie imóveis e serviços publicados com a sua conta.</p></div>
+            <div><h1>Meus anúncios</h1><p>Gerencie imóveis e serviços publicados com a sua conta.</p></div>
             <Link className="button button--primary" href="/publicar">Novo anúncio</Link>
           </div>
 
           {!properties.length && !freighter ? (
-            <div className="empty-state"><strong>Você ainda não publicou nada.</strong><p>Seu primeiro anúncio leva poucos minutos.</p><Link className="button button--primary" href="/publicar">Publicar grátis</Link></div>
+            <div className="empty-state"><strong>Você ainda não publicou nada.</strong><p>Seu primeiro anúncio leva poucos minutos.</p><Link className="button button--primary" href="/publicar">Anunciar grátis</Link></div>
           ) : (
             <div className="listing-manager">
               {properties.map(property => (

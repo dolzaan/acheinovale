@@ -33,7 +33,7 @@ export function Header({ citySlug }: { citySlug?: string } = {}) {
           <HeaderSearch citySlug={resolvedCitySlug} />
           <HeaderAccount />
           <Link prefetch={false} className="button button--primary button--sm" href="/publicar">
-            <PlusIcon size={18} /> Publicar grátis
+            <PlusIcon size={18} /> Anunciar grátis
           </Link>
         </div>
       </div>

@@ -44,7 +44,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             {params.primeiro === "1" && (
               <div className="onboarding-note"><strong>Falta bem pouco!</strong><span>Complete cidade e WhatsApp para continuar.</span></div>
             )}
-            <div className="account-heading"><span className="section-kicker">Minha conta</span><h1>Meu perfil</h1><p>Esses dados ajudam a deixar seus anúncios completos e confiáveis.</p></div>
+            <div className="account-heading"><h1>Meu perfil</h1><p>Esses dados ajudam a deixar seus anúncios completos e confiáveis.</p></div>
             {params.salvo && <p className="form-success" role="status">Perfil atualizado com sucesso.</p>}
             {params.erro && <p className="form-alert" role="alert">{errorMessage}</p>}
 

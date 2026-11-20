@@ -4,20 +4,18 @@ import { MobileNav } from "./mobile-nav";
 import { SiteFooter } from "./footer";
 
 type LegalPageProps = {
-  eyebrow: string;
   title: string;
   description: string;
   children: React.ReactNode;
 };
 
-export function LegalPage({ eyebrow, title, description, children }: LegalPageProps) {
+export function LegalPage({ title, description, children }: LegalPageProps) {
   return (
     <>
       <Header />
       <main id="conteudo" className="legal-page">
         <div className="container legal-layout">
           <header className="legal-heading">
-            <span className="section-kicker">{eyebrow}</span>
             <h1>{title}</h1>
             <p>{description}</p>
             <small>Última atualização: 1º de setembro de 2026</small>

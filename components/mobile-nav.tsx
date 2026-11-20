@@ -25,9 +25,9 @@ export function MobileNav({ citySlug }: { citySlug?: string } = {}) {
     <nav className="mobile-nav" aria-label="Navegação mobile">
       <Link prefetch={false} {...itemProps("inicio")} href={`/${cityQuery}`}><HomeIcon/><span>Início</span></Link>
       <Link prefetch={false} {...itemProps("imoveis")} href={propertiesHref}><BuildingIcon/><span>Imóveis</span></Link>
-      <Link prefetch={false} className="mobile-nav__publish" href="/publicar" aria-label="Publicar anúncio">
+      <Link prefetch={false} className="mobile-nav__publish" href="/publicar" aria-label="Anunciar grátis">
         <span className="mobile-nav__publish-icon" aria-hidden="true"><PlusIcon size={26}/></span>
-        <span className="mobile-nav__publish-label">Publicar</span>
+        <span className="mobile-nav__publish-label">Anunciar</span>
       </Link>
       <Link prefetch={false} {...itemProps("freteiros")} href={freightersHref}><TruckIcon/><span>Freteiros</span></Link>
       <MobileAccountMenu />

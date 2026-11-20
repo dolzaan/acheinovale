@@ -23,7 +23,6 @@ export default async function AlertsPage({ searchParams }: Props) {
       <main id="conteudo" className="account-page">
         <div className="container listings-page">
           <div className="account-heading">
-            <span className="section-kicker">Sua área</span>
             <h1>Alertas de imóveis</h1>
             <p>Receba no máximo um e-mail por dia em {user.email} com os imóveis novos que combinam com suas buscas.</p>
           </div>

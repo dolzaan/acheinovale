@@ -33,7 +33,7 @@ export default async function NewPropertyPage({ searchParams }: Props) {
       <Header />
       <main id="conteudo" className="account-page">
         <div className="container form-page">
-          <div className="account-heading"><span className="section-kicker">Novo anúncio</span><h1>Publicar imóvel</h1><p>Preencha os dados e adicione até {PROPERTY_IMAGE_LIMIT} fotos e um vídeo para apresentar melhor o imóvel.</p></div>
+          <div className="account-heading"><h1>Anunciar imóvel</h1><p>Preencha os dados e adicione até {PROPERTY_IMAGE_LIMIT} fotos e um vídeo para apresentar melhor o imóvel.</p></div>
           {params.erro ? <p className="form-alert">{errorMessages[params.erro] || "Revise os campos informados."}</p> : null}
           <PropertyPublishForm
             authUserId={user.authUserId}
