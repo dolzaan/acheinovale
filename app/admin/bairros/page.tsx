@@ -5,7 +5,7 @@ import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { requireAdmin } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
 import { loadNeighborhoodSuggestions, type NeighborhoodSuggestion, type NeighborhoodSuggestionKind } from "@/lib/location/neighborhood-sources";
-import { createNeighborhood, importNeighborhoods, updateNeighborhood } from "./actions";
+import { createNeighborhood, importNeighborhoods, importOfficialNeighborhoodsForAllCities, updateNeighborhood } from "./actions";
 
 // A consulta ao OpenStreetMap pode levar dezenas de segundos em cidades grandes.
 export const maxDuration = 60;
@@ -50,6 +50,15 @@ export default async function NeighborhoodAdminPage({ searchParams }: Props) {
     <div className="account-heading admin-heading"><span className="section-kicker">Localizações</span><h1>Gerenciar bairros</h1><p>Cadastre bairros oficiais, corrija nomes e aprove os bairros digitados pelos anunciantes.</p><Link className="button button--secondary" href="/admin/anuncios">Voltar para moderação</Link></div>
     {params.concluido ? <p className="admin-alert admin-alert--success">{successMessage(params)}</p> : null}
     {params.erro ? <p className="admin-alert admin-alert--error">{params.erro === "selecao" ? "Marque pelo menos um bairro da lista para adicionar." : "Não foi possível salvar o bairro. Confira o nome e tente novamente."}</p> : null}
+
+    <form action={importOfficialNeighborhoodsForAllCities} className="neighborhood-import-all">
+      <div>
+        <h2>Bairros das prefeituras em todas as cidades</h2>
+        <p>Adiciona de uma vez os bairros das listas das prefeituras (leis, planos diretores e sites oficiais) nas cidades que têm lista. Bairros já cadastrados ficam como estão. Para revisar cidade por cidade ou buscar no OpenStreetMap, use “Buscar bairros” abaixo.</p>
+        <label className="checkbox-field"><input type="checkbox" name="rurais" value="1"/><span>Incluir as localidades rurais (comunidades do interior)</span></label>
+      </div>
+      <PendingSubmitButton className="button button--primary" pendingText="Adicionando…" confirmMessage="Adicionar os bairros das prefeituras em todas as cidades? Os bairros novos aparecem no site na hora.">Adicionar em todas as cidades</PendingSubmitButton>
+    </form>
 
     <nav className="neighborhood-city-tabs" aria-label="Escolher cidade">{cities.map(city => <Link className={city.id === selectedCity?.id ? "is-active" : ""} href={`/admin/bairros?cidade=${city.slug}`} key={city.id}>{city.name}</Link>)}</nav>
 

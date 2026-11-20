@@ -6,6 +6,7 @@ import { requireAdmin } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
 import { revalidatePublicLocations } from "@/lib/listings/public-cache";
 import { normalizeNeighborhoodName } from "@/lib/location/neighborhood";
+import { loadOfficialNeighborhoods } from "@/lib/location/neighborhood-sources";
 import { slugify } from "@/lib/validation/listing";
 
 function field(formData: FormData, name: string) {
@@ -62,7 +63,7 @@ export async function updateNeighborhood(formData: FormData) {
   redirect(destination(source.city.slug, "concluido=salvo"));
 }
 
-/** Adiciona de uma vez os bairros marcados na lista sugerida pelo OpenStreetMap. */
+/** Adiciona de uma vez os bairros marcados na lista sugerida (prefeitura e OpenStreetMap). */
 export async function importNeighborhoods(formData: FormData) {
   await requireAdmin("/admin/bairros");
   const cityId = field(formData, "cityId");
@@ -87,4 +88,24 @@ export async function importNeighborhoods(formData: FormData) {
   revalidatePath("/admin/bairros");
   revalidatePublicLocations();
   redirect(destination(city.slug, `concluido=importados&quantidade=${count}`));
+}
+
+/** Adiciona os bairros das listas das prefeituras em todas as cidades ativas de uma vez. */
+export async function importOfficialNeighborhoodsForAllCities(formData: FormData) {
+  await requireAdmin("/admin/bairros");
+  const includeRural = field(formData, "rurais") === "1";
+  const cities = await prisma.city.findMany({ where: { isActive: true }, select: { id: true, name: true, stateCode: true, ibgeCode: true } });
+
+  // A lista de municípios do IBGE fica no cache de dados: uma consulta serve para todas as cidades.
+  const rows = [];
+  for (const city of cities) {
+    for (const { name, slug } of await loadOfficialNeighborhoods(city, includeRural)) rows.push({ cityId: city.id, name, slug, needsReview: false });
+  }
+  const { count } = rows.length
+    ? await prisma.neighborhood.createMany({ data: rows, skipDuplicates: true })
+    : { count: 0 };
+
+  revalidatePath("/admin/bairros");
+  revalidatePublicLocations();
+  redirect(`/admin/bairros?concluido=importados&quantidade=${count}`);
 }
