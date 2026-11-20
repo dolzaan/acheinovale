@@ -1,39 +1,65 @@
 import type { MetadataRoute } from "next";
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
+import { PUBLIC_LISTINGS_TAG, PUBLIC_LOCATIONS_TAG } from "@/lib/listings/public-cache";
 import { freighterUrl, propertyCatalogPath, propertyUrl } from "@/lib/listings/urls";
 import { SITE_URL } from "@/lib/site";
 
+// Continua dinâmico para o build não depender do banco; os dados ficam em cache
+// por 1h e são renovados junto com os anúncios, em vez de 5 consultas por acesso de robô.
 export const dynamic = "force-dynamic";
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const cities = await prisma.city.findMany({
-    where: { isActive: true },
-    select: {
-      id: true,
-      slug: true,
-      _count: {
-        select: {
-          properties: { where: { status: "ACTIVE" } },
-          freighterProfiles: { where: { status: "ACTIVE" } },
+const getSitemapData = unstable_cache(async () => {
+  // No máximo duas consultas por vez, para caber no pool de 2 conexões (lib/db.ts).
+  const [cities, properties] = await Promise.all([
+    prisma.city.findMany({
+      where: { isActive: true },
+      select: {
+        id: true,
+        slug: true,
+        _count: {
+          select: {
+            properties: { where: { status: "ACTIVE" } },
+            freighterProfiles: { where: { status: "ACTIVE" } },
+          },
         },
       },
-    },
-    orderBy: { name: "asc" },
-  });
-  const properties = await prisma.property.findMany({
-    where: { status: "ACTIVE" },
-    select: { publicCode: true, slug: true, updatedAt: true },
-    orderBy: { updatedAt: "desc" },
-  });
+      orderBy: { name: "asc" },
+    }),
+    prisma.property.findMany({
+      where: { status: "ACTIVE" },
+      select: { publicCode: true, slug: true, updatedAt: true },
+      orderBy: { updatedAt: "desc" },
+    }),
+  ]);
   // Páginas por finalidade e bairro só entram quando têm anúncios ativos.
-  const catalogGroups = await prisma.property.groupBy({
-    by: ["cityId", "purpose", "neighborhoodId"],
-    where: { status: "ACTIVE", city: { isActive: true }, neighborhood: { needsReview: false } },
-  });
+  const [catalogGroups, freighters] = await Promise.all([
+    prisma.property.groupBy({
+      by: ["cityId", "purpose", "neighborhoodId"],
+      where: { status: "ACTIVE", city: { isActive: true }, neighborhood: { needsReview: false } },
+    }),
+    prisma.freighterProfile.findMany({
+      where: { status: "ACTIVE" },
+      select: { publicCode: true, slug: true, updatedAt: true },
+      orderBy: { updatedAt: "desc" },
+    }),
+  ]);
   const neighborhoods = await prisma.neighborhood.findMany({
     where: { id: { in: [...new Set(catalogGroups.map(group => group.neighborhoodId))] } },
     select: { id: true, slug: true },
   });
+  // O cache guarda JSON: as datas viram texto aqui para o tipo refletir isso.
+  return {
+    cities,
+    catalogGroups,
+    neighborhoods,
+    properties: properties.map(({ updatedAt, ...property }) => ({ ...property, updatedAt: updatedAt.toISOString() })),
+    freighters: freighters.map(({ updatedAt, ...freighter }) => ({ ...freighter, updatedAt: updatedAt.toISOString() })),
+  };
+}, ["sitemap-data-v1"], { revalidate: 60 * 60, tags: [PUBLIC_LISTINGS_TAG, PUBLIC_LOCATIONS_TAG] });
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const { cities, properties, catalogGroups, neighborhoods, freighters } = await getSitemapData();
   const citySlugById = new Map(cities.map(city => [city.id, city.slug]));
   const neighborhoodSlugById = new Map(neighborhoods.map(neighborhood => [neighborhood.id, neighborhood.slug]));
   const catalogPaths = new Set<string>();
@@ -45,12 +71,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     catalogPaths.add(propertyCatalogPath(citySlug, purposeSlug));
     if (neighborhoodSlug) catalogPaths.add(propertyCatalogPath(citySlug, purposeSlug, neighborhoodSlug));
   }
-  const freighters = await prisma.freighterProfile.findMany({
-    where: { status: "ACTIVE" },
-    select: { publicCode: true, slug: true, updatedAt: true },
-    orderBy: { updatedAt: "desc" },
-  });
-
   return [
     { url: SITE_URL, changeFrequency: "daily", priority: 1 },
     { url: `${SITE_URL}/imoveis`, changeFrequency: "daily", priority: 0.9 },

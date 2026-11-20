@@ -13,6 +13,23 @@ type CityOption = {
   stateCode: string;
 };
 
+// A lista de cidades muda raramente: uma busca por carregamento de página basta,
+// mesmo com o cabeçalho remontando a cada navegação.
+let citiesRequest: Promise<CityOption[]> | null = null;
+
+function loadCities() {
+  citiesRequest ??= fetch("/api/localizacoes/cidades")
+    .then(response => {
+      if (!response.ok) throw new Error("Falha ao carregar cidades");
+      return response.json() as Promise<CityOption[]>;
+    })
+    .catch(error => {
+      citiesRequest = null;
+      throw error;
+    });
+  return citiesRequest;
+}
+
 export function HeaderCitySwitcher({ defaultCitySlug = "rio-do-sul" }: { defaultCitySlug?: string }) {
   const detailsRef = useRef<HTMLDetailsElement>(null);
   const [cities, setCities] = useState<CityOption[]>([]);
@@ -53,20 +70,11 @@ export function HeaderCitySwitcher({ defaultCitySlug = "rio-do-sul" }: { default
   }
 
   useEffect(() => {
-    const controller = new AbortController();
-
-    fetch("/api/localizacoes/cidades", { signal: controller.signal })
-      .then(response => {
-        if (!response.ok) throw new Error("Falha ao carregar cidades");
-        return response.json() as Promise<CityOption[]>;
-      })
-      .then(setCities)
-      .catch(error => {
-        if (error instanceof DOMException && error.name === "AbortError") return;
-        setLoadFailed(true);
-      });
-
-    return () => controller.abort();
+    let active = true;
+    loadCities()
+      .then(result => { if (active) setCities(result); })
+      .catch(() => { if (active) setLoadFailed(true); });
+    return () => { active = false; };
   }, []);
 
   useEffect(() => {
@@ -87,7 +95,7 @@ export function HeaderCitySwitcher({ defaultCitySlug = "rio-do-sul" }: { default
       }
     }
     document.addEventListener("keydown", close);
-    document.addEventListener("pointerdown", close);
+    document.addEventListener("pointerdown", close, { passive: true });
     return () => {
       document.removeEventListener("keydown", close);
       document.removeEventListener("pointerdown", close);
@@ -107,8 +115,8 @@ export function HeaderCitySwitcher({ defaultCitySlug = "rio-do-sul" }: { default
           <div><strong>Escolha sua cidade</strong><small>Veja anúncios e serviços disponíveis nela</small></div>
         </div>
         <div className="city-menu__list">
-          {!cities.length && !loadFailed ? <span className="city-menu__status">Carregando cidades...</span> : null}
-          {loadFailed ? <span className="city-menu__status">Não foi possível carregar. Tente novamente.</span> : null}
+          {!cities.length && !loadFailed ? <span className="city-menu__status" role="status">Carregando cidades…</span> : null}
+          {loadFailed ? <span className="city-menu__status" role="alert">Não foi possível carregar. Tente novamente.</span> : null}
           {cities.map(city => (
             <Link prefetch={false}
               href={cityHref(city.slug)}

@@ -118,15 +118,15 @@ export function PropertyEditForm({ propertyId, cities, initial }: { propertyId: 
       <details className="publish-optional-section field-wide" open={Boolean(initial.cep)}>
         <summary>Endereço detalhado <span>Opcional</span></summary>
         <p>Esses dados ficam privados e não aparecem no anúncio público. Deixe o CEP em branco para remover o endereço salvo.</p>
-        <label className="property-cep-field"><span>CEP</span><div><input name="cep" value={cep} inputMode="numeric" autoComplete="postal-code" maxLength={9} placeholder="00000-000" onChange={event => { setCep(formatCep(event.target.value)); setCepStatus(null); }} /><button type="button" onClick={() => void consultCep()} disabled={cepLoading}>{cepLoading ? "Consultando..." : "Buscar CEP"}</button></div></label>
+        <label className="property-cep-field"><span>CEP</span><div><input name="cep" value={cep} inputMode="numeric" autoComplete="postal-code" maxLength={9} placeholder="00000-000" onChange={event => { setCep(formatCep(event.target.value)); setCepStatus(null); }} /><button type="button" onClick={() => void consultCep()} disabled={cepLoading}>{cepLoading ? "Consultando…" : "Buscar CEP"}</button></div></label>
         <label><span>Rua</span><input name="street" value={street} onChange={event => setStreet(event.target.value)} maxLength={160} autoComplete="address-line1" /></label>
-        <label><span>Número</span><input name="addressNumber" defaultValue={initial.addressNumber} maxLength={20} autoComplete="address-line2" placeholder="Ex: 120 ou S/N" /></label>
-        <label className="field-wide"><span>Complemento</span><input name="addressComplement" value={addressComplement} onChange={event => setAddressComplement(event.target.value)} maxLength={120} /></label>
+        <label><span>Número</span><input name="addressNumber" defaultValue={initial.addressNumber} maxLength={20} autoComplete="off" placeholder="Ex: 120 ou S/N" /></label>
+        <label className="field-wide"><span>Complemento</span><input name="addressComplement" value={addressComplement} onChange={event => setAddressComplement(event.target.value)} maxLength={120} autoComplete="address-line2" /></label>
         {cepStatus ? <p className={`property-cep-status property-cep-status--${cepStatus.kind} field-wide`} role="status">{cepStatus.message}</p> : null}
       </details>
 
       <p className="property-privacy-note field-wide">Alterações em título, descrição, preço, características, bairro ou WhatsApp fazem o anúncio voltar para análise antes de aparecer de novo. O código do anúncio é mantido.</p>
-      <PendingSubmitButton className="button button--primary field-wide" pendingText="Salvando alterações...">Salvar alterações</PendingSubmitButton>
+      <PendingSubmitButton className="button button--primary field-wide" pendingText="Salvando alterações…">Salvar alterações</PendingSubmitButton>
     </form>
   );
 }

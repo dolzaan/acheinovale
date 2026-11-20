@@ -114,7 +114,7 @@ export function PwaInstallPrompt() {
         onClick={install}
         disabled={isInstalling}
       >
-        {isInstalling ? "Abrindo..." : "Instalar app"}
+        {isInstalling ? "Abrindo…" : "Instalar app"}
       </button>
     </aside>
   );

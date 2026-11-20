@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ListingQualityIndicator } from "@/components/listing-quality-indicator";
 import { UserAvatar } from "@/components/user-avatar";
+import { useModalFocus } from "@/components/use-modal-focus";
 
 type PreviewData = {
   city: string;
@@ -30,6 +31,9 @@ export function FreighterFormTools({ hasPhoto, image, initialCompleted }: { hasP
   const rootRef = useRef<HTMLDivElement>(null);
   const [qualityItems, setQualityItems] = useState(() => COMPLETION_ITEMS.map((label, index) => ({ label, complete: index < initialCompleted })));
   const [preview, setPreview] = useState<PreviewData | null>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
+  const previewCloseRef = useRef<HTMLButtonElement>(null);
+  useModalFocus(previewRef, preview !== null, previewCloseRef);
 
   const readForm = useCallback(() => {
     const form = rootRef.current?.closest("form");
@@ -81,8 +85,8 @@ export function FreighterFormTools({ hasPhoto, image, initialCompleted }: { hasP
       <button className="button button--secondary" type="button" onClick={() => setPreview(readForm())}>Ver prévia antes de salvar</button>
 
       {preview ? (
-        <div className="freighter-preview" role="dialog" aria-modal="true" aria-label="Prévia do cadastro de freteiro">
-          <button className="freighter-preview__close" type="button" onClick={() => setPreview(null)} aria-label="Fechar prévia">×</button>
+        <div ref={previewRef} className="freighter-preview" role="dialog" aria-modal="true" aria-label="Prévia do cadastro de freteiro">
+          <button ref={previewCloseRef} className="freighter-preview__close" type="button" onClick={() => setPreview(null)} aria-label="Fechar prévia">×</button>
           <article className="freighter-preview__card">
             <UserAvatar image={image} name={preview.displayName} size="lg" />
             <span className="freighter-profile-badge">Prévia do perfil</span>

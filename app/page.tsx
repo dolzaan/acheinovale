@@ -58,7 +58,7 @@ export default async function HomePage({ searchParams }: Props) {
     <>
       <AutoDetectCity />
       <Header citySlug={city?.slug} />
-      <main>
+      <main id="conteudo">
         <section className="hero">
           <div className="container hero__inner">
             <div className="hero__content">
@@ -69,8 +69,8 @@ export default async function HomePage({ searchParams }: Props) {
               <Form id="home-search-form" className="main-search" action="/buscar">
                 {city ? <input type="hidden" name="cidade" value={city.slug} /> : null}
                 <SearchIcon size={22}/>
-                <input name="q" aria-label="O que você procura?" placeholder="Ex: casa para alugar no Centro" />
-                <PendingSubmitButton aria-label="Buscar" pendingText="Buscando..." navigation><SearchIcon size={20}/><span>Buscar</span></PendingSubmitButton>
+                <input type="search" name="q" autoComplete="off" aria-label="O que você procura?" placeholder="Ex: casa para alugar no Centro…" />
+                <PendingSubmitButton aria-label="Buscar" pendingText="Buscando…" navigation><SearchIcon size={20}/><span>Buscar</span></PendingSubmitButton>
               </Form>
 
               <div className="quick-searches" aria-label="Buscas populares">

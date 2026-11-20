@@ -8,7 +8,7 @@ export function FavoriteButton({ kind, id, saved }: { kind: FavoriteKind; id: st
     <form action={toggleFavorite.bind(null, kind, id)} className="favorite-form">
       <PendingSubmitButton
         className={`favorite-button${saved ? " is-saved" : ""}`}
-        pendingText={saved ? "Removendo..." : "Salvando..."}
+        pendingText={saved ? "Removendo…" : "Salvando…"}
         aria-pressed={saved}
       >
         <HeartIcon size={18} />

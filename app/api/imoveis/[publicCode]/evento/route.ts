@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { allowListingEvent, metricCounters, metricDay, readListingEvent } from "@/lib/metrics/listing-events";
 
@@ -13,20 +13,22 @@ export async function POST(request: Request, { params }: Props) {
     where: { publicCode, status: "ACTIVE" },
     select: { id: true },
   });
-  if (!property || !await allowListingEvent(request, "metrica-imovel", property.id, type)) {
-    return new NextResponse(null, { status: 204 });
-  }
+  if (!property) return new NextResponse(null, { status: 204 });
 
-  const date = metricDay();
-  const counters = metricCounters(type);
-  try {
-    await prisma.propertyMetricDaily.upsert({
-      where: { propertyId_date: { propertyId: property.id, date } },
-      create: { propertyId: property.id, date, ...counters.create },
-      update: counters.update,
-    });
-  } catch (error) {
-    console.warn("[imovel/metrica] Métrica não registrada.", error instanceof Error ? error.message : String(error));
-  }
+  // A resposta é sempre 204: o limite e a contagem rodam depois de responder.
+  after(async () => {
+    if (!await allowListingEvent(request, "metrica-imovel", property.id, type)) return;
+    const date = metricDay();
+    const counters = metricCounters(type);
+    try {
+      await prisma.propertyMetricDaily.upsert({
+        where: { propertyId_date: { propertyId: property.id, date } },
+        create: { propertyId: property.id, date, ...counters.create },
+        update: counters.update,
+      });
+    } catch (error) {
+      console.warn("[imovel/metrica] Métrica não registrada.", error instanceof Error ? error.message : String(error));
+    }
+  });
   return new NextResponse(null, { status: 204 });
 }

@@ -5,8 +5,8 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { measureServerOperation } from "@/lib/performance/timing";
 
-const PUBLIC_LOCATIONS_TAG = "public-locations";
-const PUBLIC_LISTINGS_TAG = "public-listings";
+export const PUBLIC_LOCATIONS_TAG = "public-locations";
+export const PUBLIC_LISTINGS_TAG = "public-listings";
 // Escritas invalidam esta tag imediatamente. O intervalo maior funciona como
 // rede de segurança sem renovar o catálogo no banco a cada poucos minutos.
 const PUBLIC_DATA_REVALIDATE_SECONDS = 60 * 60;
@@ -73,7 +73,7 @@ async function loadPublicData<T>(key: string, loader: () => Promise<T>, emptyVal
   }
 }
 
-const propertyCardSelect = {
+export const propertyCardSelect = {
   id: true,
   publicCode: true,
   slug: true,
@@ -168,21 +168,44 @@ export function getActiveLocations() {
   return loadPublicData("locations", getCachedActiveLocations, () => []);
 }
 
+const getCachedCitiesWithListings = unstable_cache(
+  async (category: "imoveis" | "freteiros") => measureServerOperation("city.list_with_listings", () => prisma.city.findMany({
+    where: {
+      isActive: true,
+      ...(category === "imoveis"
+        ? { properties: { some: { status: "ACTIVE" } } }
+        : { freighterProfiles: { some: { status: "ACTIVE" } } }),
+    },
+    select: { name: true, slug: true },
+    orderBy: { name: "asc" },
+    take: 50,
+  })),
+  ["cities-with-listings-v1"],
+  // Depende dos anúncios e das cidades ativas, então é invalidado pelas duas tags.
+  { revalidate: PUBLIC_DATA_REVALIDATE_SECONDS, tags: [PUBLIC_LISTINGS_TAG, PUBLIC_LOCATIONS_TAG] },
+);
+
+export function getCitiesWithListings(category: "imoveis" | "freteiros") {
+  return loadPublicData(`cities-with-listings:${category}`, () => getCachedCitiesWithListings(category), () => []);
+}
+
 const getCachedHomeListings = unstable_cache(
   async (cityId: string) => measureServerOperation("home.public_listings", async () => {
-    const properties = await prisma.property.findMany({
-      where: { status: "ACTIVE", cityId },
-      select: propertyCardSelect,
-      orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
-      take: 3,
-    });
-    const freighters = await prisma.freighterProfile.findMany({
-      where: { status: "ACTIVE", cityId },
-      select: freighterCardSelect,
-      orderBy: { updatedAt: "desc" },
-      take: 3,
-    });
-    return [properties, freighters] as const;
+    // Duas consultas em paralelo cabem no pool de 2 conexões (lib/db.ts).
+    return Promise.all([
+      prisma.property.findMany({
+        where: { status: "ACTIVE", cityId },
+        select: propertyCardSelect,
+        orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
+        take: 3,
+      }),
+      prisma.freighterProfile.findMany({
+        where: { status: "ACTIVE", cityId },
+        select: freighterCardSelect,
+        orderBy: { updatedAt: "desc" },
+        take: 3,
+      }),
+    ]);
   }),
   ["home-public-listings-v1"],
   { revalidate: PUBLIC_DATA_REVALIDATE_SECONDS, tags: [PUBLIC_LISTINGS_TAG] },
@@ -203,15 +226,16 @@ const getCachedPublicPropertiesPage = unstable_cache(
     skip: number,
     take: number,
   ) => measureServerOperation("property.list_public", async () => {
-    const properties = await prisma.property.findMany({
-      where,
-      select: propertyCardSelect,
-      orderBy,
-      skip,
-      take,
-    });
-    const resultCount = await prisma.property.count({ where });
-    return [properties, resultCount] as const;
+    return Promise.all([
+      prisma.property.findMany({
+        where,
+        select: propertyCardSelect,
+        orderBy,
+        skip,
+        take,
+      }),
+      prisma.property.count({ where }),
+    ]);
   }),
   ["public-properties-page-v1"],
   { revalidate: PUBLIC_DATA_REVALIDATE_SECONDS, tags: [PUBLIC_LISTINGS_TAG] },

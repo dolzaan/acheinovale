@@ -19,7 +19,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   return (
     <>
       <Header />
-      <main className="auth-page">
+      <main id="conteudo" className="auth-page">
         <section className="auth-card">
           <Logo />
           <span className="auth-card__eyebrow">Sua conta local</span>

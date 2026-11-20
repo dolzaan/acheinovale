@@ -69,20 +69,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PropertyPage({ params, searchParams }: Props) {
   const [{ publicCode, slug }, query] = await Promise.all([params, searchParams]);
-  const property = await getPublicProperty(publicCode);
+  // Sem cookie de sessão, getCurrentUser retorna na hora; com sessão, roda junto com o anúncio.
+  const [property, viewer] = await Promise.all([getPublicProperty(publicCode), getCurrentUser()]);
   if (!property) notFound();
 
-  const viewer = await getCurrentUser();
   if (property.status !== "ACTIVE") {
     if (!viewer || (viewer.id !== property.ownerId && viewer.role !== "ADMIN")) {
       notFound();
     }
   }
+  if (slug !== property.slug) permanentRedirect(propertyUrl(property));
+
   const isFavorite = viewer
     ? Boolean(await prisma.favorite.findFirst({ where: { userId: viewer.id, propertyId: property.id }, select: { id: true } }))
     : false;
-
-  if (slug !== property.slug) permanentRedirect(propertyUrl(property));
 
   const canonical = `${SITE_URL}${propertyUrl(property)}`;
   const whatsappUrl = `https://wa.me/${property.whatsapp}?text=${encodeURIComponent(
@@ -120,7 +120,7 @@ export default async function PropertyPage({ params, searchParams }: Props) {
       <Script id={`property-${property.publicCode}-jsonld`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(propertyStructuredData) }} />
       <Script id={`property-${property.publicCode}-breadcrumbs`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbStructuredData) }} />
       <Header />
-      <main className="listing-detail-page">
+      <main id="conteudo" className="listing-detail-page">
         <div className="container listing-detail">
           {property.status !== "ACTIVE" ? (
             <div className="preview-notice">

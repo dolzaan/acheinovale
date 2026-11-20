@@ -33,7 +33,7 @@ export default async function NewFreightPage({ searchParams }: Props) {
   const hasPhoto = Boolean(user.image || profile?.images.length);
   const initialCompleted = [Boolean((profile?.whatsapp || user.phone || "").replace(/\D/g, "").length >= 10), Boolean(profile?.cityId || user.cityId), Boolean(profile?.description && profile.description.trim().length >= 60), hasPhoto, savedVehicleTypes.length > 0].filter(Boolean).length;
 
-  return <><PublishConversionEvent name="publish_freighter_form_view" /><Header/><main className="account-page"><div className="container form-page">
+  return <><PublishConversionEvent name="publish_freighter_form_view" /><Header/><main id="conteudo" className="account-page"><div className="container form-page">
     <div className="account-heading"><span className="section-kicker">Cadastro profissional</span><h1>{profile ? "Editar cadastro de freteiro" : "Cadastrar como freteiro"}</h1><p>Apresente seu serviço com clareza para receber contatos pelo WhatsApp.</p></div>
     {profile ? <Link className="button button--secondary" href={`/meus-anuncios/${profile.id}/freteiro-midias`}>Adicionar ou editar fotos</Link> : null}
     {params.erro && <p className="form-alert">Revise os campos informados ou tente enviar outra foto.</p>}
@@ -49,7 +49,7 @@ export default async function NewFreightPage({ searchParams }: Props) {
       <fieldset className="field-wide option-fieldset"><legend>Cidades atendidas</legend><div className="option-grid option-grid--cities">{cities.map(city => <label className="checkbox-field" key={city.id}><input type="checkbox" name="serviceCityIds" value={city.id} defaultChecked={savedServiceCityIds.includes(city.id)}/><span>{city.name}</span></label>)}</div><p className="option-fieldset__hint">Marque todas as cidades onde você realiza fretes. Sem seleção, será considerada somente a cidade base.</p></fieldset>
       <label className="field-wide"><span>Serviços, separados por vírgula</span><input name="services" defaultValue={savedServices.map(service => service.name).join(", ") || "Mudanças, Entregas"} required/></label>
       <label className="field-wide"><span>Descrição</span><textarea name="description" maxLength={2000} rows={7} defaultValue={profile?.description || ""} placeholder="Conte brevemente como funciona seu serviço" required/></label>
-      <PendingSubmitButton className="button button--primary field-wide" pendingText="Salvando cadastro...">Salvar cadastro</PendingSubmitButton>
+      <PendingSubmitButton className="button button--primary field-wide" pendingText="Salvando cadastro…">Salvar cadastro</PendingSubmitButton>
     </form>
   </div></main><MobileNav/></>;
 }

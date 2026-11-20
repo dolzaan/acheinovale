@@ -153,7 +153,7 @@ export function GoogleSignInButton({ next }: { next: string }) {
           className={isPending ? "google-sign-in__button is-pending" : "google-sign-in__button"}
           aria-busy={isPending}
         />
-        {isPending && <span className="google-sign-in__status">Concluindo seu acesso...</span>}
+        {isPending && <span className="google-sign-in__status">Concluindo seu acesso…</span>}
       </div>
       {error && <p className="form-alert" role="alert">{error}</p>}
     </>

@@ -35,17 +35,19 @@ export default async function MyListingsPage({ searchParams }: Props) {
     prisma.property.findMany({ where: { ownerId: user.id, status: { not: "ARCHIVED" } }, orderBy: { createdAt: "desc" }, include: { city: true } }),
     prisma.freighterProfile.findUnique({ where: { userId: user.id }, include: { city: true, images: { select: { id: true } }, services: { select: { name: true } } } }),
   ]);
-  const freighterMetrics = freighter ? await prisma.freighterMetricDaily.findMany({
-    where: { profileId: freighter.id },
-    orderBy: { date: "desc" },
-    take: 30,
-    select: { views: true, whatsappClicks: true },
-  }).catch(() => []) : [];
-  const propertyMetrics = properties.length ? await prisma.propertyMetricDaily.groupBy({
-    by: ["propertyId"],
-    where: { propertyId: { in: properties.map(property => property.id) }, date: { gte: metricsSinceDate() } },
-    _sum: { views: true, whatsappClicks: true },
-  }).catch(() => []) : [];
+  const [freighterMetrics, propertyMetrics] = await Promise.all([
+    freighter ? prisma.freighterMetricDaily.findMany({
+      where: { profileId: freighter.id },
+      orderBy: { date: "desc" },
+      take: 30,
+      select: { views: true, whatsappClicks: true },
+    }).catch(() => []) : [],
+    properties.length ? prisma.propertyMetricDaily.groupBy({
+      by: ["propertyId"],
+      where: { propertyId: { in: properties.map(property => property.id) }, date: { gte: metricsSinceDate() } },
+      _sum: { views: true, whatsappClicks: true },
+    }).catch(() => []) : [],
+  ]);
   const metricsByProperty = new Map(propertyMetrics.map(metric => [metric.propertyId, metric._sum]));
   const metricTotals = freighterMetrics.reduce((totals, metric) => ({
     views: totals.views + metric.views,
@@ -56,7 +58,7 @@ export default async function MyListingsPage({ searchParams }: Props) {
     <>
       {params.criado === "imovel" ? <PublishConversionEvent name="publish_property_submitted" /> : null}
       <Header />
-      <main className="account-page">
+      <main id="conteudo" className="account-page">
         <div className="container listings-page">
           {params.criado === "imovel" ? <ClearPropertyDraft ownerKey={user.authUserId || user.id} /> : null}
           <div className="account-heading account-heading--row">
@@ -79,7 +81,7 @@ export default async function MyListingsPage({ searchParams }: Props) {
                       <form className="manager-card__availability" action={confirmPropertyAvailability}>
                         <input type="hidden" name="id" value={property.id} />
                         <p><strong>Este imóvel ainda está disponível?</strong> Confirme até {formatDate(availabilityDeadline(property).pauseAt)} para manter o anúncio no ar. Se já foi alugado ou vendido, arquive o anúncio.</p>
-                        <PendingSubmitButton pendingText="Confirmando...">Sim, continua disponível</PendingSubmitButton>
+                        <PendingSubmitButton pendingText="Confirmando…">Sim, continua disponível</PendingSubmitButton>
                       </form>
                     ) : null}
                     <ModerationFeedback note={property.moderationNote} />
@@ -88,8 +90,8 @@ export default async function MyListingsPage({ searchParams }: Props) {
                     <Link href={propertyUrl(property)}>Visualizar</Link>
                     <Link href={`/meus-anuncios/${property.id}/editar`}>Editar dados</Link>
                     <Link href={`/meus-anuncios/${property.id}/midias`}>Editar mídias</Link>
-                    {property.status === "ACTIVE" || property.status === "PAUSED" ? <form action={pauseProperty}><input type="hidden" name="id" value={property.id} /><PendingSubmitButton pendingText={property.status === "PAUSED" ? "Reativando..." : "Pausando..."}>{property.status === "PAUSED" ? "Reativar" : "Pausar"}</PendingSubmitButton></form> : null}
-                    <form action={archiveProperty}><input type="hidden" name="id" value={property.id} /><PendingSubmitButton pendingText="Arquivando...">Arquivar</PendingSubmitButton></form>
+                    {property.status === "ACTIVE" || property.status === "PAUSED" ? <form action={pauseProperty}><input type="hidden" name="id" value={property.id} /><PendingSubmitButton pendingText={property.status === "PAUSED" ? "Reativando…" : "Pausando…"}>{property.status === "PAUSED" ? "Reativar" : "Pausar"}</PendingSubmitButton></form> : null}
+                    <form action={archiveProperty}><input type="hidden" name="id" value={property.id} /><PendingSubmitButton pendingText="Arquivando…" confirmMessage="Arquivar este anúncio? Ele sai do site e da sua lista de anúncios.">Arquivar</PendingSubmitButton></form>
                   </div>
                 </article>
               ))}
@@ -107,7 +109,7 @@ export default async function MyListingsPage({ searchParams }: Props) {
                     <Link href={freighterUrl(freighter)}>Visualizar</Link>
                     <Link href="/publicar/frete">Editar cadastro</Link>
                     <Link href={`/meus-anuncios/${freighter.id}/freteiro-midias`}>Editar fotos</Link>
-                    {freighter.status === "ACTIVE" || freighter.status === "PAUSED" ? <form action={pauseFreighter}><input type="hidden" name="id" value={freighter.id} /><PendingSubmitButton pendingText={freighter.status === "PAUSED" ? "Reativando..." : "Pausando..."}>{freighter.status === "PAUSED" ? "Reativar" : "Pausar"}</PendingSubmitButton></form> : null}
+                    {freighter.status === "ACTIVE" || freighter.status === "PAUSED" ? <form action={pauseFreighter}><input type="hidden" name="id" value={freighter.id} /><PendingSubmitButton pendingText={freighter.status === "PAUSED" ? "Reativando…" : "Pausando…"}>{freighter.status === "PAUSED" ? "Reativar" : "Pausar"}</PendingSubmitButton></form> : null}
                   </div>
                 </article>
               ) : null}

@@ -21,7 +21,7 @@ export default async function UnsubscribePage({ searchParams }: Props) {
   return (
     <>
       <Header />
-      <main className="auth-page">
+      <main id="conteudo" className="auth-page">
         <section className="auth-card">
           {concluido ? (
             <><h1>Alerta cancelado</h1><p>Você não vai mais receber e-mails desse alerta.</p><Link href="/imoveis">Voltar aos imóveis</Link></>
@@ -35,7 +35,7 @@ export default async function UnsubscribePage({ searchParams }: Props) {
               <p>{describeAlert(alert)}</p>
               <form action={unsubscribeSavedSearch}>
                 <input type="hidden" name="token" value={alert.unsubscribeToken} />
-                <PendingSubmitButton className="button button--primary" pendingText="Cancelando...">Cancelar este alerta</PendingSubmitButton>
+                <PendingSubmitButton className="button button--primary" pendingText="Cancelando…">Cancelar este alerta</PendingSubmitButton>
               </form>
             </>
           )}

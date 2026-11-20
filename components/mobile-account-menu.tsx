@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { signOut } from "@/app/auth/actions";
 import { HeartIcon, PlusIcon, SearchIcon, UserIcon } from "./icons";
 import { UserAvatar } from "./user-avatar";
+import { useModalFocus } from "./use-modal-focus";
 import { useAccountSession } from "./account-session-provider";
 
 export function MobileAccountMenu() {
@@ -14,6 +15,7 @@ export function MobileAccountMenu() {
   const sheetId = useId();
   const titleId = useId();
   const sheetRef = useRef<HTMLElement>(null);
+  useModalFocus(sheetRef, open);
 
   useEffect(() => {
     if (!open) return;
@@ -25,7 +27,6 @@ export function MobileAccountMenu() {
 
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", closeOnEscape);
-    sheetRef.current?.focus();
 
     return () => {
       document.body.style.overflow = previousOverflow;

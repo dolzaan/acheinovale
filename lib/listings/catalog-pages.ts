@@ -2,15 +2,14 @@ import "server-only";
 
 import { cache } from "react";
 import { prisma } from "@/lib/db";
+import { getActiveCityBySlug } from "@/lib/listings/public-cache";
 import { SITE_URL } from "@/lib/site";
 import { propertyCatalogPath, type PurposeSlug } from "@/lib/listings/urls";
 
 export type CatalogFilters = Record<string, string | undefined>;
 
-export const getCatalogCity = cache((slug: string) => prisma.city.findFirst({
-  where: { slug, isActive: true },
-  select: { id: true, name: true, slug: true },
-}));
+// Usa o cache entre requisições das cidades, o mesmo de resolveRequestCity.
+export const getCatalogCity = cache((slug: string) => getActiveCityBySlug(slug));
 
 export const getCatalogNeighborhood = cache((cityId: string, slug: string) => prisma.neighborhood.findFirst({
   where: { cityId, slug, needsReview: false },

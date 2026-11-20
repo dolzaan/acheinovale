@@ -13,7 +13,7 @@ import { PropertyLocationFilter } from "@/components/property-location-filter";
 import { SaveSearchForm } from "@/components/save-search-form";
 import { BathIcon, BedIcon, FilterIcon, HomeIcon, PinIcon, SearchIcon } from "@/components/icons";
 import { prisma } from "@/lib/db";
-import { getActiveLocations, getPublicPropertiesPage } from "@/lib/listings/public-cache";
+import { getActiveLocations, getPublicPropertiesPage, propertyCardSelect } from "@/lib/listings/public-cache";
 import { resolveRequestCity } from "@/lib/location/selected-city";
 import { propertyUrl } from "@/lib/listings/urls";
 import { parsePropertySearch } from "@/lib/search/property-search";
@@ -212,27 +212,24 @@ export default async function PropertiesPage({ searchParams, prettyPath = false 
           ${MAX_RANKED_SEARCH_RESULTS}::integer
         )
       `;
-      const rankedIds = rankedRows.map(row => row.id);
-      const rankedPosition = new Map(rankedIds.map((id, index) => [id, index]));
-      const items = rankedIds.length
-        ? await prisma.property.findMany({
-          where: { id: { in: rankedIds } },
-          include: { city: true, neighborhood: true, images: { orderBy: { position: "asc" }, take: 1 } },
-        })
+      let orderedIds = rankedRows.map(row => row.id);
+      if (order === "preco-menor" || order === "preco-maior") {
+        // Para ordenar por preço basta preço e data de todos; os cards completos vêm só da página atual.
+        const sortRows = orderedIds.length
+          ? await prisma.property.findMany({ where: { id: { in: orderedIds } }, select: { id: true, priceCents: true, createdAt: true } })
+          : [];
+        const direction = order === "preco-menor" ? 1 : -1;
+        sortRows.sort((first, second) => direction * (first.priceCents - second.priceCents) || second.createdAt.getTime() - first.createdAt.getTime());
+        orderedIds = sortRows.map(row => row.id);
+      }
+      const pageIds = orderedIds.slice(resultOffset, resultOffset + PROPERTY_PAGE_SIZE);
+      const pagePosition = new Map(pageIds.map((id, index) => [id, index]));
+      const items = pageIds.length
+        ? await prisma.property.findMany({ where: { id: { in: pageIds } }, select: propertyCardSelect })
         : [];
+      items.sort((first, second) => (pagePosition.get(first.id) ?? 0) - (pagePosition.get(second.id) ?? 0));
 
-      items.sort((first, second) => {
-        if (order === "preco-menor") {
-          return first.priceCents - second.priceCents || second.createdAt.getTime() - first.createdAt.getTime();
-        }
-        if (order === "preco-maior") {
-          return second.priceCents - first.priceCents || second.createdAt.getTime() - first.createdAt.getTime();
-        }
-        return (rankedPosition.get(first.id) ?? Number.MAX_SAFE_INTEGER)
-          - (rankedPosition.get(second.id) ?? Number.MAX_SAFE_INTEGER);
-      });
-
-      return [items.slice(resultOffset, resultOffset + PROPERTY_PAGE_SIZE), Number(rankedRows[0]?.total_resultados ?? 0)] as const;
+      return [items, Number(rankedRows[0]?.total_resultados ?? 0)] as const;
     })()
     : await getPublicPropertiesPage(where, orderBy, resultOffset, PROPERTY_PAGE_SIZE);
   const advancedFilterCount = [
@@ -328,11 +325,11 @@ export default async function PropertiesPage({ searchParams, prettyPath = false 
     }
     : null;
 
-  return <>{itemListStructuredData ? <Script id={`property-catalog-${selectedCity?.slug ?? "all"}-${purpose ?? "all"}-${requestedPage}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListStructuredData) }} /> : null}<Header citySlug={selectedCity?.slug}/><main className="catalog-page"><div className="container catalog-container">
+  return <>{itemListStructuredData ? <Script id={`property-catalog-${selectedCity?.slug ?? "all"}-${purpose ?? "all"}-${requestedPage}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListStructuredData) }} /> : null}<Header citySlug={selectedCity?.slug}/><main id="conteudo" className="catalog-page"><div className="container catalog-container">
     <div className="catalog-heading"><div><span className="section-kicker">{selectedCityName} e região</span><h1>{catalogTitle}</h1><p>{catalogDescription}</p><p><Link prefetch={false} className="text-link" href={locationToggleHref}>{locationToggleLabel} →</Link></p></div><Link prefetch={false} className="button button--primary" href="/publicar/imovel">Anunciar imóvel</Link></div>
     <Form className="catalog-filter catalog-filter--properties" action="/imoveis">
       {regional ? <input type="hidden" name="regiao" value="1" /> : null}
-      <label className="catalog-filter__search"><SearchIcon size={19}/><input name="q" defaultValue={query} placeholder="Bairro, imóvel ou característica" aria-label="Buscar imóveis"/></label>
+      <label className="catalog-filter__search"><SearchIcon size={19}/><input type="search" name="q" autoComplete="off" defaultValue={query} placeholder="Bairro, imóvel ou característica…" aria-label="Buscar imóveis"/></label>
       <select name="finalidade" defaultValue={params.finalidade || ""} aria-label="Finalidade"><option value="">Comprar ou alugar</option><option value="venda">Comprar</option><option value="aluguel">Alugar</option></select>
       <details className="catalog-more-filters">
         <summary><FilterIcon/><span>Mais filtros</span>{advancedFilterCount > 0 ? <b>{advancedFilterCount}</b> : null}</summary>
@@ -345,10 +342,10 @@ export default async function PropertiesPage({ searchParams, prettyPath = false 
           <label className="catalog-filter-section"><strong>Vagas</strong><select name="vagas" defaultValue={minimumParkingSpots ?? ""}><option value="">Qualquer</option><option value="1">1 ou mais</option><option value="2">2 ou mais</option><option value="3">3 ou mais</option><option value="4">4 ou mais</option></select></label>
           <label className="catalog-filter-section"><strong>Área mínima</strong><div className="catalog-area-input"><input name="areaMin" type="number" min="0" step="1" defaultValue={minimumArea ?? ""} placeholder="Ex: 80"/><small>m²</small></div></label>
           <div className="catalog-filter-section catalog-filter-section--checks"><strong>Comodidades</strong><label><input type="checkbox" name="pets" value="1" defaultChecked={acceptsPets}/><span>Aceita pets</span></label><label><input type="checkbox" name="mobiliado" value="1" defaultChecked={furnished}/><span>Mobiliado</span></label></div>
-          <div className="catalog-filter-actions">{hasFilters ? <Link prefetch={false} href={clearFiltersHref}>Limpar tudo</Link> : <span/>}<PendingSubmitButton className="button button--primary" pendingText="Aplicando filtros..." navigation>Mostrar resultados</PendingSubmitButton></div>
+          <div className="catalog-filter-actions">{hasFilters ? <Link prefetch={false} href={clearFiltersHref}>Limpar tudo</Link> : <span/>}<PendingSubmitButton className="button button--primary" pendingText="Aplicando filtros…" navigation>Mostrar resultados</PendingSubmitButton></div>
         </div>
       </details>
-      <PendingSubmitButton className="button button--primary catalog-search-button" pendingText="Buscando..." navigation>Buscar</PendingSubmitButton>
+      <PendingSubmitButton className="button button--primary catalog-search-button" pendingText="Buscando…" navigation>Buscar</PendingSubmitButton>
       <input type="hidden" name="ordem" value={order}/>
     </Form>
     <nav className="catalog-quick-filters" aria-label="Filtros rápidos">
@@ -359,7 +356,7 @@ export default async function PropertiesPage({ searchParams, prettyPath = false 
       <Link prefetch={false} className={params.pets === "1" ? "is-active" : ""} href={buildFilterUrl(params, { pets: params.pets === "1" ? undefined : "1" })}>Aceita pets</Link>
       <Link prefetch={false} className={params.mobiliado === "1" ? "is-active" : ""} href={buildFilterUrl(params, { mobiliado: params.mobiliado === "1" ? undefined : "1" })}>Mobiliado</Link>
     </nav>
-    <div className="catalog-results-bar"><p><strong>{formatNumber(resultCount)}</strong> {resultCount === 1 ? "imóvel encontrado" : "imóveis encontrados"}{properties.length ? <small> · exibindo {firstVisibleResult}–{lastVisibleResult}</small> : null}</p><Form action={catalogAction}>{sortFields.map(([name, value]) => <input key={name} type="hidden" name={name} value={value}/>) }<label><span>Ordenar por</span><select name="ordem" defaultValue={order}><option value="recentes">Mais recentes</option><option value="preco-menor">Menor preço</option><option value="preco-maior">Maior preço</option></select></label><PendingSubmitButton pendingText="Ordenando..." navigation>Ordenar</PendingSubmitButton></Form></div>
+    <div className="catalog-results-bar"><p><strong>{formatNumber(resultCount)}</strong> {resultCount === 1 ? "imóvel encontrado" : "imóveis encontrados"}{properties.length ? <small> · exibindo {firstVisibleResult}–{lastVisibleResult}</small> : null}</p><Form action={catalogAction}>{sortFields.map(([name, value]) => <input key={name} type="hidden" name={name} value={value}/>) }<label><span>Ordenar por</span><select name="ordem" defaultValue={order}><option value="recentes">Mais recentes</option><option value="preco-menor">Menor preço</option><option value="preco-maior">Maior preço</option></select></label><PendingSubmitButton pendingText="Ordenando…" navigation>Ordenar</PendingSubmitButton></Form></div>
     <SaveSearchForm criteria={saveSearchCriteria} backPath={buildFilterUrl(params, {})} status={params.alerta} />
     {properties.length ? <div className="property-grid catalog-grid">{properties.map(property => <article className="property-card" key={property.id}><Link prefetch={false} className={property.images[0] ? "catalog-property-image" : "catalog-image-placeholder"} href={propertyUrl(property)} aria-label={`Ver ${property.title}`}>{property.images[0] ? <Image src={propertyImagePublicUrl(property.images[0].storageKey)} alt={property.images[0].altText || property.title} fill sizes="(max-width: 680px) 100vw, (max-width: 1000px) 50vw, 33vw" /> : <><HomeIcon size={42}/><span>Ver imóvel</span></>}</Link><div className="property-card__body"><span className="property-card__purpose">{property.purpose === "RENT" ? "Aluguel" : "Venda"} · {propertyTypeLabels.get(property.type)}</span><span className="property-card__location"><PinIcon size={15}/>{property.neighborhood.name}, {property.city.name}</span><h3><Link prefetch={false} href={propertyUrl(property)}>{property.title}</Link></h3><div className="property-card__features">{property.bedrooms !== null ? <span><BedIcon/>{formatCount(property.bedrooms, "quarto", "quartos")}</span> : null}{property.bathrooms !== null ? <span><BathIcon/>{property.bathrooms} banh.</span> : null}{property.areaM2 ? <span>{formatArea(property.areaM2)}</span> : null}</div><div className="property-card__price"><strong>{formatPrice(property.priceCents)}</strong><span>{property.purpose === "RENT" ? "/mês" : ""}</span></div><Link prefetch={false} className="button button--primary property-card__cta" href={propertyUrl(property)} aria-label={`Ver imóvel: ${property.title}`}>Ver imóvel</Link><small className="catalog-code">{property.publicCode.toUpperCase()}</small></div></article>)}</div> : <div className="empty-state catalog-empty"><strong>Nenhum imóvel encontrado.</strong><p>{hasFilters ? "Tente remover alguns filtros para ampliar a busca." : "Os anúncios aprovados aparecerão aqui. Publique o primeiro imóvel."}</p>{hasFilters ? <Link prefetch={false} className="button button--secondary" href={clearFiltersHref}>Limpar filtros</Link> : <Link prefetch={false} className="button button--primary" href="/publicar/imovel">Publicar imóvel</Link>}</div>}
     {properties.length && totalPages > 1 ? <nav className="catalog-pagination" aria-label="Paginação dos imóveis">

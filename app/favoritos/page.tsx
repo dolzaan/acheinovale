@@ -30,7 +30,7 @@ export default async function FavoritesPage() {
   return (
     <>
       <Header />
-      <main className="account-page">
+      <main id="conteudo" className="account-page">
         <div className="container listings-page">
           <div className="account-heading">
             <span className="section-kicker">Sua área</span>

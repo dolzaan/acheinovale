@@ -43,7 +43,7 @@ export default async function FreighterMediaPage({ params, searchParams }: Props
     <>
       {query.cadastro ? <PublishConversionEvent name="publish_freighter_submitted" /> : null}
       <Header />
-      <main className="account-page">
+      <main id="conteudo" className="account-page">
         <div className="container publish-page">
           <Link className="back-link" href="/meus-anuncios">← Voltar para meus anúncios</Link>
           <div className="account-heading"><span className="section-kicker">Galeria do freteiro</span><h1>Fotos do serviço</h1><p>{profile.displayName}</p></div>

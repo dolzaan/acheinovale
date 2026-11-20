@@ -1,20 +1,17 @@
 import Link from "next/link";
-import { prisma } from "@/lib/db";
+import { Suspense } from "react";
+import { getCitiesWithListings } from "@/lib/listings/public-cache";
 
 type Category = "imoveis" | "freteiros";
+type Props = { category: Category; currentSlug?: string };
 
-export async function CityDiscovery({ category, currentSlug }: { category: Category; currentSlug?: string }) {
-  const cities = await prisma.city.findMany({
-    where: {
-      isActive: true,
-      ...(category === "imoveis"
-        ? { properties: { some: { status: "ACTIVE" } } }
-        : { freighterProfiles: { some: { status: "ACTIVE" } } }),
-    },
-    select: { name: true, slug: true },
-    orderBy: { name: "asc" },
-    take: 50,
-  });
+// Fica no fim da página: com Suspense, o restante é enviado sem esperar esta consulta.
+export function CityDiscovery(props: Props) {
+  return <Suspense fallback={null}><CityDiscoveryLinks {...props} /></Suspense>;
+}
+
+async function CityDiscoveryLinks({ category, currentSlug }: Props) {
+  const cities = await getCitiesWithListings(category);
   const alternatives = cities.filter(city => city.slug !== currentSlug).slice(0, 12);
   if (!alternatives.length) return null;
   return (

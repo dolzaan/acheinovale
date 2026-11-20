@@ -33,7 +33,7 @@ export function SaveSearchForm({ criteria, backPath, status }: { criteria: SaveS
           {Object.entries(criteria).map(([name, value]) => value ? <input key={name} type="hidden" name={name} value={value} /> : null)}
           <p>Avisamos por e-mail quando aparecerem imóveis novos com estes filtros, em no máximo um e-mail por dia. Você pode cancelar a qualquer momento.</p>
           <label className="checkbox-field"><input type="checkbox" name="consentimento" value="1" required /><span>Quero receber e-mails com imóveis novos desta busca</span></label>
-          <PendingSubmitButton className="button button--primary" pendingText="Criando alerta...">Criar alerta</PendingSubmitButton>
+          <PendingSubmitButton className="button button--primary" pendingText="Criando alerta…">Criar alerta</PendingSubmitButton>
         </form>
       </details>
     </section>

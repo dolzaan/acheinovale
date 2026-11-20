@@ -38,7 +38,7 @@ export default async function PropertyMediaPage({ params, searchParams }: Props)
   return (
     <>
       <Header />
-      <main className="account-page">
+      <main id="conteudo" className="account-page">
         <div className="container publish-page">
           <Link className="back-link" href="/meus-anuncios">← Voltar para meus anúncios</Link>
           <div className="account-heading">

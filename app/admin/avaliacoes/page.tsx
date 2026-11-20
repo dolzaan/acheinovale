@@ -24,7 +24,7 @@ export default async function ReviewsModerationPage({ searchParams }: Props) {
     take: 100,
   });
 
-  return <><Header/><main className="account-page admin-page"><div className="container admin-shell">
+  return <><Header/><main id="conteudo" className="account-page admin-page"><div className="container admin-shell">
     <Link className="back-link" href="/admin/denuncias">← Voltar para denúncias</Link>
     <div className="account-heading admin-heading"><span className="section-kicker">Segurança</span><div className="admin-heading__title"><StarIcon size={26}/><h1>Avaliações de freteiros</h1></div><p>As avaliações são publicadas na hora. Oculte as que forem ofensivas, falsas ou fora do assunto.</p></div>
     {query.concluido ? <p className="admin-alert admin-alert--success">Avaliação atualizada.</p> : null}
@@ -35,7 +35,7 @@ export default async function ReviewsModerationPage({ searchParams }: Props) {
         <div className="moderation-card__top"><div><span className={`status-pill status-pill--${review.isVisible ? "active" : "paused"}`}>{review.rating} de 5</span><small>{review.author.name || review.author.email}</small></div><time>{review.updatedAt.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}</time></div>
         <h2>{review.profile.displayName}</h2>
         <p className="moderation-card__description">{review.comment || "Sem comentário."}</p>
-        <div className="moderation-card__footer"><Link className="button button--secondary" href={`${freighterUrl(review.profile)}#avaliacoes`} target="_blank">Abrir perfil</Link><div className="moderation-actions"><form action={setReviewVisibility}><input type="hidden" name="id" value={review.id}/><input type="hidden" name="visible" value={review.isVisible ? "0" : "1"}/><PendingSubmitButton className={`moderation-button${review.isVisible ? " moderation-button--reject" : " moderation-button--approve"}`} pendingText="Salvando...">{review.isVisible ? "Ocultar" : "Publicar novamente"}</PendingSubmitButton></form></div></div>
+        <div className="moderation-card__footer"><Link className="button button--secondary" href={`${freighterUrl(review.profile)}#avaliacoes`} target="_blank">Abrir perfil</Link><div className="moderation-actions"><form action={setReviewVisibility}><input type="hidden" name="id" value={review.id}/><input type="hidden" name="visible" value={review.isVisible ? "0" : "1"}/><PendingSubmitButton className={`moderation-button${review.isVisible ? " moderation-button--reject" : " moderation-button--approve"}`} pendingText="Salvando…">{review.isVisible ? "Ocultar" : "Publicar novamente"}</PendingSubmitButton></form></div></div>
       </div></article>
     ))}</div>}
   </div></main><MobileNav/></>;

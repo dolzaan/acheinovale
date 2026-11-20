@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useModalFocus } from "./use-modal-focus";
 
 type GalleryImage = { id: string; src: string; alt: string; position: number };
 type GalleryVideo = { id: string; src: string; mimeType: string; position: number };
@@ -55,12 +56,12 @@ export function PropertyGallery({ images, videos, title }: { images: GalleryImag
   }, [media.length]);
 
   // Roda só ao abrir e fechar: trocar de mídia não pode mover o foco para "Fechar".
+  useModalFocus(lightboxRef, isOpen, closeButtonRef);
+
   useEffect(() => {
     if (!isOpen) return;
-    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    closeButtonRef.current?.focus();
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") setActiveIndex(null);
@@ -79,7 +80,6 @@ export function PropertyGallery({ images, videos, title }: { images: GalleryImag
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
       viewport?.removeEventListener("resize", handleViewportResize);
-      opener?.focus();
     };
   }, [isOpen, showNext, showPrevious]);
 
@@ -151,7 +151,7 @@ export function PropertyGallery({ images, videos, title }: { images: GalleryImag
           </div>
           {media.length > 1 ? <button className="photo-lightbox__arrow photo-lightbox__arrow--next" type="button" onClick={showNext} aria-label="Próxima mídia">›</button> : null}
           {media.length > 1 ? (
-            <div className="photo-lightbox__thumbnails" aria-label="Selecionar mídia">
+            <div className="photo-lightbox__thumbnails" role="group" aria-label="Selecionar mídia">
               {media.map((item, index) => (
                 <button className={index === activeIndex ? "photo-lightbox__thumbnail photo-lightbox__thumbnail--active" : "photo-lightbox__thumbnail"} type="button" key={`thumb-${item.kind}-${item.id}`} onClick={() => setActiveIndex(index)} aria-label={`Abrir ${item.kind === "image" ? "foto" : "vídeo"} ${index + 1}`}>
                   {item.kind === "image" ? <Image src={item.src} alt="" fill sizes="72px" /> : <><video src={item.src} muted playsInline preload="metadata" onLoadedMetadata={event => rememberDuration(item.id, event.currentTarget.duration)} aria-hidden="true" /><span>▶{durations[item.id] ? ` ${formatDuration(durations[item.id])}` : ""}</span></>}

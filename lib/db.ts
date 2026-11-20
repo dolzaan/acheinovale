@@ -18,8 +18,8 @@ function getServerlessDatabaseUrl() {
     if (url.port === "6543") {
       url.searchParams.set("pgbouncer", "true");
       // Um pool pequeno evita que várias instâncias serverless esgotem as
-      // conexões do Supabase. As consultas públicas que compartilham este
-      // cliente são executadas em sequência para não disputar esses slots.
+      // conexões do Supabase. Consultas públicas independentes rodam no máximo
+      // duas por vez, para caber nesses slots sem esperar na fila do pool.
       const configuredLimit = Number.parseInt(process.env.PRISMA_CONNECTION_LIMIT || "2", 10);
       const connectionLimit = Number.isFinite(configuredLimit)
         ? Math.min(2, Math.max(1, configuredLimit))

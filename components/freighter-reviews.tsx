@@ -49,7 +49,7 @@ export function FreighterReviews({ profileId, ownerId, reviews, viewerId, hasCon
               <UserAvatar image={review.author.image} name={review.author.name} />
               <div>
                 <strong>{review.author.name?.split(" ")[0] || "Usuário"}</strong>
-                <span className="freighter-reviews__stars" aria-label={`${review.rating} de 5 estrelas`}>{Array.from({ length: 5 }, (_, index) => <StarIcon key={index} className={index < review.rating ? "is-filled" : undefined} />)}</span>
+                <span className="freighter-reviews__stars" role="img" aria-label={`${review.rating} de 5 estrelas`}>{Array.from({ length: 5 }, (_, index) => <StarIcon key={index} className={index < review.rating ? "is-filled" : undefined} />)}</span>
                 <small>{formatDate(review.createdAt)}</small>
                 {review.comment ? <p>{review.comment}</p> : null}
               </div>
@@ -72,7 +72,7 @@ export function FreighterReviews({ profileId, ownerId, reviews, viewerId, hasCon
                 ))}
               </fieldset>
               <label><span>Comentário (opcional)</span><textarea name="comment" maxLength={600} rows={3} defaultValue={ownReview?.comment ?? ""} placeholder="Como foi o serviço?" /></label>
-              <PendingSubmitButton pendingText="Enviando...">{ownReview ? "Atualizar avaliação" : "Publicar avaliação"}</PendingSubmitButton>
+              <PendingSubmitButton pendingText="Enviando…">{ownReview ? "Atualizar avaliação" : "Publicar avaliação"}</PendingSubmitButton>
             </form>
           </details>
         ) : <p><Link href={loginHref}>Entre na sua conta</Link> para avaliar este freteiro. A avaliação fica disponível depois que você fala com ele pelo WhatsApp desta página.</p>

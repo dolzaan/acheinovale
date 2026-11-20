@@ -9,7 +9,7 @@ export default function PublishPage() {
     <>
       <PublishConversionEvent name="publish_landing_view" />
       <Header />
-      <main className="account-page">
+      <main id="conteudo" className="account-page">
         <div className="container publish-page">
           <div className="account-heading">
             <span className="section-kicker">Anuncie para sua região</span>

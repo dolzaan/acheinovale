@@ -17,7 +17,6 @@ import {
   savePropertyDraftValues,
 } from "@/lib/forms/property-draft";
 import { optimizePropertyImages } from "@/lib/images/optimize-property-image";
-import { createClient } from "@/lib/supabase/client";
 import { uploadPropertyVideo } from "@/lib/supabase/property-video-upload";
 import {
   createPropertyImagePath,
@@ -78,6 +77,10 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
   const videoKeyRef = useRef<HTMLInputElement>(null);
   const mediaOrderRef = useRef<HTMLInputElement>(null);
   const readyToSubmit = useRef(false);
+  const stepHeadingRefs = useRef<Record<1 | 2, HTMLHeadingElement | null>>({ 1: null, 2: null });
+  const focusStepHeading = useRef(false);
+  // Mídias selecionadas só sobrevivem a sair da página se "Salvar rascunho" as guardou.
+  const savedMedia = useRef<{ photos: SelectedMedia[]; video: SelectedMedia | null }>({ photos: [], video: null });
   const cepRequestInFlight = useRef(false);
   const [qualityItems, setQualityItems] = useState([
     { label: "Escreva um título claro com pelo menos 15 caracteres", complete: false },
@@ -150,6 +153,8 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
         if (cancelled) return;
         const restoredPhotos = restorablePhotos.map((photo, index) => ({ ...photo, file: optimizedFiles[index], preview: URL.createObjectURL(optimizedFiles[index]) }));
         const restoredVideo = media.video ? { ...media.video, preview: URL.createObjectURL(media.video.file) } : null;
+        // Vieram do rascunho, então já estão guardadas neste dispositivo.
+        savedMedia.current = { photos: restoredPhotos, video: restoredVideo };
         setPhotos(restoredPhotos);
         setVideo(restoredVideo);
         setMediaOrder(media.mediaOrder);
@@ -162,6 +167,31 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
 
   useEffect(() => { photosRef.current = photos; refreshQuality(photos.length); }, [photos, refreshQuality]);
   useEffect(() => { videoRef.current = video; }, [video]);
+
+  // Ao trocar de etapa, leva o foco (e a leitura do leitor de tela) para o título da nova etapa.
+  useEffect(() => {
+    if (!focusStepHeading.current) return;
+    focusStepHeading.current = false;
+    stepHeadingRefs.current[step]?.focus();
+  }, [step]);
+
+  useEffect(() => {
+    function warnUnsavedMedia(event: BeforeUnloadEvent) {
+      if (readyToSubmit.current) return;
+      const hasMedia = photosRef.current.length > 0 || videoRef.current !== null;
+      const mediaSaved = photosRef.current === savedMedia.current.photos && videoRef.current === savedMedia.current.video;
+      if (!hasMedia || mediaSaved) return;
+      event.preventDefault();
+      event.returnValue = "";
+    }
+    window.addEventListener("beforeunload", warnUnsavedMedia);
+    return () => window.removeEventListener("beforeunload", warnUnsavedMedia);
+  }, []);
+
+  function goToStep(next: 1 | 2) {
+    focusStepHeading.current = true;
+    setStep(next);
+  }
   useEffect(() => () => {
     photosRef.current.forEach(photo => URL.revokeObjectURL(photo.preview));
     if (videoRef.current) URL.revokeObjectURL(videoRef.current.preview);
@@ -187,6 +217,7 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
         mediaOrder,
         coverPhotoId,
       });
+      savedMedia.current = { photos, video };
       if (showConfirmation) setDraftStatus("Rascunho salvo neste dispositivo, incluindo as mídias selecionadas.");
       return true;
     } catch {
@@ -196,6 +227,7 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
   }
 
   async function discardStoredDraft() {
+    if (!window.confirm("Descartar o rascunho salvo neste dispositivo? Isso não pode ser desfeito. Os dados que estão na tela continuam.")) return;
     try {
       await clearPropertyDraft(authUserId);
       setDraftStatus("Rascunho salvo descartado. Os dados que estão na tela foram mantidos.");
@@ -400,6 +432,8 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
     setPhotoProgress(0);
     setVideoProgress(0);
     const form = event.currentTarget;
+    // O cliente do Supabase só é necessário no envio; fica fora do carregamento inicial.
+    const { createClient } = await import("@/lib/supabase/client");
     const supabase = createClient();
     const uploadedKeys: string[] = [];
 
@@ -464,8 +498,8 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
   }
 
   const progressLabel = video && photoProgress >= photos.length
-    ? `Enviando vídeo ${videoProgress}%...`
-    : `Enviando fotos ${photoProgress}/${photos.length}...`;
+    ? `Enviando vídeo ${videoProgress}%…`
+    : `Enviando fotos ${photoProgress}/${photos.length}…`;
 
   const mediaItems = mediaOrder.reduce<PropertyOrganizerItem[]>((result, id) => {
     const photo = photos.find(item => item.id === id);
@@ -482,7 +516,7 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
       <div className="publish-step" hidden={step !== 1}>
         <div className="publish-step__heading">
           <span>ETAPA 1 DE 2</span>
-          <h2>Informações do anúncio</h2>
+          <h2 ref={element => { stepHeadingRefs.current[1] = element; }} tabIndex={-1}>Informações do anúncio</h2>
           <p>Preencha o básico para começar. Você adiciona os detalhes extras na próxima etapa.</p>
         </div>
         <p className="required-fields-note field-wide"><span aria-hidden="true">*</span> Campos obrigatórios</p>
@@ -500,14 +534,14 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
 <label><span>Preço</span><MoneyInput /></label>
       <label><span>WhatsApp do anúncio</span><PhoneInput name="whatsapp" defaultValue={phone} /></label>
       
-        <label className="field-wide"><span>Descrição</span><textarea name="description" minLength={30} maxLength={3000} rows={4} placeholder="Conte os principais detalhes do imóvel..." required /></label>
-        <button type="button" className="button button--primary field-wide publish-step__next" onClick={() => { if (formRef.current?.reportValidity()) setStep(2); }}>Continuar para fotos e detalhes <span aria-hidden="true">→</span></button>
+        <label className="field-wide"><span>Descrição</span><textarea name="description" minLength={30} maxLength={3000} rows={4} placeholder="Conte os principais detalhes do imóvel…" required /></label>
+        <button type="button" className="button button--primary field-wide publish-step__next" onClick={() => { if (formRef.current?.reportValidity()) goToStep(2); }}>Continuar para fotos e detalhes <span aria-hidden="true">→</span></button>
       </div>
 
       <div className="publish-step" hidden={step !== 2}>
         <div className="publish-step__heading">
           <span>ETAPA 2 DE 2</span>
-          <h2>Deixe seu anúncio ainda melhor</h2>
+          <h2 ref={element => { stepHeadingRefs.current[2] = element; }} tabIndex={-1}>Deixe seu anúncio ainda melhor</h2>
           <p>Essas informações são opcionais. Você pode publicar sem preencher tudo.</p>
         </div>
         <div className="field-wide"><ListingQualityIndicator items={qualityItems} /></div>
@@ -520,18 +554,18 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
         <details className="publish-optional-section field-wide">
           <summary>Adicionar endereço detalhado <span>Opcional</span></summary>
           <p>Esses dados ficam privados e não aparecem no anúncio público.</p>
-<label className="property-cep-field"><span>CEP</span><div><input name="cep" value={cep} inputMode="numeric" autoComplete="postal-code" maxLength={9} placeholder="00000-000" onChange={event => { const digits = event.target.value.replace(/\D/g, "").slice(0, 8); setCep(digits.replace(/^(\d{5})(\d)/, "$1-$2")); setCepStatus(null); }} onBlur={() => { if (cep.replace(/\D/g, "").length === 8 && !cepStatus) void consultCep(); }} /><button type="button" onClick={() => void consultCep()} disabled={cepLoading}>{cepLoading ? "Consultando..." : "Buscar CEP"}</button></div></label>
+<label className="property-cep-field"><span>CEP</span><div><input name="cep" value={cep} inputMode="numeric" autoComplete="postal-code" maxLength={9} placeholder="00000-000" onChange={event => { const digits = event.target.value.replace(/\D/g, "").slice(0, 8); setCep(digits.replace(/^(\d{5})(\d)/, "$1-$2")); setCepStatus(null); }} onBlur={() => { if (cep.replace(/\D/g, "").length === 8 && !cepStatus) void consultCep(); }} /><button type="button" onClick={() => void consultCep()} disabled={cepLoading}>{cepLoading ? "Consultando…" : "Buscar CEP"}</button></div></label>
       
 <label><span>Rua</span><input name="street" value={street} onChange={event => setStreet(event.target.value)} maxLength={160} autoComplete="address-line1" placeholder="Preenchida pelo CEP" /></label>
-      <label><span>Número</span><input name="addressNumber" maxLength={20} autoComplete="address-line2" placeholder="Ex: 120 ou S/N" /></label>
-      <label className="field-wide"><span>Complemento</span><input name="addressComplement" value={addressComplement} onChange={event => setAddressComplement(event.target.value)} maxLength={120} placeholder="Apartamento, bloco ou ponto de referência (opcional)" /></label>
+      <label><span>Número</span><input name="addressNumber" maxLength={20} autoComplete="off" placeholder="Ex: 120 ou S/N" /></label>
+      <label className="field-wide"><span>Complemento</span><input name="addressComplement" value={addressComplement} onChange={event => setAddressComplement(event.target.value)} maxLength={120} autoComplete="address-line2" placeholder="Apartamento, bloco ou ponto de referência (opcional)" /></label>
       <p className="property-privacy-note field-wide"><strong>Endereço protegido:</strong> CEP, rua, número e complemento ficam privados. No anúncio público aparecem somente o bairro e a cidade.</p>
       {cepStatus ? <p className={`property-cep-status property-cep-status--${cepStatus.kind} field-wide`} role="status">{cepStatus.message}</p> : null}
       
         </details>
         <section className="property-photo-field field-wide" aria-labelledby="property-photo-title">
           <div className="property-photo-field__heading"><div><strong id="property-photo-title">Fotos do imóvel</strong><span>Adicione fotos se tiver. Elas ajudam a destacar seu anúncio.</span></div><b>{photos.length}/{PROPERTY_IMAGE_LIMIT}</b></div>
-          <label className="property-photo-picker" htmlFor="property-photos"><span>{optimizingPhotos ? "Otimizando fotos..." : "Adicionar fotos"}</span><small>Até 20 MB por original · conversão automática para WebP</small></label>
+          <label className="property-photo-picker" htmlFor="property-photos"><span>{optimizingPhotos ? "Otimizando fotos…" : "Adicionar fotos"}</span><small>Até 20 MB por original · conversão automática para WebP</small></label>
           <input id="property-photos" className="property-photo-input" type="file" accept={PROPERTY_IMAGE_MIME_TYPES.join(",")} multiple onChange={selectPhotos} disabled={uploading || optimizingPhotos || photos.length >= PROPERTY_IMAGE_LIMIT} />
           {!photos.length ? <p className="property-photo-empty">Você pode publicar sem fotos. Se tiver imagens, elas ajudam as pessoas a conhecer melhor o imóvel.</p> : null}
         </section>
@@ -566,8 +600,8 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
         </section>
       ) : null}
 
-      <button type="button" className="outline-button field-wide publish-step__back" onClick={() => setStep(1)} disabled={uploading || optimizingPhotos}>← Voltar aos dados principais</button>
-      <PendingSubmitButton className="button button--primary field-wide" pendingText={optimizingPhotos ? "Otimizando fotos..." : uploading ? progressLabel : "Finalizando publicação..."} busy={uploading || optimizingPhotos}>Enviar para análise</PendingSubmitButton>
+      <button type="button" className="outline-button field-wide publish-step__back" onClick={() => goToStep(1)} disabled={uploading || optimizingPhotos}>← Voltar aos dados principais</button>
+      <PendingSubmitButton className="button button--primary field-wide" pendingText={optimizingPhotos ? "Otimizando fotos…" : uploading ? progressLabel : "Finalizando publicação…"} busy={uploading || optimizingPhotos}>Enviar para análise</PendingSubmitButton>
       </div>
     </form>
   );
