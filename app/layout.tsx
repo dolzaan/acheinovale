@@ -8,7 +8,7 @@ import "./brand-experience.css";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
-import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { SITE_NAME, SITE_URL, INSTAGRAM_URL } from "@/lib/site";
 import { AccountSessionProvider } from "@/components/account-session-provider";
 
 const organizationStructuredData = {
@@ -17,6 +17,7 @@ const organizationStructuredData = {
   name: SITE_NAME,
   url: SITE_URL,
   logo: `${SITE_URL}/brand/logo-green-compact.svg`,
+  sameAs: [INSTAGRAM_URL],
   areaServed: {
     "@type": "AdministrativeArea",
     name: "Alto Vale do Itajaí, Santa Catarina",

@@ -240,3 +240,8 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
 .approximate-map { position: relative; z-index: 0; height: 280px; overflow: hidden; border: 1px solid #e6dcc6; border-radius: 16px; background: var(--brand-green-soft); }
 .listing-map p { margin: 10px 0 0; color: var(--muted); font-size: .875rem; line-height: 1.5; }
 @media (max-width: 680px) { .approximate-map { height: 220px; } }
+
+/* Instagram no rodapé */
+.footer-grid a.footer-social { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 4px; color: var(--brand-gold); font-weight: 700; }
+.footer-grid a.footer-social:hover { color: white; }
+.advertise-contact p a { color: var(--brand-gold); font-weight: 700; text-decoration: underline; }

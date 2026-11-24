@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
-import { SITE_URL } from "@/lib/site";
+import { INSTAGRAM_HANDLE, INSTAGRAM_URL, SITE_URL } from "@/lib/site";
 
 const title = "Anuncie seus imóveis no Achei no Vale | Corretores e imobiliárias";
 const description = "Corretores e imobiliárias do Alto Vale do Itajaí: publique imóveis de graça, tenha uma página com todos os seus anúncios e receba contatos direto no WhatsApp.";
@@ -63,7 +63,7 @@ export default function AdvertisePage() {
           <section className="advertise-contact">
             <div>
               <h2>Tem muitos imóveis para cadastrar?</h2>
-              <p>Fale com a gente pelo WhatsApp e combinamos a melhor forma de colocar sua carteira no ar.</p>
+              <p>Fale com a gente pelo WhatsApp e combinamos a melhor forma de colocar sua carteira no ar. Acompanhe também o <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">@{INSTAGRAM_HANDLE}</a> no Instagram.</p>
             </div>
             <Link className="button button--secondary" href="/contato">Falar com o Achei no Vale</Link>
           </section>
