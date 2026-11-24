@@ -60,10 +60,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: property.description.slice(0, 155),
       url: canonical,
       type: "website",
-      images: property.images[0]
-        ? [{ url: propertyImagePublicUrl(property.images[0].storageKey), alt: property.images[0].altText || property.title }]
-        : undefined,
+      // A imagem vem de opengraph-image.tsx: cartão com foto, preço e bairro.
     },
+    twitter: { card: "summary_large_image" },
   };
 }
 
