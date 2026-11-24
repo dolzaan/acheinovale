@@ -133,6 +133,11 @@ model Neighborhood {
   properties  Property[]
   savedSearches SavedSearch[]
   needsReview Boolean    @default(false) @map("precisa_revisao")
+  // Centro aproximado do bairro (OpenStreetMap), usado no mapa do anúncio no lugar do endereço.
+  latitude    Decimal?   @db.Decimal(9, 6)
+  longitude   Decimal?   @db.Decimal(9, 6)
+  // Última tentativa de localizar o bairro, achando ou não: evita repetir a consulta a cada visita.
+  geocodedAt  DateTime?  @map("localizado_em")
 
   @@unique([cityId, slug])
   @@index([needsReview])
