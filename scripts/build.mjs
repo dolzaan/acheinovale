@@ -41,4 +41,6 @@ if (process.env.VERCEL_ENV === "production") {
 }
 
 run("prisma", ["generate"]);
+// Testes de comportamento antes do build: se uma regra deixou de valer, o deploy para aqui.
+run("vitest", ["run"]);
 run("next", ["build"]);
