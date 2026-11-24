@@ -24,6 +24,7 @@ if (process.env.VERCEL_ENV === "production") {
     "prisma/migrations/20261124120000_advertiser_profiles/migration.sql",
     "prisma/migrations/20261124150000_neighborhood_coordinates/migration.sql",
     "prisma/migrations/20261124160000_weekly_summary/migration.sql",
+    "prisma/migrations/20261124170000_price_drop_notice/migration.sql",
   ];
 
   for (const migration of productionMigrations) {

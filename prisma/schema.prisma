@@ -176,6 +176,10 @@ model Property {
   availabilityConfirmedAt DateTime?  @map("disponibilidade_confirmada_em")
   // Último lembrete por e-mail; um novo só sai depois de uma nova confirmação.
   availabilityReminderSentAt DateTime? @map("lembrete_disponibilidade_enviado_em")
+  // Preço na última aprovação da moderação: base para avisar quando o preço baixa.
+  approvedPriceCents Int?            @map("preco_aprovado_centavos")
+  // Último aviso de redução de preço, para não mandar outro na mesma semana.
+  priceDropNotifiedAt DateTime?      @map("aviso_reducao_enviado_em")
   moderationNote     String?         @map("observacao_moderacao")
   moderatedAt        DateTime?       @map("moderado_em")
   moderatedById      String?         @map("id_moderador")

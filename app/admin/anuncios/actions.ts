@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
 import { notifyModerationDecision, sendLater } from "@/lib/email/notifications";
+import { notifyPriceDrop } from "@/lib/email/price-drop-notice";
+import { canSendPriceDropNotice, isRelevantPriceDrop } from "@/lib/alerts/price-drop";
 import { freighterUrl, propertyUrl } from "@/lib/listings/urls";
 import { revalidatePublicListings, revalidatePublicLocations } from "@/lib/listings/public-cache";
 import { normalizeNeighborhoodName } from "@/lib/location/neighborhood";
@@ -52,6 +54,10 @@ export async function moderateProperty(formData: FormData) {
 
   const note = field(formData, "note").slice(0, 500);
   const next = decision(intent, note);
+  // Aprovar uma edição que baixou o preço avisa quem favoritou ou tem alerta em que o imóvel passou a caber.
+  const priceDrop = intent === "approve"
+    && isRelevantPriceDrop(property.approvedPriceCents, property.priceCents)
+    && canSendPriceDropNotice(property.priceDropNotifiedAt);
   await prisma.property.update({
     where: { id },
     data: {
@@ -59,10 +65,16 @@ export async function moderateProperty(formData: FormData) {
       moderatedAt: new Date(),
       moderatedById: admin.id,
       publishedAt: intent === "approve" ? property.publishedAt ?? new Date() : property.publishedAt,
+      ...(intent === "approve" ? { approvedPriceCents: property.priceCents } : {}),
+      ...(priceDrop ? { priceDropNotifiedAt: new Date() } : {}),
     },
   });
 
   refreshModerationPages(propertyUrl(property));
+  if (priceDrop && property.approvedPriceCents !== null) {
+    const previousPriceCents = property.approvedPriceCents;
+    sendLater(() => notifyPriceDrop(property.id, previousPriceCents));
+  }
   sendLater(() => notifyModerationDecision({ to: property.owner.email, name: property.owner.name, kind: "imovel", title: property.title, intent, note: next.moderationNote, path: propertyUrl(property) }));
   redirect(`/admin/anuncios?concluido=${intent}`);
 }
