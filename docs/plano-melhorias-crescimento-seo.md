@@ -6,7 +6,7 @@ Este documento registra a implantação segura das sete melhorias propostas. Nã
 PR #56: compartilhamento de anúncios e melhoria visual de contato. Validar links, acessibilidade, tela pequena e fluxo do WhatsApp.
 
 ## Etapa 2 — Busca regional
-PR #57: validação de cidade e preparação de parâmetro regional. **Pendente:** implementar consulta multi-cidades real no catálogo, seleção explícita "Minha cidade / Toda a região" e testes para evitar resultados incorretos. Não apresentar "toda a região" antes de implementar a consulta.
+PR #57 validou a cidade; a consulta em todas as cidades ativas (`/imoveis?regiao=1`) já está no catálogo e nos alertas. Na página da cidade, a escolha "Só em {cidade} / Toda a região" mantém os filtros, e quando a cidade tem poucos resultados aparece quantos imóveis com os mesmos filtros existem nas outras cidades.
 
 ## Etapa 3 — Verificação de anunciantes
 **Pendente:** definir critério verificável (por exemplo, telefone confirmado), registro persistente do status, auditoria e revogação. Não exibir selo até haver verificação efetiva. Nunca representar verificação de telefone como verificação de identidade.

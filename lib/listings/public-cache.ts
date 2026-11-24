@@ -255,6 +255,21 @@ export function getPublicPropertiesPage(
   );
 }
 
+const getCachedPublicPropertiesCount = unstable_cache(
+  async (where: Prisma.PropertyWhereInput) => measureServerOperation("property.count_public", () => prisma.property.count({ where })),
+  ["public-properties-count-v1"],
+  { revalidate: PUBLIC_DATA_REVALIDATE_SECONDS, tags: [PUBLIC_LISTINGS_TAG] },
+);
+
+/** Total de imóveis públicos para um filtro, sem carregar os cards. */
+export function getPublicPropertiesCount(where: Prisma.PropertyWhereInput) {
+  return loadPublicData<number>(
+    `properties-count:${JSON.stringify(where)}`,
+    () => getCachedPublicPropertiesCount(where),
+    () => 0,
+  );
+}
+
 async function queryFreighters(cityId: string, citySlug: string, query: string, skip: number, take: number) {
   const cityMatch: Prisma.FreighterProfileWhereInput = {
     OR: [
