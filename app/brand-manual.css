@@ -233,3 +233,10 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
 .advertise-contact h2 { margin: 0 0 6px; color: var(--brand-gold); font-size: 1.3rem; }
 .advertise-contact p { margin: 0; opacity: .9; }
 @media (max-width: 680px) { .advertise-hero__actions .button, .advertise-contact .button { width: 100%; } }
+
+/* Mapa aproximado do anúncio */
+.listing-map { margin-top: 28px; }
+.listing-map h2 { margin: 0 0 12px; }
+.approximate-map { position: relative; z-index: 0; height: 280px; overflow: hidden; border: 1px solid #e6dcc6; border-radius: 16px; background: var(--brand-green-soft); }
+.listing-map p { margin: 10px 0 0; color: var(--muted); font-size: .875rem; line-height: 1.5; }
+@media (max-width: 680px) { .approximate-map { height: 220px; } }
