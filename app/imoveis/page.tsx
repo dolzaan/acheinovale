@@ -14,7 +14,7 @@ import { SaveSearchForm } from "@/components/save-search-form";
 import { AutoSubmitSelect } from "@/components/auto-submit-select";
 import { BathIcon, BedIcon, FilterIcon, HomeIcon, PinIcon, SearchIcon } from "@/components/icons";
 import { prisma } from "@/lib/db";
-import { getActiveLocations, getPublicPropertiesPage, propertyCardSelect } from "@/lib/listings/public-cache";
+import { getActiveLocations, getPublicPropertiesCount, getPublicPropertiesPage, propertyCardSelect } from "@/lib/listings/public-cache";
 import { resolveRequestCity } from "@/lib/location/selected-city";
 import { propertyUrl } from "@/lib/listings/urls";
 import { parsePropertySearch } from "@/lib/search/property-search";
@@ -82,6 +82,7 @@ const validPropertyTypes = new Set<PropertyType>(propertyTypes.map(({ value }) =
 const propertyTypeLabels = new Map<PropertyType, string>(propertyTypes.map(({ value, label }) => [value, label]));
 const PROPERTY_PAGE_SIZE = 24;
 const MAX_RANKED_SEARCH_RESULTS = 200;
+const REGION_SUGGESTION_THRESHOLD = 12;
 
 function parseNatural(value: string | undefined, maximum: number) {
   if (!value) return undefined;
@@ -194,6 +195,33 @@ export default async function PropertiesPage({ searchParams, prettyPath = false 
     : order === "preco-maior"
       ? [{ priceCents: "desc" }, { createdAt: "desc" }]
       : [{ publishedAt: "desc" }, { createdAt: "desc" }];
+  // Na página da cidade, conta os imóveis com os mesmos filtros nas outras cidades para
+  // sugerir a busca regional. Bairro é da cidade atual, então nesse caso não há o que sugerir.
+  const suggestsRegion = Boolean(selectedCity && !regional && requestedPage === 1
+    && !selectedNeighborhood && !searchIntent.neighborhoodIds.length);
+  const regionalTotalPromise: Promise<number | null> = !suggestsRegion
+    ? Promise.resolve(null)
+    : query
+      ? prisma.$queryRaw<RankedPropertyRow[]>`
+        SELECT id, relevancia, total_resultados
+        FROM private.buscar_imoveis(
+          ${searchIntent.freeTerms.join(" ")}::text,
+          ${null}::text,
+          ${purpose ?? null}::text,
+          ${type ?? null}::text,
+          ${null}::text,
+          ${minimumPrice ?? null}::integer,
+          ${maximumPrice ?? null}::integer,
+          ${minimumBedrooms ?? null}::integer,
+          ${minimumBathrooms ?? null}::integer,
+          ${minimumParkingSpots ?? null}::integer,
+          ${minimumArea ?? null}::numeric,
+          ${acceptsPets ? true : null}::boolean,
+          ${furnished ? true : null}::boolean,
+          ${1}::integer
+        )
+      `.then(rows => Number(rows[0]?.total_resultados ?? 0)).catch(() => null)
+      : getPublicPropertiesCount({ ...where, cityId: undefined, city: { isActive: true } }).catch(() => null);
   const [properties, resultCount] = query
     ? await (async () => {
       const rankedRows = await prisma.$queryRaw<RankedPropertyRow[]>`
@@ -235,6 +263,11 @@ export default async function PropertiesPage({ searchParams, prettyPath = false 
       return [items, Number(rankedRows[0]?.total_resultados ?? 0)] as const;
     })()
     : await getPublicPropertiesPage(where, orderBy, resultOffset, PROPERTY_PAGE_SIZE);
+  const regionalTotal = await regionalTotalPromise;
+  // Só quando a cidade tem poucos resultados: com a página cheia, o aviso só atrapalha.
+  const otherCitiesCount = regionalTotal !== null && resultCount < REGION_SUGGESTION_THRESHOLD
+    ? Math.max(0, regionalTotal - resultCount)
+    : 0;
   const advancedFilterCount = [
     explicitType,
     selectedNeighborhood,
@@ -274,13 +307,11 @@ export default async function PropertiesPage({ searchParams, prettyPath = false 
   const selectedCityName = regional ? "Alto Vale" : selectedCity?.name ?? "todas as cidades";
   const clearFiltersHref = selectedCity ? `/${selectedCity.slug}/imoveis` : "/imoveis";
   const catalogAction = "/imoveis";
-  const regionalSearchParams = new URLSearchParams();
-  if (query) regionalSearchParams.set("q", query);
-  regionalSearchParams.set("regiao", "1");
-  const regionalHref = `/imoveis?${regionalSearchParams.toString()}`;
-  // Na busca regional não há cidade na URL: "/imoveis" leva à cidade salva do visitante (proxy.ts).
-  const locationToggleHref = regional ? "/imoveis" : regionalHref;
-  const locationToggleLabel = regional ? "Buscar só na sua cidade" : "Buscar em toda a região";
+  // A troca entre cidade e região mantém os filtros; o bairro só vale dentro da cidade.
+  // Na busca regional, requestedCity é a cidade salva do visitante (ou a padrão).
+  const regionalHref = buildFilterUrl(params, { regiao: "1", bairro: undefined });
+  const cityScopeHref = buildFilterUrl(params, { regiao: undefined, cidade: requestedCity.slug });
+  const cityScopeName = selectedCity?.name ?? requestedCity.name;
   const purposePhrase = purpose === "RENT" ? "para alugar" : purpose === "SALE" ? "à venda" : "";
   const catalogTitle = selectedNeighborhood && selectedCity
     ? `Imóveis ${purposePhrase ? `${purposePhrase} ` : ""}no bairro ${selectedNeighborhood.name}, ${selectedCity.name}`
@@ -330,7 +361,11 @@ export default async function PropertiesPage({ searchParams, prettyPath = false 
     : null;
 
   return <>{itemListStructuredData ? <Script id={`property-catalog-${selectedCity?.slug ?? "all"}-${purpose ?? "all"}-${requestedPage}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListStructuredData) }} /> : null}<Header citySlug={selectedCity?.slug}/><main id="conteudo" className="catalog-page"><div className="container catalog-container">
-    <div className="catalog-heading"><div><h1>{catalogTitle}</h1><p>{catalogDescription}</p><p><Link prefetch={false} className="text-link" href={locationToggleHref}>{locationToggleLabel} →</Link></p></div><Link prefetch={false} className="button button--primary" href="/publicar/imovel">Anunciar imóvel</Link></div>
+    <div className="catalog-heading"><div><h1>{catalogTitle}</h1><p>{catalogDescription}</p></div><Link prefetch={false} className="button button--primary" href="/publicar/imovel">Anunciar imóvel</Link></div>
+    <nav className="catalog-scope" aria-label="Onde buscar">
+      <Link prefetch={false} className={regional ? "" : "is-active"} aria-current={regional ? undefined : "page"} href={cityScopeHref}><PinIcon size={15}/>Só em {cityScopeName}</Link>
+      <Link prefetch={false} className={regional ? "is-active" : ""} aria-current={regional ? "page" : undefined} href={regionalHref}>Toda a região</Link>
+    </nav>
     <Form className="catalog-filter catalog-filter--properties" action="/imoveis">
       {regional ? <input type="hidden" name="regiao" value="1" /> : null}
       <label className="catalog-filter__search"><SearchIcon size={19}/><input type="search" name="q" autoComplete="off" defaultValue={query} placeholder="Bairro, imóvel ou característica…" aria-label="Buscar imóveis"/></label>
@@ -361,6 +396,7 @@ export default async function PropertiesPage({ searchParams, prettyPath = false 
       <Link prefetch={false} className={params.mobiliado === "1" ? "is-active" : ""} href={buildFilterUrl(params, { mobiliado: params.mobiliado === "1" ? undefined : "1" })}>Mobiliado</Link>
     </nav>
     <div className="catalog-results-bar"><p><strong>{formatNumber(resultCount)}</strong> {resultCount === 1 ? "imóvel encontrado" : "imóveis encontrados"}{properties.length ? <small> · exibindo {firstVisibleResult}–{lastVisibleResult}</small> : null}</p><Form action={catalogAction}>{sortFields.map(([name, value]) => <input key={name} type="hidden" name={name} value={value}/>) }<label><span>Ordenar por</span><AutoSubmitSelect name="ordem" defaultValue={order}><option value="recentes">Mais recentes</option><option value="preco-menor">Menor preço</option><option value="preco-maior">Maior preço</option></AutoSubmitSelect></label><noscript><button type="submit">Ordenar</button></noscript></Form></div>
+    {otherCitiesCount > 0 ? <p className="catalog-region-hint" role="status"><span>{`Há ${resultCount ? "mais " : ""}${otherCitiesCount === 1 ? "1 imóvel" : `${formatNumber(otherCitiesCount)} imóveis`}`} {hasFilters ? "com estes filtros " : ""}em outras cidades do Alto Vale.</span><Link prefetch={false} className="button button--secondary" href={regionalHref}>Ver em toda a região</Link></p> : null}
     {properties.length ? <SaveSearchForm criteria={saveSearchCriteria} backPath={buildFilterUrl(params, {})} status={params.alerta} /> : null}
     {properties.length ? <div className="property-grid catalog-grid">{properties.map(property => <article className="property-card" key={property.id}><Link prefetch={false} className={property.images[0] ? "catalog-property-image" : "catalog-image-placeholder"} href={propertyUrl(property)} aria-label={`Ver ${property.title}`}>{property.images[0] ? <Image src={propertyImagePublicUrl(property.images[0].storageKey)} alt={property.images[0].altText || property.title} fill sizes="(max-width: 680px) 100vw, (max-width: 1000px) 50vw, 33vw" /> : <><HomeIcon size={42}/><span>Ver imóvel</span></>}</Link><div className="property-card__body"><span className="property-card__purpose">{property.purpose === "RENT" ? "Aluguel" : "Venda"} · {propertyTypeLabels.get(property.type)}</span><span className="property-card__location"><PinIcon size={15}/>{property.neighborhood.name}, {property.city.name}</span><h3><Link prefetch={false} href={propertyUrl(property)}>{property.title}</Link></h3><div className="property-card__features">{property.bedrooms !== null ? <span><BedIcon/>{formatCount(property.bedrooms, "quarto", "quartos")}</span> : null}{property.bathrooms !== null ? <span><BathIcon/>{property.bathrooms} banh.</span> : null}{property.areaM2 ? <span>{formatArea(property.areaM2)}</span> : null}</div><div className="property-card__price"><strong>{formatPrice(property.priceCents)}</strong><span>{property.purpose === "RENT" ? "/mês" : ""}</span></div><Link prefetch={false} className="button button--primary property-card__cta" href={propertyUrl(property)} aria-label={`Ver imóvel: ${property.title}`}>Ver imóvel</Link><small className="catalog-code">{property.publicCode.toUpperCase()}</small></div></article>)}</div> : <div className="empty-state catalog-empty"><strong>{hasFilters ? "Nenhum imóvel com estes filtros." : `Ainda não há imóveis anunciados ${regional ? "na região" : `em ${selectedCityName}`}.`}</strong><p>{hasFilters ? "Remova alguns filtros ou deixe um alerta: avisamos por e-mail quando aparecer um imóvel assim." : "Deixe um alerta e avisamos por e-mail assim que um imóvel for anunciado."}</p>{hasFilters ? <Link prefetch={false} className="button button--secondary" href={clearFiltersHref}>Limpar filtros</Link> : null}<SaveSearchForm criteria={saveSearchCriteria} backPath={buildFilterUrl(params, {})} status={params.alerta} open /></div>}
     {properties.length && totalPages > 1 ? <nav className="catalog-pagination" aria-label="Paginação dos imóveis">
