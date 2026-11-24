@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Script from "next/script";
 import { notFound, permanentRedirect } from "next/navigation";
+import { after } from "next/server";
+import { ApproximateMap } from "@/components/approximate-map";
+import { geocodeNeighborhood, shouldGeocode } from "@/lib/location/geocode";
 import { ListingShare } from "@/components/listing-share";
 import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
@@ -85,6 +88,14 @@ export default async function PropertyPage({ params, searchParams }: Props) {
     ? Boolean(await prisma.favorite.findFirst({ where: { userId: viewer.id, propertyId: property.id }, select: { id: true } }))
     : false;
 
+  const mapCenter = property.neighborhood.latitude !== null && property.neighborhood.longitude !== null
+    ? { latitude: Number(property.neighborhood.latitude), longitude: Number(property.neighborhood.longitude) }
+    : null;
+  // Bairro ainda sem coordenadas: procura depois de responder, e as próximas visitas já mostram o mapa.
+  if (!mapCenter && property.status === "ACTIVE" && shouldGeocode(property.neighborhood)) {
+    const neighborhood = { id: property.neighborhood.id, name: property.neighborhood.name, city: property.city };
+    after(() => geocodeNeighborhood(neighborhood));
+  }
   const canonical = `${SITE_URL}${propertyUrl(property)}`;
   const ownerProfileUrl = advertiserUrl(property.owner);
   const whatsappUrl = `https://wa.me/${property.whatsapp}?text=${encodeURIComponent(
@@ -156,6 +167,13 @@ export default async function PropertyPage({ params, searchParams }: Props) {
                 <h2>Sobre o imóvel</h2>
                 <p>{property.description}</p>
               </section>
+              {mapCenter ? (
+                <section className="listing-map" aria-labelledby="listing-map-title">
+                  <h2 id="listing-map-title">Localização aproximada</h2>
+                  <ApproximateMap latitude={mapCenter.latitude} longitude={mapCenter.longitude} label={`Mapa da região do bairro ${property.neighborhood.name}, em ${property.city.name}`} />
+                  <p>O círculo mostra a região do bairro {property.neighborhood.name}, não o endereço do imóvel. O endereço é combinado direto com o anunciante.</p>
+                </section>
+              ) : null}
             </article>
 
             <aside className="listing-contact-card">

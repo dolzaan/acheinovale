@@ -9,7 +9,7 @@ const contentSecurityPolicy = [
   "script-src 'self' 'unsafe-inline' https://accounts.google.com",
   "style-src 'self' 'unsafe-inline' https://accounts.google.com",
   "font-src 'self' data:",
-  "img-src 'self' data: blob: https://images.unsplash.com https://upload.wikimedia.org https://lh3.googleusercontent.com https://*.supabase.co",
+  "img-src 'self' data: blob: https://images.unsplash.com https://upload.wikimedia.org https://lh3.googleusercontent.com https://*.supabase.co https://tile.openstreetmap.org",
   "media-src 'self' blob: https://*.supabase.co",
   "connect-src 'self' https://accounts.google.com https://*.supabase.co wss://*.supabase.co",
   "frame-src 'self' https://accounts.google.com",
