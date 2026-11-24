@@ -308,10 +308,12 @@ export default async function PropertiesPage({ searchParams, prettyPath = false 
   const clearFiltersHref = selectedCity ? `/${selectedCity.slug}/imoveis` : "/imoveis";
   const catalogAction = "/imoveis";
   // A troca entre cidade e região mantém os filtros; o bairro só vale dentro da cidade.
-  // Na busca regional, requestedCity é a cidade salva do visitante (ou a padrão).
   const regionalHref = buildFilterUrl(params, { regiao: "1", bairro: undefined });
-  const cityScopeHref = buildFilterUrl(params, { regiao: undefined, cidade: requestedCity.slug });
-  const cityScopeName = selectedCity?.name ?? requestedCity.name;
+  // Na busca regional a página não lê o cookie da cidade (fica no cache da CDN), então não sabe
+  // qual é a cidade do visitante: o link vai para /imoveis com os filtros e o proxy.ts leva
+  // para a cidade salva.
+  const cityScopeHref = regional ? buildFilterUrl(params, { regiao: undefined }) : buildFilterUrl(params, {});
+  const cityScopeLabel = selectedCity ? `Só em ${selectedCity.name}` : "Só na minha cidade";
   const purposePhrase = purpose === "RENT" ? "para alugar" : purpose === "SALE" ? "à venda" : "";
   const catalogTitle = selectedNeighborhood && selectedCity
     ? `Imóveis ${purposePhrase ? `${purposePhrase} ` : ""}no bairro ${selectedNeighborhood.name}, ${selectedCity.name}`
@@ -363,7 +365,7 @@ export default async function PropertiesPage({ searchParams, prettyPath = false 
   return <>{itemListStructuredData ? <Script id={`property-catalog-${selectedCity?.slug ?? "all"}-${purpose ?? "all"}-${requestedPage}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListStructuredData) }} /> : null}<Header citySlug={selectedCity?.slug}/><main id="conteudo" className="catalog-page"><div className="container catalog-container">
     <div className="catalog-heading"><div><h1>{catalogTitle}</h1><p>{catalogDescription}</p></div><Link prefetch={false} className="button button--primary" href="/publicar/imovel">Anunciar imóvel</Link></div>
     <nav className="catalog-scope" aria-label="Onde buscar">
-      <Link prefetch={false} className={regional ? "" : "is-active"} aria-current={regional ? undefined : "page"} href={cityScopeHref}><PinIcon size={15}/>Só em {cityScopeName}</Link>
+      <Link prefetch={false} className={regional ? "" : "is-active"} aria-current={regional ? undefined : "page"} href={cityScopeHref}><PinIcon size={15}/>{cityScopeLabel}</Link>
       <Link prefetch={false} className={regional ? "is-active" : ""} aria-current={regional ? "page" : undefined} href={regionalHref}>Toda a região</Link>
     </nav>
     <Form className="catalog-filter catalog-filter--properties" action="/imoveis">
