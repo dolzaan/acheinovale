@@ -77,6 +77,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                 </div>
                 <p className="option-fieldset__hint">Corretores e imobiliárias ganham uma página pública com todos os seus imóveis ativos. Para pessoa física, os campos acima são ignorados.{publicProfile ? <> Sua página: <Link href={publicProfile}>{`${SITE_URL.replace(/^https?:\/\//, "")}${publicProfile}`}</Link></> : null}</p>
               </fieldset>
+              <label className="checkbox-field field-wide"><input type="checkbox" name="weeklySummary" value="1" defaultChecked={!user.weeklySummaryOptOut} /><span>Receber toda segunda-feira um e-mail com as visualizações e os contatos dos meus anúncios</span></label>
               <PendingSubmitButton className="button button--primary" pendingText="Salvando perfil…">Salvar perfil</PendingSubmitButton>
             </form>
           </section>

@@ -146,6 +146,7 @@ export async function updateProfile(formData: FormData) {
         phone,
         cityId: city.id,
         advertiserKind,
+        weeklySummaryOptOut: formData.get("weeklySummary") !== "1",
         businessName: businessName || null,
         creci: creci ?? null,
         ...(profileSlug ? { profileSlug } : {}),
