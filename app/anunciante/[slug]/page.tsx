@@ -13,6 +13,7 @@ import { formatNumber } from "@/lib/format";
 import { ADVERTISER_KIND_LABELS, advertiserDisplayName, isProfessionalAdvertiser } from "@/lib/listings/advertiser";
 import { getPublicPropertiesPage } from "@/lib/listings/public-cache";
 import { SITE_URL } from "@/lib/site";
+import { SavedCityLink } from "@/components/saved-city-link";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -112,7 +113,7 @@ export default async function AdvertiserPage({ params }: Props) {
             <div className="empty-state catalog-empty">
               <strong>Nenhum imóvel ativo no momento.</strong>
               <p>Os anúncios de {name} aparecem aqui assim que forem aprovados.</p>
-              <Link prefetch={false} className="button button--secondary" href="/imoveis">Ver outros imóveis</Link>
+              <SavedCityLink className="button button--secondary" href="/imoveis">Ver outros imóveis</SavedCityLink>
             </div>
           )}
         </div>

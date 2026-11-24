@@ -6,6 +6,7 @@ import { describeAlert } from "@/lib/alerts/saved-search";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
 import { deleteSavedSearch } from "./actions";
+import { SavedCityLink } from "@/components/saved-city-link";
 
 type Props = { searchParams: Promise<{ removido?: string }> };
 
@@ -31,7 +32,7 @@ export default async function AlertsPage({ searchParams }: Props) {
             <div className="empty-state">
               <strong>Nenhum alerta ativo</strong>
               <p>Faça uma busca no catálogo e use “Criar alerta para esta busca”.</p>
-              <Link prefetch={false} className="button button--primary" href="/imoveis">Buscar imóveis</Link>
+              <SavedCityLink className="button button--primary" href="/imoveis">Buscar imóveis</SavedCityLink>
             </div>
           ) : (
             <div className="listing-manager">

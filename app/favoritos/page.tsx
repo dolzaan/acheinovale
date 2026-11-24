@@ -8,6 +8,7 @@ import { requireCurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
 import { freighterUrl, propertyUrl } from "@/lib/listings/urls";
 import { freighterImagePublicUrl, propertyImagePublicUrl } from "@/lib/supabase/storage";
+import { SavedCityLink } from "@/components/saved-city-link";
 
 function formatPrice(priceCents: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(priceCents / 100);
@@ -41,7 +42,7 @@ export default async function FavoritesPage() {
               <HeartIcon size={32} />
               <strong>Nenhum favorito ainda</strong>
               <p>Use “Salvar nos favoritos” nos anúncios para encontrá-los rapidamente depois.</p>
-              <Link prefetch={false} className="button button--primary" href="/imoveis">Ver imóveis</Link>
+              <SavedCityLink className="button button--primary" href="/imoveis">Ver imóveis</SavedCityLink>
             </div>
           ) : (
             <div className="property-grid catalog-grid">

@@ -22,10 +22,11 @@ describe("cidade salva do visitante", () => {
     expect(savedCityRedirectSearch(request("/imoveis?regiao=1"))).toBeNull();
   });
 
-  it("não redireciona o pré-carregamento do Next, que pede /imoveis sem a query", () => {
-    // Se isto voltar a redirecionar, o clique em "Toda a região" cai na cidade salva.
-    expect(savedCityRedirectSearch(request("/imoveis", { headers: { "Next-Router-Prefetch": "1" } }))).toBeNull();
-    expect(savedCityRedirectSearch(request("/imoveis", { headers: { "Next-Router-Segment-Prefetch": "/_tree" } }))).toBeNull();
+  it("só redireciona quando a página é aberta de verdade, nunca nas requisições internas do Next", () => {
+    // O Next pré-carrega /imoveis sem a query. Se isto voltar a redirecionar, o clique em
+    // "Toda a região" cai na cidade salva.
+    expect(savedCityRedirectSearch(request("/imoveis", { headers: { "Sec-Fetch-Dest": "empty" } }))).toBeNull();
+    expect(savedCityRedirectSearch(request("/imoveis", { headers: { "Sec-Fetch-Dest": "document" } }))).toBe("?cidade=agronomica");
   });
 
   it("respeita a cidade que já está na URL", () => {

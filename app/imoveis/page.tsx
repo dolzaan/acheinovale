@@ -11,6 +11,7 @@ import { MobileNav } from "@/components/mobile-nav";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { PropertyLocationFilter } from "@/components/property-location-filter";
 import { SaveSearchForm } from "@/components/save-search-form";
+import { SavedCityLink } from "@/components/saved-city-link";
 import { AutoSubmitSelect } from "@/components/auto-submit-select";
 import { BathIcon, BedIcon, FilterIcon, HomeIcon, PinIcon, SearchIcon } from "@/components/icons";
 import { prisma } from "@/lib/db";
@@ -365,7 +366,9 @@ export default async function PropertiesPage({ searchParams, prettyPath = false 
   return <>{itemListStructuredData ? <Script id={`property-catalog-${selectedCity?.slug ?? "all"}-${purpose ?? "all"}-${requestedPage}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListStructuredData) }} /> : null}<Header citySlug={selectedCity?.slug}/><main id="conteudo" className="catalog-page"><div className="container catalog-container">
     <div className="catalog-heading"><div><h1>{catalogTitle}</h1><p>{catalogDescription}</p></div><Link prefetch={false} className="button button--primary" href="/publicar/imovel">Anunciar imóvel</Link></div>
     <nav className="catalog-scope" aria-label="Onde buscar">
-      <Link prefetch={false} className={regional ? "" : "is-active"} aria-current={regional ? undefined : "page"} href={cityScopeHref}><PinIcon size={15}/>{cityScopeLabel}</Link>
+      {regional
+        ? <SavedCityLink href={cityScopeHref}><PinIcon size={15}/>{cityScopeLabel}</SavedCityLink>
+        : <Link prefetch={false} className="is-active" aria-current="page" href={cityScopeHref}><PinIcon size={15}/>{cityScopeLabel}</Link>}
       <Link prefetch={false} className={regional ? "is-active" : ""} aria-current={regional ? "page" : undefined} href={regionalHref}>Toda a região</Link>
     </nav>
     <Form className="catalog-filter catalog-filter--properties" action="/imoveis">
