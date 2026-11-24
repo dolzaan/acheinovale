@@ -204,3 +204,32 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   /* Indicadores de carregamento são infinitos: com .01ms piscariam. Ficam lentos, como em globals.css. */
   .route-progress::after, .button-spinner, .loading-skeleton::after { animation-duration: 2s !important; }
 }
+.advertiser-fieldset { display: grid; gap: 14px; }
+.advertiser-fieldset__fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.advertiser-fieldset .option-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.advertiser-fieldset .checkbox-field input { accent-color: var(--brand-green); }
+@media (max-width: 680px) { .advertiser-fieldset__fields, .advertiser-fieldset .option-grid { grid-template-columns: 1fr; } }
+
+/* Perfil público de corretor e imobiliária */
+.advertiser-header { display: flex; align-items: center; gap: 22px; margin-bottom: 28px; padding: 26px; border: 1px solid #e6dcc6; border-radius: 20px; background: white; }
+.advertiser-header h1 { margin: 8px 0 6px; font-size: clamp(1.75rem, 4vw, 2.5rem); letter-spacing: -.02em; }
+.advertiser-header p { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0; color: var(--muted); font-size: .9rem; }
+.advertiser-header p span { display: inline-flex; align-items: center; gap: 5px; }
+@media (max-width: 680px) { .advertiser-header { align-items: flex-start; flex-direction: column; padding: 20px; } }
+
+/* Página Anuncie */
+.advertise-page .container { max-width: 1040px; }
+.advertise-hero { margin-bottom: 36px; padding: clamp(24px, 5vw, 48px); border-radius: 24px; background: var(--brand-cream) url("/brand/pattern-topografico.svg") right center / cover; border: 1px solid #eadfc8; }
+.advertise-hero h1 { max-width: 16ch; margin: 14px 0 12px; font-size: clamp(2rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.03em; color: var(--brand-green); }
+.advertise-hero p { max-width: 60ch; margin: 0; font-size: 1.05rem; line-height: 1.6; }
+.advertise-hero__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+.advertise-section-title { margin: 0 0 16px; font-size: 1.5rem; }
+.advertise-benefits { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin: 0 0 32px; padding: 0; list-style: none; }
+.advertise-benefits li { padding: 20px; border: 1px solid #e6dcc6; border-radius: 16px; background: white; }
+.advertise-benefits strong { color: var(--brand-green); font-size: 1.05rem; }
+.advertise-benefits p { margin: 8px 0 0; color: var(--ink-2, #333); line-height: 1.55; font-size: .95rem; }
+.advertise-steps ol { display: grid; gap: 12px; margin: 0; padding-left: 22px; line-height: 1.6; }
+.advertise-contact { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px 24px; margin-top: 28px; padding: 24px; border-radius: 18px; color: white; background: var(--brand-green); }
+.advertise-contact h2 { margin: 0 0 6px; color: var(--brand-gold); font-size: 1.3rem; }
+.advertise-contact p { margin: 0; opacity: .9; }
+@media (max-width: 680px) { .advertise-hero__actions .button, .advertise-contact .button { width: 100%; } }

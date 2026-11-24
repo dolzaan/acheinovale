@@ -46,6 +46,7 @@ export default function PublishPage() {
           </section>
 
           <p style={{ marginTop: 22, textAlign: "center", color: "var(--muted)", fontSize: 12 }}>
+            É corretor ou imobiliária? <Link href="/anuncie" style={{ color: "var(--green-dark)", fontWeight: 800, textDecoration: "underline" }}>Veja como ter sua página</Link>.<br />
             Já publicou antes? <Link href="/meus-anuncios" style={{ color: "var(--green-dark)", fontWeight: 800, textDecoration: "underline" }}>Acesse seus anúncios</Link>.
           </p>
         </div>
