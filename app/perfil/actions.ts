@@ -16,6 +16,19 @@ import {
 } from "@/lib/supabase/storage";
 import { normalizeBrazilianPhone, safeInternalPath } from "@/lib/validation/profile";
 import { revalidatePublicListings } from "@/lib/listings/public-cache";
+import { normalizeCreci, parseAdvertiserKind, profileSlugBase } from "@/lib/listings/advertiser";
+
+async function availableProfileSlug(base: string) {
+  const taken = new Set((await prisma.user.findMany({
+    where: { profileSlug: { startsWith: base } },
+    select: { profileSlug: true },
+  })).map(user => user.profileSlug));
+  if (!taken.has(base)) return base;
+  for (let suffix = 2; suffix < 1000; suffix += 1) {
+    if (!taken.has(`${base}-${suffix}`)) return `${base}-${suffix}`;
+  }
+  return `${base}-${crypto.randomUUID().slice(0, 8)}`;
+}
 
 function value(formData: FormData, key: string) {
   const field = formData.get(key);
@@ -40,6 +53,22 @@ export async function updateProfile(formData: FormData) {
   if (name.length < 2 || name.length > 100 || !phone || !cityId) {
     redirect(`/perfil?erro=dados&next=${encodeURIComponent(next)}`);
   }
+
+  const advertiserKind = parseAdvertiserKind(value(formData, "advertiserKind") || "INDIVIDUAL");
+  const isProfessional = advertiserKind === "BROKER" || advertiserKind === "AGENCY";
+  const businessName = isProfessional ? value(formData, "businessName") : "";
+  const creci = isProfessional ? normalizeCreci(value(formData, "creci")) : undefined;
+  if (
+    !advertiserKind || creci === null || businessName.length > 100 ||
+    (advertiserKind === "AGENCY" && businessName.length < 2) ||
+    (businessName.length > 0 && businessName.length < 2)
+  ) {
+    redirect(`/perfil?erro=profissional&next=${encodeURIComponent(next)}`);
+  }
+  // O endereço do perfil não muda depois de criado, para não quebrar links já divulgados.
+  const profileSlug = isProfessional && !user.profileSlug
+    ? await availableProfileSlug(profileSlugBase(businessName || name))
+    : undefined;
 
   const city = await prisma.city.findFirst({ where: { id: cityId, isActive: true }, select: { id: true } });
   if (!city) redirect(`/perfil?erro=cidade&next=${encodeURIComponent(next)}`);
@@ -112,7 +141,16 @@ export async function updateProfile(formData: FormData) {
   try {
     await prisma.user.update({
       where: { id: user.id },
-      data: { name, phone, cityId: city.id, ...(newImage ? { image: newImage } : {}) },
+      data: {
+        name,
+        phone,
+        cityId: city.id,
+        advertiserKind,
+        businessName: businessName || null,
+        creci: creci ?? null,
+        ...(profileSlug ? { profileSlug } : {}),
+        ...(newImage ? { image: newImage } : {}),
+      },
     });
   } catch (error) {
     if (admin && uploadedPath) {

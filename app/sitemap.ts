@@ -44,22 +44,35 @@ const getSitemapData = unstable_cache(async () => {
       orderBy: { updatedAt: "desc" },
     }),
   ]);
-  const neighborhoods = await prisma.neighborhood.findMany({
-    where: { id: { in: [...new Set(catalogGroups.map(group => group.neighborhoodId))] } },
-    select: { id: true, slug: true },
-  });
+  const [neighborhoods, advertisers] = await Promise.all([
+    prisma.neighborhood.findMany({
+      where: { id: { in: [...new Set(catalogGroups.map(group => group.neighborhoodId))] } },
+      select: { id: true, slug: true },
+    }),
+    // Perfis de corretor e imobiliária com pelo menos um imóvel ativo.
+    prisma.user.findMany({
+      where: {
+        advertiserKind: { not: "INDIVIDUAL" },
+        profileSlug: { not: null },
+        isBlocked: false,
+        properties: { some: { status: "ACTIVE" } },
+      },
+      select: { profileSlug: true },
+    }),
+  ]);
   // O cache guarda JSON: as datas viram texto aqui para o tipo refletir isso.
   return {
     cities,
     catalogGroups,
     neighborhoods,
+    advertiserSlugs: advertisers.map(advertiser => advertiser.profileSlug).filter((slug): slug is string => Boolean(slug)),
     properties: properties.map(({ updatedAt, ...property }) => ({ ...property, updatedAt: updatedAt.toISOString() })),
     freighters: freighters.map(({ updatedAt, ...freighter }) => ({ ...freighter, updatedAt: updatedAt.toISOString() })),
   };
-}, ["sitemap-data-v1"], { revalidate: 60 * 60, tags: [PUBLIC_LISTINGS_TAG, PUBLIC_LOCATIONS_TAG] });
+}, ["sitemap-data-v2"], { revalidate: 60 * 60, tags: [PUBLIC_LISTINGS_TAG, PUBLIC_LOCATIONS_TAG] });
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const { cities, properties, catalogGroups, neighborhoods, freighters } = await getSitemapData();
+  const { cities, properties, catalogGroups, neighborhoods, freighters, advertiserSlugs } = await getSitemapData();
   const citySlugById = new Map(cities.map(city => [city.id, city.slug]));
   const neighborhoodSlugById = new Map(neighborhoods.map(neighborhood => [neighborhood.id, neighborhood.slug]));
   const catalogPaths = new Set<string>();
@@ -75,6 +88,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: SITE_URL, changeFrequency: "daily", priority: 1 },
     { url: `${SITE_URL}/imoveis`, changeFrequency: "daily", priority: 0.9 },
     { url: `${SITE_URL}/freteiros`, changeFrequency: "daily", priority: 0.8 },
+    { url: `${SITE_URL}/anuncie`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${SITE_URL}/seguranca`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${SITE_URL}/ajuda`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${SITE_URL}/termos`, changeFrequency: "yearly", priority: 0.3 },
@@ -97,6 +111,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: property.updatedAt,
       changeFrequency: "weekly" as const,
       priority: 0.8,
+    })),
+    ...advertiserSlugs.map(slug => ({
+      url: `${SITE_URL}/anunciante/${slug}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
     })),
     ...freighters.map(freighter => ({
       url: `${SITE_URL}${freighterUrl(freighter)}`,

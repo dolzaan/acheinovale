@@ -47,6 +47,15 @@ enum ReportStatus {
   @@map("status_denuncia")
 }
 
+// Como a pessoa se apresenta nos anúncios. Corretor e imobiliária ganham perfil público.
+enum AdvertiserKind {
+  INDIVIDUAL
+  BROKER
+  AGENCY
+
+  @@map("tipo_anunciante")
+}
+
 enum UserRole {
   USER
   ADMIN
@@ -67,6 +76,13 @@ model User {
   cityId                     String?            @map("id_cidade")
   city                       City?              @relation(fields: [cityId], references: [id])
   role                       UserRole           @default(USER) @map("funcao")
+  advertiserKind             AdvertiserKind     @default(INDIVIDUAL) @map("tipo_anunciante")
+  // Nome da imobiliária ou nome profissional do corretor; vazio usa `name`.
+  businessName               String?            @map("nome_comercial")
+  // CRECI informado pelo próprio anunciante. Não é conferido pelo site.
+  creci                      String?
+  // Endereço do perfil público (/anunciante/{profileSlug}); só existe para corretor e imobiliária.
+  profileSlug                String?            @unique @map("identificador_perfil")
   isBlocked                  Boolean            @default(false) @map("bloqueado")
   lastLoginAt                DateTime?          @map("ultimo_login_em")
   createdAt                  DateTime           @default(now()) @map("criado_em")

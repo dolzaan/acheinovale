@@ -8,7 +8,7 @@ export const getPublicProperty = cache(async (publicCode: string) => {
     include: {
       city: true,
       neighborhood: true,
-      owner: { select: { id: true, name: true, image: true } },
+      owner: { select: { id: true, name: true, image: true, advertiserKind: true, businessName: true, creci: true, profileSlug: true } },
       images: { orderBy: { position: "asc" } },
       videos: { orderBy: { position: "asc" } },
     },

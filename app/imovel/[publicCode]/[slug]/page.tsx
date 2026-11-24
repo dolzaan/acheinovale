@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import Script from "next/script";
 import { notFound, permanentRedirect } from "next/navigation";
 import { ListingShare } from "@/components/listing-share";
@@ -20,6 +21,7 @@ import { propertyImagePublicUrl, propertyVideoPublicUrl } from "@/lib/supabase/s
 import { formatBrazilianPhone } from "@/lib/validation/profile";
 import { SITE_URL } from "@/lib/site";
 import { formatArea, formatCount } from "@/lib/format";
+import { ADVERTISER_KIND_LABELS, advertiserDisplayName, advertiserUrl, isProfessionalAdvertiser } from "@/lib/listings/advertiser";
 
 type Props = {
   params: Promise<{ publicCode: string; slug: string }>;
@@ -85,6 +87,7 @@ export default async function PropertyPage({ params, searchParams }: Props) {
     : false;
 
   const canonical = `${SITE_URL}${propertyUrl(property)}`;
+  const ownerProfileUrl = advertiserUrl(property.owner);
   const whatsappUrl = `https://wa.me/${property.whatsapp}?text=${encodeURIComponent(
     `Olá! Vi o imóvel "${property.title}" no AcheiNoVale.`,
   )}`;
@@ -167,7 +170,7 @@ export default async function PropertyPage({ params, searchParams }: Props) {
               {property.status === "ACTIVE" ? <FavoriteButton kind="imovel" id={property.id} saved={isFavorite} /> : null}
               <div className="listing-owner">
                 <UserAvatar image={property.owner.image} name={property.owner.name} />
-                <div><small>Anunciante</small><b>{property.owner.name || "Usuário do AcheiNoVale"}</b></div>
+                <div><small>{isProfessionalAdvertiser(property.owner) ? ADVERTISER_KIND_LABELS[property.owner.advertiserKind] : "Anunciante"}</small><b>{advertiserDisplayName(property.owner)}</b>{property.owner.creci ? <small>CRECI {property.owner.creci} (informado pelo anunciante)</small> : null}{ownerProfileUrl ? <Link prefetch={false} className="text-link" href={ownerProfileUrl}>Ver todos os imóveis →</Link> : null}</div>
               </div>
               <p>WhatsApp do anúncio: {formatBrazilianPhone(property.whatsapp)}</p>
               {viewer?.id !== property.ownerId ? <ListingReportForm action={reportProperty.bind(null, property.id)} reasons={PROPERTY_REPORT_REASONS} summary="Denunciar este anúncio" status={query.denuncia} /> : null}
