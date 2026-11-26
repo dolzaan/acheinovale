@@ -34,6 +34,14 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "5mb",
     },
   },
+  async redirects() {
+    return ["acheinovale.org", "acheinovale.online", "acheinovale.vercel.app", "www.acheinovale.com", "www.acheinovale.org", "www.acheinovale.online"].map(host => ({
+      source: "/:path*",
+      has: [{ type: "host" as const, value: host.replace(/\./g, "\\.") }],
+      destination: "https://acheinovale.com/:path*",
+      permanent: true,
+    }));
+  },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
