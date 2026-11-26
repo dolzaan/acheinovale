@@ -3,7 +3,7 @@ import "server-only";
 import { prisma } from "@/lib/db";
 
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
-const USER_AGENT = "AcheiNoVale/1.0 (+https://acheinovale.vercel.app)";
+const USER_AGENT = "AcheiNoVale/1.0 (+https://acheinovale.com)";
 // Depois de uma tentativa sem resultado, só tenta de novo passado este prazo.
 const RETRY_AFTER_MS = 30 * 24 * 60 * 60 * 1000;
 const NEIGHBORHOOD_TYPES = new Set(["suburb", "quarter", "neighbourhood", "residential", "administrative", "hamlet", "village", "isolated_dwelling", "locality"]);
