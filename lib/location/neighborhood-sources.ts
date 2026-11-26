@@ -15,7 +15,7 @@ const OVERPASS_URLS = [
   "https://overpass.private.coffee/api/interpreter",
 ];
 const IBGE_MUNICIPALITIES_URL = "https://servicodados.ibge.gov.br/api/v1/localidades/estados";
-const USER_AGENT = "AcheiNoVale/1.0 (+https://acheinovale.vercel.app)";
+const USER_AGENT = "AcheiNoVale/1.0 (+https://acheinovale.com)";
 const ONE_DAY = 60 * 60 * 24;
 
 /**
