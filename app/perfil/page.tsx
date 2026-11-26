@@ -10,6 +10,7 @@ import Link from "next/link";
 import { SITE_URL } from "@/lib/site";
 import { safeInternalPath } from "@/lib/validation/profile";
 import { ADVERTISER_KIND_LABELS, advertiserUrl } from "@/lib/listings/advertiser";
+import { isReachConfigured } from "@/lib/reach/hostinger-reach";
 import { updateProfile } from "./actions";
 
 type ProfilePageProps = {
@@ -78,6 +79,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                 <p className="option-fieldset__hint">Corretores e imobiliárias ganham uma página pública com todos os seus imóveis ativos. Para pessoa física, os campos acima são ignorados.{publicProfile ? <> Sua página: <Link href={publicProfile}>{`${SITE_URL.replace(/^https?:\/\//, "")}${publicProfile}`}</Link></> : null}</p>
               </fieldset>
               <label className="checkbox-field field-wide"><input type="checkbox" name="weeklySummary" value="1" defaultChecked={!user.weeklySummaryOptOut} /><span>Receber toda segunda-feira um e-mail com as visualizações e os contatos dos meus anúncios</span></label>
+              {isReachConfigured() && <label className="checkbox-field field-wide"><input type="checkbox" name="newsletter" value="1" defaultChecked={Boolean(user.newsletterOptInAt)} /><span>Quero receber novidades e dicas do Achei no Vale por e-mail. Dá para cancelar quando quiser.</span></label>}
               <PendingSubmitButton className="button button--primary" pendingText="Salvando perfil…">Salvar perfil</PendingSubmitButton>
             </form>
           </section>

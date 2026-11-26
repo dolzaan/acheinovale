@@ -88,6 +88,8 @@ model User {
   weeklySummarySentAt        DateTime?          @map("resumo_semanal_enviado_em")
   // Link de cancelamento do resumo, sem precisar entrar na conta.
   summaryUnsubscribeToken    String?            @unique @map("token_cancelamento_resumo")
+  // Quando aceitou receber novidades por e-mail (lista no Hostinger Reach); vazio = não aceitou.
+  newsletterOptInAt          DateTime?          @map("novidades_email_aceito_em")
   isBlocked                  Boolean            @default(false) @map("bloqueado")
   lastLoginAt                DateTime?          @map("ultimo_login_em")
   createdAt                  DateTime           @default(now()) @map("criado_em")

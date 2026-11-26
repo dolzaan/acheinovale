@@ -6,10 +6,11 @@ import { SiteFooter } from "./footer";
 type LegalPageProps = {
   title: string;
   description: string;
+  updatedAt?: string;
   children: React.ReactNode;
 };
 
-export function LegalPage({ title, description, children }: LegalPageProps) {
+export function LegalPage({ title, description, updatedAt = "1º de setembro de 2026", children }: LegalPageProps) {
   return (
     <>
       <Header />
@@ -18,7 +19,7 @@ export function LegalPage({ title, description, children }: LegalPageProps) {
           <header className="legal-heading">
             <h1>{title}</h1>
             <p>{description}</p>
-            <small>Última atualização: 1º de setembro de 2026</small>
+            <small>Última atualização: {updatedAt}</small>
           </header>
           <article className="legal-content">{children}</article>
           <aside className="legal-help">
