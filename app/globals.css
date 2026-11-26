@@ -192,6 +192,20 @@ button { cursor: pointer; }
 .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 60px; }.footer-grid > div { display: flex; align-items: flex-start; flex-direction: column; gap: 10px; }
 .footer-grid p { color: #91a9a1; font-size: 12px; line-height: 1.6; }.footer-grid strong { color: white; font-size: 12px; }.footer-grid a { color: #9bb0a9; font-size: 14px; }.footer-grid a:hover { color: white; }
 .footer-local { padding: 18px; border: 1px solid rgba(255,255,255,.1); border-radius: 13px; }.footer-local svg { color: #77bd88; }.footer-local span { color: #8ca69d; font-size: 12px; }.footer-local strong { font-family: var(--font-display); font-size: 15px; font-weight: 750; }
+.newsletter-form { display: flex; flex-direction: column; gap: 9px; width: 100%; max-width: 420px; margin-top: 12px; }
+.newsletter-form__row { display: flex; gap: 8px; width: 100%; }
+.newsletter-form input[type="email"] { flex: 1; min-width: 0; min-height: 44px; padding: 0 14px; border: 1px solid rgba(255,255,255,.18); border-radius: 12px; color: white; background: rgba(255,255,255,.06); font-size: 14px; }
+.newsletter-form input[type="email"]::placeholder { color: #7f978f; }
+.newsletter-form input[type="email"]:focus { outline: 2px solid #77bd88; outline-offset: 1px; }
+.newsletter-form__button { min-height: 44px; padding: 0 16px; color: var(--ink); background: #77bd88; white-space: nowrap; }
+.newsletter-form__button:hover { background: #8fd09f; }
+.newsletter-form__button:disabled { opacity: .7; cursor: wait; }
+.newsletter-form small { color: #7f978f; font-size: 12px; line-height: 1.5; }
+.newsletter-form small a { font-size: 12px !important; text-decoration: underline; }
+.newsletter-form__trap { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.newsletter-form__feedback { margin: 12px 0 0; color: #b9dcc2 !important; font-size: 13px !important; font-weight: 700; }
+.newsletter-form__feedback--error { margin: 0; color: #f3b49f !important; }
+@media (max-width: 420px) { .newsletter-form__row { flex-direction: column; } }
 .footer-bottom { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 45px; padding-top: 23px; border-top: 1px solid rgba(255,255,255,.09); color: #77928a; font-size: 12px; }
 .footer-bottom nav { display: flex; align-items: center; justify-content: center; gap: 18px; }.footer-bottom a { color: #a9bbb5; font-weight: 750; }.footer-bottom a:hover { color: white; }
 

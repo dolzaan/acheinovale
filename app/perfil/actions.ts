@@ -17,6 +17,8 @@ import {
 import { normalizeBrazilianPhone, safeInternalPath } from "@/lib/validation/profile";
 import { revalidatePublicListings } from "@/lib/listings/public-cache";
 import { normalizeCreci, parseAdvertiserKind, profileSlugBase } from "@/lib/listings/advertiser";
+import { sendLater } from "@/lib/email/notifications";
+import { subscribeToReach, unsubscribeFromReach } from "@/lib/reach/hostinger-reach";
 
 async function availableProfileSlug(base: string) {
   const taken = new Set((await prisma.user.findMany({
@@ -72,6 +74,9 @@ export async function updateProfile(formData: FormData) {
 
   const city = await prisma.city.findFirst({ where: { id: cityId, isActive: true }, select: { id: true } });
   if (!city) redirect(`/perfil?erro=cidade&next=${encodeURIComponent(next)}`);
+
+  const wantsNewsletter = formData.get("newsletter") === "1";
+  const newsletterChanged = wantsNewsletter !== Boolean(user.newsletterOptInAt);
 
   let newImage: string | undefined;
   let uploadedPath: string | null = null;
@@ -147,6 +152,7 @@ export async function updateProfile(formData: FormData) {
         cityId: city.id,
         advertiserKind,
         weeklySummaryOptOut: formData.get("weeklySummary") !== "1",
+        ...(newsletterChanged ? { newsletterOptInAt: wantsNewsletter ? new Date() : null } : {}),
         businessName: businessName || null,
         creci: creci ?? null,
         ...(profileSlug ? { profileSlug } : {}),
@@ -174,6 +180,12 @@ export async function updateProfile(formData: FormData) {
         message: error.message,
       });
     }
+  }
+
+  if (newsletterChanged) {
+    sendLater(() => wantsNewsletter
+      ? subscribeToReach({ email: user.email, name, source: "perfil" })
+      : unsubscribeFromReach(user.email));
   }
 
   revalidatePublicListings();
