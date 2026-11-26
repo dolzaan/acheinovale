@@ -23,6 +23,11 @@ function reachConfig(): ReachConfig | null {
   return token && profileUuid ? { token, profileUuid } : null;
 }
 
+/** O formulário e a opção do perfil só aparecem quando a lista está configurada. */
+export function isReachConfigured() {
+  return reachConfig() !== null;
+}
+
 export function contactPayload(email: string, fullName: string | null | undefined, source: ReachSource) {
   const [name, ...rest] = (fullName ?? "").trim().split(/\s+/).filter(Boolean);
   return {

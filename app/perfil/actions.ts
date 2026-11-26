@@ -18,7 +18,7 @@ import { normalizeBrazilianPhone, safeInternalPath } from "@/lib/validation/prof
 import { revalidatePublicListings } from "@/lib/listings/public-cache";
 import { normalizeCreci, parseAdvertiserKind, profileSlugBase } from "@/lib/listings/advertiser";
 import { sendLater } from "@/lib/email/notifications";
-import { subscribeToReach, unsubscribeFromReach } from "@/lib/reach/hostinger-reach";
+import { isReachConfigured, subscribeToReach, unsubscribeFromReach } from "@/lib/reach/hostinger-reach";
 
 async function availableProfileSlug(base: string) {
   const taken = new Set((await prisma.user.findMany({
@@ -76,7 +76,8 @@ export async function updateProfile(formData: FormData) {
   if (!city) redirect(`/perfil?erro=cidade&next=${encodeURIComponent(next)}`);
 
   const wantsNewsletter = formData.get("newsletter") === "1";
-  const newsletterChanged = wantsNewsletter !== Boolean(user.newsletterOptInAt);
+  // Sem a lista configurada, a opção nem aparece; não apaga um aceite já dado.
+  const newsletterChanged = isReachConfigured() && wantsNewsletter !== Boolean(user.newsletterOptInAt);
 
   let newImage: string | undefined;
   let uploadedPath: string | null = null;
