@@ -15,7 +15,7 @@ export function NewsletterForm() {
 
   return (
     <form className="newsletter-form" action={action}>
-      <label htmlFor="newsletter-email"><strong>Receba novidades do Vale</strong></label>
+      <label htmlFor="newsletter-email"><strong>Receba novidades do Alto Vale do Itajaí</strong></label>
       <div className="newsletter-form__row">
         <input id="newsletter-email" type="email" name="email" placeholder="seu@email.com" autoComplete="email" maxLength={254} required defaultValue={state.email} key={state.email ?? ""} />
         <button className="button newsletter-form__button" type="submit" disabled={pending}>{pending ? "Enviando…" : "Quero receber"}</button>

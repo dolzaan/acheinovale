@@ -31,7 +31,7 @@ body { background: var(--brand-cream); color: var(--brand-green); }
 .site-header { background: rgba(255,249,236,.94); border-bottom-color: rgba(29,64,45,.12); }
 .brand { color: var(--brand-green); }
 .brand__image { display: block; width: 142px; height: auto; }
-.site-footer .brand__image { width: 218px; }
+.site-footer .brand__image { width: 150px; }
 .desktop-nav a, .city-switcher { color: var(--brand-green); }
 .desktop-nav a:hover { color: var(--brand-green); }
 .city-switcher { border-left-color: var(--brand-line); }
@@ -242,6 +242,6 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
 @media (max-width: 680px) { .approximate-map { height: 220px; } }
 
 /* Instagram no rodapé */
-.footer-grid a.footer-social { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 4px; color: var(--brand-gold); font-weight: 700; }
+.footer-grid a.footer-social { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; margin-top: 0; color: var(--brand-gold); font-weight: 700; }
 .footer-grid a.footer-social:hover { color: white; }
 .advertise-contact p a { color: var(--brand-gold); font-weight: 700; text-decoration: underline; }
