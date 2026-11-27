@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { PropertyPurpose, PropertyType } from "@prisma/client";
-import { BathIcon, BedIcon, HomeIcon, PinIcon } from "@/components/icons";
+import { AreaIcon, BathIcon, BedIcon, HomeIcon, PinIcon } from "@/components/icons";
 import { formatArea, formatCount } from "@/lib/format";
 import { propertyUrl } from "@/lib/listings/urls";
 import { propertyImagePublicUrl } from "@/lib/supabase/storage";
@@ -54,7 +54,7 @@ export function PropertyCard({ property }: { property: PropertyCardProperty }) {
         <div className="property-card__features">
           {property.bedrooms !== null ? <span><BedIcon />{formatCount(property.bedrooms, "quarto", "quartos")}</span> : null}
           {property.bathrooms !== null ? <span><BathIcon />{property.bathrooms} banh.</span> : null}
-          {property.areaM2 ? <span>{formatArea(property.areaM2)}</span> : null}
+          {property.areaM2 ? <span><AreaIcon />{formatArea(property.areaM2)}</span> : null}
         </div>
         <div className="property-card__price"><strong>{formatPrice(property.priceCents)}</strong><span>{property.purpose === "RENT" ? "/mês" : ""}</span></div>
         <Link prefetch={false} className="button button--primary property-card__cta" href={url} aria-label={`Ver imóvel: ${property.title}`}>Ver imóvel</Link>

@@ -16,6 +16,7 @@ import { freighterUrl, propertyCatalogPath, propertyUrl } from "@/lib/listings/u
 import { propertyImagePublicUrl } from "@/lib/supabase/storage";
 import { SITE_URL } from "@/lib/site";
 import {
+  AreaIcon,
   ArrowIcon,
   BathIcon,
   BedIcon,
@@ -145,7 +146,7 @@ export default async function HomePage({ searchParams }: Props) {
                     <div className="property-card__features">
                       {property.bedrooms !== null ? <span><BedIcon/>{formatCount(property.bedrooms, "quarto", "quartos")}</span> : null}
                       {property.bathrooms !== null ? <span><BathIcon/>{property.bathrooms} banh.</span> : null}
-                      {property.areaM2 ? <span>{formatArea(property.areaM2)}</span> : null}
+                      {property.areaM2 ? <span><AreaIcon/>{formatArea(property.areaM2)}</span> : null}
                     </div>
                     <div className="property-card__price"><strong>{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(property.priceCents / 100)}</strong><span>{property.purpose === "RENT" ? "/mês" : ""}</span></div>
                     <Link prefetch={false} className="button button--secondary property-card__cta" href={propertyUrl(property)}>Ver imóvel</Link>
