@@ -1,4 +1,5 @@
 import "./home-preview.css";
+import { cityTourismPhotos, regionalTourismFallback } from "@/data/city-tourism";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -52,6 +53,7 @@ export default async function HomePage({ searchParams }: Props) {
   const city = await resolveRequestCity(requestedSlug);
   const [properties, freighters] = city.id ? await getHomeListings(city.id) : [[], []];
   const cityName = city.name;
+  const cityPhoto = cityTourismPhotos[city.slug] ?? regionalTourismFallback;
   const propertiesHref = `/${city.slug}/imoveis`;
   const freightersHref = `/${city.slug}/freteiros`;
   const rentalsHref = propertyCatalogPath(city.slug, "aluguel");
@@ -65,11 +67,12 @@ export default async function HomePage({ searchParams }: Props) {
       <Header citySlug={city?.slug} />
       <main id="conteudo" className="home-preview">
         <section className="redesign-hero">
+          <div className="market-city-background"><Image src={cityPhoto.src} alt="" fill sizes="100vw" priority /></div>
           <div className="container editorial-shell">
                         <div className="redesign-intro">
               <span className="redesign-eyebrow"><span className="live-dot"/> O marketplace do Alto Vale</span>
-              <h1>Encontre seu próximo <em>lar.</em></h1>
-              <p>Encontre imóveis e serviços de frete em {cityName} e região.</p>
+              <h1>Encontre perto. <em>Resolva no Vale.</em></h1>
+              <p>Imóveis, fretes e oportunidades em {cityName} e região.</p>
             </div>
             <div className="redesign-search modern-search-panel">
               <nav aria-label="O que você procura" className="redesign-tabs">
@@ -79,12 +82,13 @@ export default async function HomePage({ searchParams }: Props) {
               </nav>
               <Form action="/buscar" className="redesign-form">
                 <input type="hidden" name="cidade" value={city.slug}/>
-                <label><input type="search" name="q" placeholder="Casa, apartamento, bairro..." aria-label="Buscar imóveis ou fretes"/></label>
+                <label><input type="search" name="q" placeholder="O que você procura no Vale?" aria-label="Buscar imóveis ou fretes"/></label>
                 <PendingSubmitButton aria-label="Buscar" pendingText="Buscando…" navigation><SearchIcon size={20}/> Buscar</PendingSubmitButton>
               </Form>
               
             </div>
           </div>
+          <div className="container market-photo-credit"><a href={cityPhoto.sourceUrl} target="_blank" rel="noreferrer">{cityPhoto.caption} · {cityPhoto.author}</a> · <a href={cityPhoto.licenseUrl} target="_blank" rel="noreferrer">{cityPhoto.license}</a></div>
         </section>
         {cityIsEmpty ? (
           <section className="section launch-section" aria-labelledby="launch-title">
