@@ -77,3 +77,19 @@ export function FilterIcon({ size = 18, ...props }: IconProps) {
 export function InstagramIcon({ size = 20, ...props }: IconProps) {
   return <svg {...base(size)} {...props}><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6" fill="currentColor"/></svg>;
 }
+
+export function CarIcon({ size = 17, ...props }: IconProps) {
+  return <svg {...base(size)} {...props}><path d="M5 17h14M5 17v2M19 17v2M4 17v-4l2-5h12l2 5v4M4 13h16M8 15h.01M16 15h.01"/></svg>;
+}
+
+export function AreaIcon({ size = 17, ...props }: IconProps) {
+  return <svg {...base(size)} {...props}><path d="M4 4h16v16H4zM4 9h3M4 14h3M9 4v3M14 4v3"/></svg>;
+}
+
+export function WavesIcon({ size = 17, ...props }: IconProps) {
+  return <svg {...base(size)} {...props}><path d="M2 8c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0M2 13c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0M2 18c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0"/></svg>;
+}
+
+export function LandIcon({ size = 17, ...props }: IconProps) {
+  return <svg {...base(size)} {...props}><path d="M3 20h18M5 20l4-7 3 4 3-6 4 9M15 6a2 2 0 1 0 0-.01"/></svg>;
+}

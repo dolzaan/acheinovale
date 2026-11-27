@@ -13,7 +13,7 @@ import { UserAvatar } from "@/components/user-avatar";
 import { FavoriteButton } from "@/components/favorite-button";
 import { ListingReportForm } from "@/components/listing-report-form";
 import { TrackedWhatsappContact } from "@/components/tracked-whatsapp-contact";
-import { BathIcon, BedIcon, HomeIcon, PinIcon } from "@/components/icons";
+import { AreaIcon, BathIcon, BedIcon, BuildingIcon, CarIcon, HomeIcon, LandIcon, PinIcon, WavesIcon } from "@/components/icons";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
 import { getPublicProperty } from "@/lib/listings/public";
@@ -160,12 +160,12 @@ export default async function PropertyPage({ params, searchParams }: Props) {
               <span className="listing-location"><PinIcon size={17} />{property.neighborhood.name}, {property.city.name} — {property.city.stateCode}</span>
               <h1>{property.title}</h1>
               <div className="listing-facts">
-                <span>{propertyTypes[property.type]}</span>
+                <span>{property.type === "LAND" ? <LandIcon /> : property.type === "HOUSE" || property.type === "OTHER" ? <HomeIcon size={17} /> : <BuildingIcon size={17} />}{propertyTypes[property.type]}</span>
                 {property.bedrooms !== null ? <span><BedIcon />{formatCount(property.bedrooms, "quarto", "quartos")}</span> : null}
                 {property.bathrooms !== null ? <span><BathIcon />{formatCount(property.bathrooms, "banheiro", "banheiros")}</span> : null}
-                {property.parkingSpots !== null ? <span>{formatCount(property.parkingSpots, "vaga", "vagas")}</span> : null}
-                {property.areaM2 ? <span>{formatArea(property.areaM2)}</span> : null}
-                {property.floodLevelCm !== null ? <span title="Nível do rio em que a água chega ao imóvel, segundo o anunciante">Cota de enchente: {formatFloodLevel(property.floodLevelCm)}</span> : null}
+                {property.parkingSpots !== null ? <span><CarIcon />{formatCount(property.parkingSpots, "vaga", "vagas")}</span> : null}
+                {property.areaM2 ? <span><AreaIcon />{formatArea(property.areaM2)}</span> : null}
+                {property.floodLevelCm !== null ? <span title="Nível do rio em que a água chega ao imóvel, segundo o anunciante"><WavesIcon />Cota de enchente: {formatFloodLevel(property.floodLevelCm)}</span> : null}
               </div>
               <section className="listing-description">
                 <h2>Sobre o imóvel</h2>
