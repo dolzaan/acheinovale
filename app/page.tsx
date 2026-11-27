@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { CityDiscovery } from "@/components/city-discovery";
 import { AutoDetectCity } from "@/components/auto-detect-city";
-import { CityTourismVisual } from "@/components/city-tourism-visual";
 import { resolveRequestCity } from "@/lib/location/selected-city";
 import Form from "next/form";
 import { Header } from "@/components/header";
@@ -65,47 +64,28 @@ export default async function HomePage({ searchParams }: Props) {
       <AutoDetectCity />
       <Header citySlug={city?.slug} />
       <main id="conteudo" className="home-preview">
-        <section className="hero">
-          <div className="container hero__inner">
-            <div className="hero__content">
-              <div className="eyebrow"><PinIcon size={16}/> Feito para {cityName} e região</div>
-              <h1>Encontre perto.<br/><em>Viva no Vale.</em></h1>
-              <p>Seu próximo imóvel ou frete está aqui, em {cityName} e região. Simples, local e direto pelo WhatsApp.</p>
-
-              <Form id="home-search-form" className="main-search" action="/buscar">
-                {city ? <input type="hidden" name="cidade" value={city.slug} /> : null}
-                <SearchIcon size={22}/>
-                <input type="search" name="q" autoComplete="off" aria-label="O que você procura?" placeholder="Ex: casa para alugar no Centro…" />
-                <PendingSubmitButton aria-label="Buscar" pendingText="Buscando…" navigation><SearchIcon size={20}/><span>Buscar</span></PendingSubmitButton>
-              </Form>
-
-              <nav className="quick-searches" aria-label="Atalhos de busca">
-                <Link prefetch={false} href={rentalsHref}>Imóveis para alugar</Link>
-                <Link prefetch={false} href={salesHref}>Imóveis à venda</Link>
-                <Link prefetch={false} href={freightersHref}>Encontrar freteiro</Link>
-                <Link prefetch={false} href="/imoveis?regiao=1">Imóveis em toda a região</Link>
-              </nav>
+        <section className="redesign-hero">
+          <div className="container">
+            <div className="redesign-intro">
+              <span className="redesign-eyebrow"><PinIcon size={16}/> O portal do Alto Vale</span>
+              <h1>Seu próximo lar <em>está aqui.</em></h1>
+              <p>Encontre imóveis e serviços de frete em {cityName} e região.</p>
             </div>
-
-            <CityTourismVisual citySlug={city?.slug} cityName={cityName} />
-          </div>
-
-          <div className="container category-wrap">
-            <div className="category-grid">
-              <Link prefetch={false} className="category-card category-card--property" href={propertiesHref}>
-                <span className="category-card__icon"><HomeIcon size={31}/></span>
-                <span className="category-card__copy"><small>Quero encontrar</small><strong>Um imóvel</strong><span>Casas, apartamentos e terrenos</span></span>
-                <span className="category-card__arrow"><ArrowIcon/></span>
-              </Link>
-              <Link prefetch={false} className="category-card category-card--freight" href={freightersHref}>
-                <span className="category-card__icon"><TruckIcon size={31}/></span>
-                <span className="category-card__copy"><small>Preciso de</small><strong>Um freteiro</strong><span>Mudanças, entregas e transportes</span></span>
-                <span className="category-card__arrow"><ArrowIcon/></span>
-              </Link>
+            <div className="redesign-search">
+              <nav aria-label="O que você procura" className="redesign-tabs">
+                <Link href={rentalsHref} prefetch={false}><HomeIcon size={20}/> Alugar</Link>
+                <Link href={salesHref} prefetch={false}><BuildingIcon size={20}/> Comprar</Link>
+                <Link href={freightersHref} prefetch={false}><TruckIcon size={20}/> Fretes</Link>
+              </nav>
+              <Form action="/buscar" className="redesign-form">
+                <input type="hidden" name="cidade" value={city.slug}/>
+                <label><span>O que você procura?</span><input type="search" name="q" placeholder="Casa, apartamento, bairro..." aria-label="Buscar imóveis ou fretes"/></label>
+                <PendingSubmitButton aria-label="Buscar" pendingText="Buscando…" navigation><SearchIcon size={20}/> Buscar</PendingSubmitButton>
+              </Form>
+              <div className="redesign-shortcuts"><Link href={rentalsHref} prefetch={false}>Casas para alugar</Link><Link href={salesHref} prefetch={false}>Imóveis à venda</Link><Link href="/imoveis?regiao=1" prefetch={false}>Toda a região <ArrowIcon/></Link></div>
             </div>
           </div>
         </section>
-
         {cityIsEmpty ? (
           <section className="section launch-section" aria-labelledby="launch-title">
             <div className="container">
