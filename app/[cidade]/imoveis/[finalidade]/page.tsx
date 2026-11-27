@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const city = isPurposeSlug(finalidade) ? await getCatalogCity(cidade) : null;
   if (!city || !isPurposeSlug(finalidade)) return {};
   const words = purposeWords(finalidade);
-  const title = finalidade === "aluguel" ? `Aluguel em ${city.name}, SC: casas e imóveis | Achei no Vale` : `Imóveis ${words.title} em ${city.name}, SC | Achei no Vale`;
+  const title = finalidade === "aluguel" ? `Aluguel em ${city.name} – SC | Achei no Vale` : `Imóveis ${words.title} em ${city.name}, SC | Achei no Vale`;
   const description = finalidade === "aluguel"
     ? `Encontre casas, apartamentos e imóveis para alugar em ${city.name}. Veja fotos, preços, bairros e fale direto com o anunciante.`
     : `Encontre casas, apartamentos e terrenos à venda em ${city.name}. Veja fotos, preços, bairros e fale direto com o anunciante.`;
