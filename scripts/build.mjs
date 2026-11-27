@@ -28,6 +28,7 @@ if (process.env.VERCEL_ENV === "production") {
     "prisma/migrations/20261126220000_novidades_email/migration.sql",
     "prisma/migrations/20261127120000_security_audit/migration.sql",
     "prisma/migrations/20261127150000_flood_level/migration.sql",
+    "prisma/migrations/20261127180000_property_costs/migration.sql",
   ];
 
   for (const migration of productionMigrations) {

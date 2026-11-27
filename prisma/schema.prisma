@@ -167,6 +167,14 @@ model Property {
   parkingSpots       Int?            @map("vagas_garagem")
   // Nível do rio, em centímetros, a partir do qual a água chega ao imóvel (opcional).
   floodLevelCm       Int?            @map("cota_enchente_cm")
+  // Custos opcionais: condomínio por mês; IPTU e taxa de lixo por ano (0 = isento).
+  condoFeeCents      Int?            @map("condominio_centavos")
+  iptuCents          Int?            @map("iptu_anual_centavos")
+  garbageFeeCents    Int?            @map("taxa_lixo_anual_centavos")
+  // Contas de aluguel: true = inclusa no aluguel, false = por conta do inquilino, vazio = não informado.
+  waterIncluded       Boolean?        @map("agua_inclusa")
+  electricityIncluded Boolean?        @map("luz_inclusa")
+  internetIncluded    Boolean?        @map("internet_inclusa")
   areaM2             Decimal?        @map("area_m2") @db.Decimal(10, 2)
   acceptsPets        Boolean?        @map("aceita_animais")
   furnished          Boolean?        @map("mobiliado")

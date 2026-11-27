@@ -8,6 +8,7 @@ import { NeighborhoodPicker, EMPTY_NEIGHBORHOOD, type NeighborhoodValue } from "
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { PhoneInput } from "@/components/phone-input";
 import { FloodLevelField } from "@/components/flood-level-field";
+import { PropertyCostFields } from "@/components/property-cost-fields";
 import { floodLevelInputValue } from "@/lib/listings/flood-level";
 
 type CityOption = {
@@ -28,6 +29,12 @@ export type PropertyEditValues = {
   bathrooms: number | null;
   parkingSpots: number | null;
   floodLevelCm: number | null;
+  condoFeeCents: number | null;
+  iptuCents: number | null;
+  garbageFeeCents: number | null;
+  waterIncluded: boolean | null;
+  electricityIncluded: boolean | null;
+  internetIncluded: boolean | null;
   cityId: string;
   neighborhood: { id: string; name: string };
   cep: string;
@@ -119,6 +126,14 @@ export function PropertyEditForm({ propertyId, cities, initial }: { propertyId: 
         <FloodLevelField defaultValue={floodLevelInputValue(initial.floodLevelCm)} />
       </div>
 
+      <PropertyCostFields initial={{
+        condoFeeCents: initial.condoFeeCents,
+        iptuCents: initial.iptuCents,
+        garbageFeeCents: initial.garbageFeeCents,
+        waterIncluded: initial.waterIncluded,
+        electricityIncluded: initial.electricityIncluded,
+        internetIncluded: initial.internetIncluded,
+      }} />
       <details className="publish-optional-section field-wide" open={Boolean(initial.cep)}>
         <summary>Endereço detalhado <span>Opcional</span></summary>
         <p>Esses dados ficam privados e não aparecem no anúncio público. Deixe o CEP em branco para remover o endereço salvo.</p>

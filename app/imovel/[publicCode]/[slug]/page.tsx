@@ -25,6 +25,7 @@ import { formatBrazilianPhone } from "@/lib/validation/profile";
 import { SITE_URL } from "@/lib/site";
 import { formatArea, formatCount } from "@/lib/format";
 import { formatFloodLevel } from "@/lib/listings/flood-level";
+import { propertyCostLines } from "@/lib/listings/property-costs";
 import { ADVERTISER_KIND_LABELS, advertiserDisplayName, advertiserUrl, isProfessionalAdvertiser } from "@/lib/listings/advertiser";
 import { jsonLd } from "@/lib/seo/json-ld";
 
@@ -91,6 +92,7 @@ export default async function PropertyPage({ params, searchParams }: Props) {
     ? Boolean(await prisma.favorite.findFirst({ where: { userId: viewer.id, propertyId: property.id }, select: { id: true } }))
     : false;
 
+  const costLines = propertyCostLines(property);
   const mapCenter = property.neighborhood.latitude !== null && property.neighborhood.longitude !== null
     ? { latitude: Number(property.neighborhood.latitude), longitude: Number(property.neighborhood.longitude) }
     : null;
@@ -171,6 +173,15 @@ export default async function PropertyPage({ params, searchParams }: Props) {
                 <h2>Sobre o imóvel</h2>
                 <p>{property.description}</p>
               </section>
+              {costLines.length ? (
+                <section className="listing-description listing-costs" aria-labelledby="listing-costs-title">
+                  <h2 id="listing-costs-title">Custos e contas</h2>
+                  <dl>
+                    {costLines.map(line => <div key={line.label}><dt>{line.label}</dt><dd>{line.value}</dd></div>)}
+                  </dl>
+                  <small>Valores informados pelo anunciante. Confirme antes de fechar negócio.</small>
+                </section>
+              ) : null}
               {mapCenter ? (
                 <section className="listing-map" aria-labelledby="listing-map-title">
                   <h2 id="listing-map-title">Localização aproximada</h2>
