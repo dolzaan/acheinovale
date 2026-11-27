@@ -165,6 +165,8 @@ model Property {
   bedrooms           Int?            @map("quartos")
   bathrooms          Int?            @map("banheiros")
   parkingSpots       Int?            @map("vagas_garagem")
+  // Nível do rio, em centímetros, a partir do qual a água chega ao imóvel (opcional).
+  floodLevelCm       Int?            @map("cota_enchente_cm")
   areaM2             Decimal?        @map("area_m2") @db.Decimal(10, 2)
   acceptsPets        Boolean?        @map("aceita_animais")
   furnished          Boolean?        @map("mobiliado")

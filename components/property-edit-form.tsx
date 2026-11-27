@@ -7,6 +7,8 @@ import { MoneyInput } from "@/components/money-input";
 import { NeighborhoodPicker, EMPTY_NEIGHBORHOOD, type NeighborhoodValue } from "@/components/neighborhood-picker";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { PhoneInput } from "@/components/phone-input";
+import { FloodLevelField } from "@/components/flood-level-field";
+import { floodLevelInputValue } from "@/lib/listings/flood-level";
 
 type CityOption = {
   id: string;
@@ -25,6 +27,7 @@ export type PropertyEditValues = {
   bedrooms: number | null;
   bathrooms: number | null;
   parkingSpots: number | null;
+  floodLevelCm: number | null;
   cityId: string;
   neighborhood: { id: string; name: string };
   cep: string;
@@ -113,6 +116,7 @@ export function PropertyEditForm({ propertyId, cities, initial }: { propertyId: 
         <label><span>Quartos</span><input name="bedrooms" type="number" min="0" max="30" defaultValue={initial.bedrooms ?? ""} /></label>
         <label><span>Banheiros</span><input name="bathrooms" type="number" min="0" max="30" defaultValue={initial.bathrooms ?? ""} /></label>
         <label><span>Vagas</span><input name="parkingSpots" type="number" min="0" max="30" defaultValue={initial.parkingSpots ?? ""} /></label>
+        <FloodLevelField defaultValue={floodLevelInputValue(initial.floodLevelCm)} />
       </div>
 
       <details className="publish-optional-section field-wide" open={Boolean(initial.cep)}>

@@ -782,6 +782,8 @@ button { cursor: pointer; }
 .publish-step .field-wide { grid-column: 1 / -1; }
 .publish-step__next, .publish-step__back { min-height: 50px; }
 .publish-optional-grid { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.publish-optional-grid .flood-level-field { grid-column: 1 / -1; max-width: 360px; }
+.flood-level-field small { color: var(--muted); font-size: 12px; font-weight: 500; line-height: 1.45; }
 .publish-optional-section { grid-column: 1 / -1; padding: 16px 18px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,.55); }
 .publish-optional-section summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; cursor: pointer; font-weight: 750; }
 .publish-optional-section summary span { color: var(--muted); font-size: 12px; font-weight: 600; }

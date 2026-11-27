@@ -24,6 +24,7 @@ import { propertyImagePublicUrl, propertyVideoPublicUrl } from "@/lib/supabase/s
 import { formatBrazilianPhone } from "@/lib/validation/profile";
 import { SITE_URL } from "@/lib/site";
 import { formatArea, formatCount } from "@/lib/format";
+import { formatFloodLevel } from "@/lib/listings/flood-level";
 import { ADVERTISER_KIND_LABELS, advertiserDisplayName, advertiserUrl, isProfessionalAdvertiser } from "@/lib/listings/advertiser";
 import { jsonLd } from "@/lib/seo/json-ld";
 
@@ -164,6 +165,7 @@ export default async function PropertyPage({ params, searchParams }: Props) {
                 {property.bathrooms !== null ? <span><BathIcon />{formatCount(property.bathrooms, "banheiro", "banheiros")}</span> : null}
                 {property.parkingSpots !== null ? <span>{formatCount(property.parkingSpots, "vaga", "vagas")}</span> : null}
                 {property.areaM2 ? <span>{formatArea(property.areaM2)}</span> : null}
+                {property.floodLevelCm !== null ? <span title="Nível do rio em que a água chega ao imóvel, segundo o anunciante">Cota de enchente: {formatFloodLevel(property.floodLevelCm)}</span> : null}
               </div>
               <section className="listing-description">
                 <h2>Sobre o imóvel</h2>
