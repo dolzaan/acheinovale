@@ -167,10 +167,14 @@ model Property {
   parkingSpots       Int?            @map("vagas_garagem")
   // Nível do rio, em centímetros, a partir do qual a água chega ao imóvel (opcional).
   floodLevelCm       Int?            @map("cota_enchente_cm")
-  // Custos opcionais: condomínio por mês; IPTU e taxa de lixo por ano (0 = isento).
+  // Custos opcionais (0 = isento). Os nomes das colunas vêm da 1ª versão; o período de cada
+  // valor fica em *_periodo ("MONTH" ou "YEAR"; vazio = condomínio por mês, IPTU e lixo por ano).
   condoFeeCents      Int?            @map("condominio_centavos")
   iptuCents          Int?            @map("iptu_anual_centavos")
   garbageFeeCents    Int?            @map("taxa_lixo_anual_centavos")
+  condoFeePeriod     String?         @map("condominio_periodo")
+  iptuPeriod         String?         @map("iptu_periodo")
+  garbageFeePeriod   String?         @map("taxa_lixo_periodo")
   // Contas de aluguel: true = inclusa no aluguel, false = por conta do inquilino, vazio = não informado.
   waterIncluded       Boolean?        @map("agua_inclusa")
   electricityIncluded Boolean?        @map("luz_inclusa")

@@ -13,7 +13,7 @@ function formatCents(digits: string) {
   return brlNumberFormatter.format(Number(digits) / 100);
 }
 
-export function MoneyInput({ name = "price", defaultCents, required = true, label = "Preço do imóvel" }: { name?: string; defaultCents?: number | null; required?: boolean; label?: string }) {
+export function MoneyInput({ id, name = "price", defaultCents, required = true, label = "Preço do imóvel" }: { id?: string; name?: string; defaultCents?: number | null; required?: boolean; label?: string }) {
   // 0 é um valor válido nos campos opcionais (ex.: condomínio isento).
   const [digits, setDigits] = useState(defaultCents !== undefined && defaultCents !== null ? String(Math.min(defaultCents, MAX_PRICE_CENTS)) : "");
 
@@ -40,6 +40,7 @@ export function MoneyInput({ name = "price", defaultCents, required = true, labe
     <div className="listing-money-input">
       <span aria-hidden="true">R$</span>
       <input
+        id={id}
         name={name}
         type="text"
         inputMode="numeric"

@@ -39,6 +39,9 @@ export async function updatePropertyDetails(propertyId: string, formData: FormDa
     details.condoFeeCents !== property.condoFeeCents ||
     details.iptuCents !== property.iptuCents ||
     details.garbageFeeCents !== property.garbageFeeCents ||
+    details.condoFeePeriod !== property.condoFeePeriod ||
+    details.iptuPeriod !== property.iptuPeriod ||
+    details.garbageFeePeriod !== property.garbageFeePeriod ||
     details.waterIncluded !== property.waterIncluded ||
     details.electricityIncluded !== property.electricityIncluded ||
     details.internetIncluded !== property.internetIncluded ||

@@ -7,7 +7,7 @@ import { normalizeNeighborhoodName } from "@/lib/location/neighborhood";
 import { normalizeBrazilianPhone } from "@/lib/validation/profile";
 import { parseMoneyToCents, slugify } from "@/lib/validation/listing";
 import { parseFloodLevel } from "@/lib/listings/flood-level";
-import { parseOptionalFee, parseUtility } from "@/lib/listings/property-costs";
+import { FEES, parseFeePeriod, parseOptionalFee, parseUtility } from "@/lib/listings/property-costs";
 
 const PURPOSES: readonly PropertyPurpose[] = ["RENT", "SALE"];
 const TYPES: readonly PropertyType[] = ["HOUSE", "APARTMENT", "STUDIO", "LAND", "COMMERCIAL_ROOM", "WAREHOUSE", "OTHER"];
@@ -28,6 +28,9 @@ export type PropertyDetails = {
   condoFeeCents: number | null;
   iptuCents: number | null;
   garbageFeeCents: number | null;
+  condoFeePeriod: string | null;
+  iptuPeriod: string | null;
+  garbageFeePeriod: string | null;
   waterIncluded: boolean | null;
   electricityIncluded: boolean | null;
   internetIncluded: boolean | null;
@@ -98,6 +101,7 @@ export async function parsePropertyDetails(formData: FormData): Promise<
   const condoFee = parseOptionalFee(field(formData, "condoFee"));
   const iptu = parseOptionalFee(field(formData, "iptu"));
   const garbageFee = parseOptionalFee(field(formData, "garbageFee"));
+  const [condoPeriod, iptuPeriod, garbagePeriod] = FEES.map(fee => parseFeePeriod(field(formData, fee.periodField), fee.defaultPeriod));
   const water = parseUtility(field(formData, "water"));
   const electricity = parseUtility(field(formData, "electricity"));
   const internet = parseUtility(field(formData, "internet"));
@@ -110,7 +114,7 @@ export async function parsePropertyDetails(formData: FormData): Promise<
     description.length < 30 || description.length > 3000 ||
     neighborhoodName.length > 80 || street.length > 160 || addressNumber.length > 20 || addressComplement.length > 120 ||
     !bedrooms.valid || !bathrooms.valid || !parkingSpots.valid || !floodLevel.valid ||
-    !condoFee.valid || !iptu.valid || !garbageFee.valid || !water.valid || !electricity.valid || !internet.valid ||
+    !condoFee.valid || !iptu.valid || !garbageFee.valid || !condoPeriod.valid || !iptuPeriod.valid || !garbagePeriod.valid || !water.valid || !electricity.valid || !internet.valid ||
     !priceCents || !whatsapp || !PURPOSES.includes(purpose) || !TYPES.includes(type)
   ) {
     return { ok: false, error: "dados" };
@@ -169,6 +173,10 @@ export async function parsePropertyDetails(formData: FormData): Promise<
       condoFeeCents: condoFee.value,
       iptuCents: iptu.value,
       garbageFeeCents: garbageFee.value,
+      // Sem valor não há período a guardar.
+      condoFeePeriod: condoFee.value === null ? null : condoPeriod.value,
+      iptuPeriod: iptu.value === null ? null : iptuPeriod.value,
+      garbageFeePeriod: garbageFee.value === null ? null : garbagePeriod.value,
       // Quem paga água, luz e internet só faz sentido no aluguel.
       waterIncluded: purpose === "RENT" ? water.value : null,
       electricityIncluded: purpose === "RENT" ? electricity.value : null,
