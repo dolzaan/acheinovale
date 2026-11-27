@@ -1,3 +1,4 @@
+import "./home-preview.css";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -38,6 +39,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const city = await resolveRequestCity(requestedSlug);
   const description = `Encontre imóveis e freteiros em ${city.name} e região.`;
   return {
+    robots: { index: false, follow: false },
     title: `Achei no Vale — Imóveis e fretes em ${city.name}`,
     description,
     alternates: { canonical: SITE_URL },
@@ -62,13 +64,13 @@ export default async function HomePage({ searchParams }: Props) {
     <>
       <AutoDetectCity />
       <Header citySlug={city?.slug} />
-      <main id="conteudo">
+      <main id="conteudo" className="home-preview">
         <section className="hero">
           <div className="container hero__inner">
             <div className="hero__content">
               <div className="eyebrow"><PinIcon size={16}/> Feito para {cityName} e região</div>
-              <h1>O que você procura<br/><em>em {cityName}?</em></h1>
-              <p>Imóveis e fretes da nossa região, reunidos em um só lugar. Simples, local e direto pelo WhatsApp.</p>
+              <h1>Encontre perto.<br/><em>Viva no Vale.</em></h1>
+              <p>Seu próximo imóvel ou frete está aqui, em {cityName} e região. Simples, local e direto pelo WhatsApp.</p>
 
               <Form id="home-search-form" className="main-search" action="/buscar">
                 {city ? <input type="hidden" name="cidade" value={city.slug} /> : null}
@@ -141,6 +143,7 @@ export default async function HomePage({ searchParams }: Props) {
                     <span className="property-card__tag">{property.purpose === "RENT" ? "Aluguel" : "Venda"}</span>
                   </div>
                   <div className="property-card__body">
+                    <div className="property-card__price"><strong>{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(property.priceCents / 100)}</strong><span>{property.purpose === "RENT" ? "/mês" : ""}</span></div>
                     <span className="property-card__location"><PinIcon size={15}/>{property.neighborhood.name}, {property.city.name}</span>
                     <h3><Link prefetch={false} href={propertyUrl(property)}>{property.title}</Link></h3>
                     <div className="property-card__features">
@@ -148,7 +151,7 @@ export default async function HomePage({ searchParams }: Props) {
                       {property.bathrooms !== null ? <span><BathIcon/>{property.bathrooms} banh.</span> : null}
                       {property.areaM2 ? <span><AreaIcon/>{formatArea(property.areaM2)}</span> : null}
                     </div>
-                    <div className="property-card__price"><strong>{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(property.priceCents / 100)}</strong><span>{property.purpose === "RENT" ? "/mês" : ""}</span></div>
+                    
                     <Link prefetch={false} className="button button--secondary property-card__cta" href={propertyUrl(property)}>Ver imóvel</Link>
                   </div>
                 </article>
