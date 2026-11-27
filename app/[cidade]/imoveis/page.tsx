@@ -5,6 +5,7 @@ import PropertiesPage from "@/app/imoveis/page";
 import { catalogBreadcrumbs, catalogPathWithFilters, getCatalogCity, type CatalogFilters } from "@/lib/listings/catalog-pages";
 import { isPurposeSlug } from "@/lib/listings/urls";
 import { SITE_URL } from "@/lib/site";
+import { jsonLd } from "@/lib/seo/json-ld";
 
 type Props = {
   params: Promise<{ cidade: string }>;
@@ -32,5 +33,5 @@ export default async function CityPropertiesPage({ params, searchParams }: Props
   if (isPurposeSlug(filters.finalidade)) permanentRedirect(catalogPathWithFilters(city.slug, filters.finalidade, filters.bairro, filters));
 
   const breadcrumbs = catalogBreadcrumbs([{ name: `Imóveis em ${city.name}`, path: `/${city.slug}/imoveis` }]);
-  return <><Script id="breadcrumbs-imoveis-cidade" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }} /><PropertiesPage searchParams={Promise.resolve({ ...filters, cidade: city.slug })} prettyPath /></>;
+  return <><Script id="breadcrumbs-imoveis-cidade" type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbs) }} /><PropertiesPage searchParams={Promise.resolve({ ...filters, cidade: city.slug })} prettyPath /></>;
 }

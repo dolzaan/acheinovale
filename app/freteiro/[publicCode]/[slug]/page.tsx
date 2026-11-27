@@ -21,6 +21,7 @@ import { formatBrazilianPhone } from "@/lib/validation/profile";
 import { SITE_URL } from "@/lib/site";
 import { reportFreighter } from "../../actions";
 import { formatCount, formatRating } from "@/lib/format";
+import { jsonLd } from "@/lib/seo/json-ld";
 
 type Props = {
   params: Promise<{ publicCode: string; slug: string }>;
@@ -31,13 +32,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { publicCode } = await params;
   const freighter = await getPublicFreighter(publicCode);
   if (!freighter) return { title: "Freteiro não encontrado" };
+  // Perfil em análise, pausado ou rejeitado não mostra nome, descrição nem foto a quem não pode vê-lo.
+  if (freighter.status !== "ACTIVE") return { title: "Freteiro | AcheiNoVale", robots: { index: false, follow: false } };
 
   const canonical = `${SITE_URL}${freighterUrl(freighter)}`;
   return {
     title: `${freighter.displayName} | AcheiNoVale`,
     description: freighter.description.slice(0, 155),
     alternates: { canonical },
-    robots: freighter.status === "ACTIVE" ? undefined : { index: false, follow: false },
     openGraph: {
       title: freighter.displayName,
       description: freighter.description.slice(0, 155),
@@ -113,8 +115,8 @@ export default async function FreighterPage({ params, searchParams }: Props) {
 
   return (
     <>
-      <Script id={`freighter-${freighter.publicCode}-jsonld`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceStructuredData) }} />
-      <Script id={`freighter-${freighter.publicCode}-breadcrumbs`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbStructuredData) }} />
+      <Script id={`freighter-${freighter.publicCode}-jsonld`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(serviceStructuredData) }} />
+      <Script id={`freighter-${freighter.publicCode}-breadcrumbs`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbStructuredData) }} />
       <Header />
       <main id="conteudo" className="listing-detail-page">
         <div className="container"><ListingShare title={freighter.displayName} url={canonical} /></div>

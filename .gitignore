@@ -4,3 +4,7 @@ node_modules/
 !.env.example
 *.log
 .DS_Store
+
+# Configuração local da Vercel e do Claude Code
+.vercel
+.claude/

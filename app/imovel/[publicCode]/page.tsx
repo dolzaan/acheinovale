@@ -7,7 +7,8 @@ type Props = { params: Promise<{ publicCode: string }> };
 export default async function LegacyPropertyPage({ params }: Props) {
   const { publicCode } = await params;
   const property = await prisma.property.findFirst({
-    where: { OR: [{ publicCode }, { slug: publicCode }] },
+    // Só anúncios no ar: o redirecionamento revelaria o slug (tirado do título) dos demais.
+    where: { status: "ACTIVE", OR: [{ publicCode }, { slug: publicCode }] },
     select: { publicCode: true, slug: true },
   });
   if (!property) notFound();

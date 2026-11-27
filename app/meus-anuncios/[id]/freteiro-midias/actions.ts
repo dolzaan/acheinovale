@@ -32,8 +32,8 @@ function parseImages(value: FormDataEntryValue | null): ImageItem[] | null {
   }
 }
 
-async function cleanup(keys: string[]) {
-  try { await removeFreighterImages(keys); }
+async function cleanup(keys: string[], authUserId: string) {
+  try { await removeFreighterImages(keys, authUserId); }
   catch (error) { console.warn("[freteiro/midias] Falha ao limpar o armazenamento.", error); }
 }
 
@@ -44,7 +44,7 @@ export async function updateFreighterImages(profileId: string, formData: FormDat
   const items = parseImages(formData.get("imageOrder"));
   const newKeys = items?.flatMap(item => item.storageKey ? [item.storageKey] : []) ?? [];
   if (!items) {
-    await cleanup(newKeys);
+    await cleanup(newKeys, user.authUserId!);
     redirect(`/meus-anuncios/${profileId}/freteiro-midias?erro=dados`);
   }
 
@@ -55,7 +55,7 @@ export async function updateFreighterImages(profileId: string, formData: FormDat
   const validKeys = newKeys.length === new Set(newKeys).size && newKeys.every(key => isFreighterImageKey(key, user.authUserId!));
   const imagesAreStored = validKeys && await verifyFreighterImages(newKeys, user.authUserId);
   if (!validExisting || !validKeys || !imagesAreStored) {
-    await cleanup(newKeys);
+    await cleanup(newKeys, user.authUserId!);
     redirect(`/meus-anuncios/${profileId}/freteiro-midias?erro=dados`);
   }
 
@@ -77,13 +77,15 @@ export async function updateFreighterImages(profileId: string, formData: FormDat
       });
     });
   } catch (error) {
-    await cleanup(newKeys);
+    await cleanup(newKeys, user.authUserId!);
     console.error("[freteiro/midias] Falha ao salvar.", error);
     redirect(`/meus-anuncios/${profileId}/freteiro-midias?erro=salvar`);
   }
 
   await releasePropertyMediaUploadGrants(newKeys);
-  await cleanup(removedImages.map(image => image.storageKey));
+  // Arquivos que o perfil deixou de usar ficam na pasta do dono (que pode não ser quem editou, se for admin).
+  const owner = await prisma.user.findUnique({ where: { id: profile.userId }, select: { authUserId: true } });
+  if (owner?.authUserId) await cleanup(removedImages.map(image => image.storageKey), owner.authUserId);
   revalidatePublicListings();
   revalidatePath("/meus-anuncios");
   revalidatePath(freighterUrl(profile));

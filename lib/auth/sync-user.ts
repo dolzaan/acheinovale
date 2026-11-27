@@ -2,6 +2,21 @@ import "server-only";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { prisma } from "@/lib/db";
 
+/**
+ * Uma conta já existente só pode ser assumida pelo e-mail quando quem entra provou ser dono
+ * dele: login pelo Google com e-mail confirmado. Sem isso, alguém que criasse uma sessão
+ * no Supabase com o e-mail de outra pessoa herdaria a conta dela (inclusive a de admin).
+ */
+export function canLinkExistingAccountByEmail(authUser: Pick<SupabaseUser, "email" | "email_confirmed_at" | "identities">) {
+  if (!authUser.email || !authUser.email_confirmed_at) return false;
+  const email = authUser.email.toLowerCase();
+  return Boolean(authUser.identities?.some(identity =>
+    identity.provider === "google"
+    && typeof identity.identity_data?.email === "string"
+    && identity.identity_data.email.toLowerCase() === email,
+  ));
+}
+
 export async function syncAuthUser(authUser: SupabaseUser) {
   if (!authUser.email) {
     throw new Error("A conta autenticada não possui e-mail.");
@@ -21,11 +36,13 @@ export async function syncAuthUser(authUser: SupabaseUser) {
   const providerId = typeof googleSubject === "string" ? googleSubject : googleIdentity?.identity_id ?? authUser.id;
 
   const email = authUser.email.toLowerCase();
-  const existingUser = await prisma.user.findFirst({
-    where: {
-      OR: [{ authUserId: authUser.id }, { email }],
-    },
-  });
+  const existingUser =
+    (await prisma.user.findUnique({ where: { authUserId: authUser.id } }))
+    ?? (await prisma.user.findUnique({ where: { email } }));
+
+  if (existingUser && existingUser.authUserId !== authUser.id && !canLinkExistingAccountByEmail(authUser)) {
+    throw new Error("Este e-mail já pertence a outra conta. Entre com o Google para acessá-la.");
+  }
 
   const data = {
     authUserId: authUser.id,

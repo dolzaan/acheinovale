@@ -22,6 +22,7 @@ import { parsePropertySearch } from "@/lib/search/property-search";
 import { propertyImagePublicUrl } from "@/lib/supabase/storage";
 import { SITE_URL } from "@/lib/site";
 import { formatArea, formatCount, formatNumber } from "@/lib/format";
+import { jsonLd } from "@/lib/seo/json-ld";
 
 type SearchParams = {
   q?: string;
@@ -363,7 +364,7 @@ export default async function PropertiesPage({ searchParams, prettyPath = false 
     }
     : null;
 
-  return <>{itemListStructuredData ? <Script id={`property-catalog-${selectedCity?.slug ?? "all"}-${purpose ?? "all"}-${requestedPage}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListStructuredData) }} /> : null}<Header citySlug={selectedCity?.slug}/><main id="conteudo" className="catalog-page"><div className="container catalog-container">
+  return <>{itemListStructuredData ? <Script id={`property-catalog-${selectedCity?.slug ?? "all"}-${purpose ?? "all"}-${requestedPage}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(itemListStructuredData) }} /> : null}<Header citySlug={selectedCity?.slug}/><main id="conteudo" className="catalog-page"><div className="container catalog-container">
     <div className="catalog-heading"><div><h1>{catalogTitle}</h1><p>{catalogDescription}</p></div><Link prefetch={false} className="button button--primary" href="/publicar/imovel">Anunciar imóvel</Link></div>
     <nav className="catalog-scope" aria-label="Onde buscar">
       {regional

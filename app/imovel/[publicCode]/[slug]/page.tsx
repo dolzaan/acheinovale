@@ -25,6 +25,7 @@ import { formatBrazilianPhone } from "@/lib/validation/profile";
 import { SITE_URL } from "@/lib/site";
 import { formatArea, formatCount } from "@/lib/format";
 import { ADVERTISER_KIND_LABELS, advertiserDisplayName, advertiserUrl, isProfessionalAdvertiser } from "@/lib/listings/advertiser";
+import { jsonLd } from "@/lib/seo/json-ld";
 
 type Props = {
   params: Promise<{ publicCode: string; slug: string }>;
@@ -53,13 +54,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { publicCode } = await params;
   const property = await getPublicProperty(publicCode);
   if (!property) return { title: "Imóvel não encontrado" };
+  // Anúncio em análise, pausado ou rejeitado não mostra título nem descrição a quem não pode vê-lo.
+  if (property.status !== "ACTIVE") return { title: "Anúncio | AcheiNoVale", robots: { index: false, follow: false } };
 
   const canonical = `${SITE_URL}${propertyUrl(property)}`;
   return {
     title: `${property.title} | AcheiNoVale`,
     description: property.description.slice(0, 155),
     alternates: { canonical },
-    robots: property.status === "ACTIVE" ? undefined : { index: false, follow: false },
     openGraph: {
       title: property.title,
       description: property.description.slice(0, 155),
@@ -130,8 +132,8 @@ export default async function PropertyPage({ params, searchParams }: Props) {
 
   return (
     <>
-      <Script id={`property-${property.publicCode}-jsonld`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(propertyStructuredData) }} />
-      <Script id={`property-${property.publicCode}-breadcrumbs`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbStructuredData) }} />
+      <Script id={`property-${property.publicCode}-jsonld`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(propertyStructuredData) }} />
+      <Script id={`property-${property.publicCode}-breadcrumbs`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbStructuredData) }} />
       <Header />
       <main id="conteudo" className="listing-detail-page">
         <div className="container listing-detail">

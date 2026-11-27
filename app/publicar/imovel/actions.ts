@@ -21,10 +21,10 @@ import { createPublicCode, propertySlug } from "@/lib/validation/listing";
 
 function field(data: FormData, name: string) { const value = data.get(name); return typeof value === "string" ? value.trim() : ""; }
 
-async function removeUploadedMedia(keys: string[]) {
+async function removeUploadedMedia(keys: string[], authUserId: string) {
   if (!keys.length) return;
   try {
-    await removePropertyMedia(keys);
+    await removePropertyMedia(keys, authUserId);
   } catch (error) {
     console.warn("[publicar/imovel] Não foi possível limpar mídias enviadas.", { message: error instanceof Error ? error.message : String(error) });
   }
@@ -82,13 +82,13 @@ export async function createProperty(formData: FormData) {
     verifyPropertyVideo(videoKey, user.authUserId),
   ]);
   if (!parsed.ok) {
-    await removeUploadedMedia(uploadedMediaKeys);
+    await removeUploadedMedia(uploadedMediaKeys, user.authUserId);
     redirect(`/publicar/imovel?erro=${parsed.error}`);
   }
   const { neighborhood, privateAddressData, ...details } = parsed.details;
 
   if (!imagesAreValid || !videoIsValid) {
-    await removeUploadedMedia(uploadedMediaKeys);
+    await removeUploadedMedia(uploadedMediaKeys, user.authUserId);
     redirect("/publicar/imovel?erro=fotos");
   }
 
@@ -106,7 +106,7 @@ export async function createProperty(formData: FormData) {
       videos: videoKey ? { create: { storageKey: videoKey, mimeType: videoMimeTypeFromKey(videoKey), position: mediaOrder.findIndex(item => item.storageKey === videoKey) } } : undefined,
     }});
   } catch (error) {
-    await removeUploadedMedia(uploadedMediaKeys);
+    await removeUploadedMedia(uploadedMediaKeys, user.authUserId);
     console.error("[publicar/imovel] Falha ao salvar anúncio.", {
       message: error instanceof Error ? error.message : String(error),
     });
