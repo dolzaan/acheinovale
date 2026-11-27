@@ -1,7 +1,8 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { CITY_COOKIE_NAME, DEFAULT_CITY_SLUG, normalizeCitySlug } from "@/lib/location/city-preference";
+import { CITY_COOKIE_NAME, normalizeCitySlug, pickCitySlug } from "@/lib/location/city-preference";
 
 function readPreferredCitySlug() {
   const cityCookie = document.cookie
@@ -13,15 +14,18 @@ function readPreferredCitySlug() {
   return normalizeCitySlug(decodeURIComponent(cityCookie.slice(cityCookie.indexOf("=") + 1)));
 }
 
+/**
+ * O cabeçalho continua montado entre navegações; por isso a cidade da página é usada a cada
+ * renderização (não só na primeira), e o cookie é relido quando a página muda.
+ */
 export function usePreferredCitySlug(citySlug?: string) {
-  const explicitCitySlug = normalizeCitySlug(citySlug);
-  const [resolvedCitySlug, setResolvedCitySlug] = useState(explicitCitySlug || DEFAULT_CITY_SLUG);
+  const pathname = usePathname();
+  const [savedCitySlug, setSavedCitySlug] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    if (explicitCitySlug) return;
-    const preferredCitySlug = readPreferredCitySlug();
-    if (preferredCitySlug) queueMicrotask(() => setResolvedCitySlug(preferredCitySlug));
-  }, [explicitCitySlug]);
+    const preferred = readPreferredCitySlug();
+    queueMicrotask(() => setSavedCitySlug(preferred));
+  }, [pathname, citySlug]);
 
-  return resolvedCitySlug;
+  return pickCitySlug(citySlug, savedCitySlug);
 }

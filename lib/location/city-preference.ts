@@ -8,3 +8,11 @@ export function normalizeCitySlug(value?: string | null) {
     ? slug
     : undefined;
 }
+
+/**
+ * Cidade usada nos links do cabeçalho: a que a página está mostrando manda; sem ela, vale a
+ * cidade salva no cookie; sem nenhuma, a padrão.
+ */
+export function pickCitySlug(pageCity?: string | null, savedCity?: string | null) {
+  return normalizeCitySlug(pageCity) ?? normalizeCitySlug(savedCity) ?? DEFAULT_CITY_SLUG;
+}

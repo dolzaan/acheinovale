@@ -60,7 +60,7 @@
 .property-card__purpose { align-self: flex-start; background: var(--brand-gold-soft); color: var(--brand-green); margin-bottom: 12px; }
 .property-card__cta { margin-top: 18px; width: 100%; }
 .catalog-code { font-size: .75rem; color: var(--muted); }
-.favorite-button { width: 44px; height: 44px; }
+.favorite-button { min-height: 44px; }
 .section-heading p, .catalog-heading p { font-size: 1rem; line-height: 1.6; }
 .text-link, .mobile-more-button { font-size: .875rem; min-height: 44px; }
 .section-kicker { font-size: .8125rem; }
