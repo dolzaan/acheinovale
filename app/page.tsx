@@ -79,10 +79,10 @@ export default async function HomePage({ searchParams }: Props) {
               </nav>
               <Form action="/buscar" className="redesign-form">
                 <input type="hidden" name="cidade" value={city.slug}/>
-                <label><span>O que você procura?</span><input type="search" name="q" placeholder="Casa, apartamento, bairro..." aria-label="Buscar imóveis ou fretes"/></label>
+                <label><input type="search" name="q" placeholder="Casa, apartamento, bairro..." aria-label="Buscar imóveis ou fretes"/></label>
                 <PendingSubmitButton aria-label="Buscar" pendingText="Buscando…" navigation><SearchIcon size={20}/> Buscar</PendingSubmitButton>
               </Form>
-              <div className="redesign-shortcuts"><Link href={rentalsHref} prefetch={false}>Casas para alugar</Link><Link href={salesHref} prefetch={false}>Imóveis à venda</Link><Link href="/imoveis?regiao=1" prefetch={false}>Toda a região <ArrowIcon/></Link></div>
+              
             </div>
           </div>
         </section>
