@@ -19,11 +19,11 @@ export function SearchIcon({ size = 20, ...props }: IconProps) {
 }
 
 export function HomeIcon({ size = 22, ...props }: IconProps) {
-  return <svg {...base(size)} {...props}><path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg>;
+  return <svg {...base(size)} stroke="none" {...props}><path fill="#a85527" d="M12 3 23 9 13 15 2 9Z"/><path fill="#f8e8c5" d="M4 11 13 16 13 23 4 18Z"/><path fill="#e4a030" d="M13 16 21 11 21 18 13 23Z"/><path fill="#1d402d" d="M7 15 10 17 10 21 7 19Z"/><path fill="#e4a030" d="M12 3 13 15 2 9Z"/></svg>;
 }
 
 export function TruckIcon({ size = 22, ...props }: IconProps) {
-  return <svg {...base(size)} {...props}><path d="M3 6h11v11H3z"/><path d="M14 10h4l3 3v4h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg>;
+  return <svg {...base(size)} stroke="none" {...props}><path fill="#f8e8c5" d="M1 6 12 2 18 6 7 11Z"/><path fill="#e4a030" d="M1 6 7 11 7 19 1 14Z"/><path fill="#a85527" d="M7 11 18 6 18 14 7 19Z"/><path fill="#315b40" d="M18 9 22 11 24 15 24 18 15 22 15 15Z"/><path fill="#e8eee9" d="M19 11 22 13 23 15 19 16Z"/><ellipse fill="#153020" cx="7" cy="19" rx="2.5" ry="3"/><ellipse fill="#153020" cx="19" cy="20" rx="2.5" ry="3"/></svg>;
 }
 
 export function PinIcon({ size = 18, ...props }: IconProps) {
@@ -55,15 +55,15 @@ export function StarIcon({ size = 16, ...props }: IconProps) {
 }
 
 export function BuildingIcon({ size = 22, ...props }: IconProps) {
-  return <svg {...base(size)} {...props}><path d="M4 21h16M6 21V5h8v16M14 9h4v12M9 8h2M9 12h2M9 16h2"/></svg>;
+  return <svg {...base(size)} stroke="none" {...props}><path fill="#e8eee9" d="M3 5 12 1 20 5 11 10Z"/><path fill="#315b40" d="M3 5 11 10 11 23 3 18Z"/><path fill="#1d402d" d="M11 10 20 5 20 18 11 23Z"/><path stroke="#e4a030" strokeWidth="2" d="m6 10 2 1m-2 3 2 1m6-3 3-2m-3 6 3-2"/></svg>;
 }
 
 export function BedIcon({ size = 17, ...props }: IconProps) {
-  return <svg {...base(size)} {...props}><path d="M3 19v-8M21 19v-5a3 3 0 0 0-3-3H3v6h18M7 11V8h4a3 3 0 0 1 3 3"/></svg>;
+  return <svg {...base(size)} stroke="none" {...props}><path fill="#315b40" d="M2 4 9 1 9 11 2 15Z"/><path fill="#e4a030" d="M2 13 15 7 23 12 10 19Z"/><path fill="#a85527" d="M2 13 10 19 10 22 2 17Z"/><path fill="#1d402d" d="M10 19 23 12 23 16 10 22Z"/><path fill="#fff9ec" d="M3 11 8 8 13 11 8 14Z"/><path fill="#f8e8c5" d="M10 14 16 11 21 14 15 17Z"/></svg>;
 }
 
 export function BathIcon({ size = 17, ...props }: IconProps) {
-  return <svg {...base(size)} {...props}><path d="M4 12h16v3a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4v-3ZM7 12V6a3 3 0 0 1 5-2M4 21l2-3M20 21l-2-3"/></svg>;
+  return <svg {...base(size)} stroke="none" {...props}><path fill="#315b40" d="M5 9V4Q5 0 10 2L11 5 8 5 8 4 7 4V9Z"/><path fill="#e8eee9" d="M1 10 14 5 23 11 10 17Z"/><path fill="#8eaa96" d="M1 10 10 17 10 22 4 18Z"/><path fill="#315b40" d="M10 17 23 11 20 18 10 22Z"/><path fill="#f8e8c5" d="M4 10 14 7 20 11 10 15Z"/></svg>;
 }
 
 export function ChevronDownIcon({ size = 17, ...props }: IconProps) {
@@ -83,7 +83,7 @@ export function CarIcon({ size = 17, ...props }: IconProps) {
 }
 
 export function AreaIcon({ size = 17, ...props }: IconProps) {
-  return <svg {...base(size)} {...props}><path d="M4 4h16v16H4zM4 9h3M4 14h3M9 4v3M14 4v3"/></svg>;
+  return <svg {...base(size)} stroke="none" {...props}><path fill="#e4a030" d="M1 9 13 2 23 9 11 16Z"/><path fill="#a85527" d="M1 9 11 16 11 21 1 14Z"/><path fill="#c17a2b" d="M11 16 23 9 23 14 11 21Z"/><path stroke="#fff9ec" strokeWidth="1.3" d="m5 7 3 2m1-4 3 2m2-3 3 2m-9 6 3-2m3 5 3-2"/></svg>;
 }
 
 export function WavesIcon({ size = 17, ...props }: IconProps) {
