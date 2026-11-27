@@ -65,10 +65,11 @@ export default async function HomePage({ searchParams }: Props) {
       <Header citySlug={city?.slug} />
       <main id="conteudo" className="home-preview">
         <section className="redesign-hero">
-          <div className="container">
+          <div className="container editorial-shell">
+            <div className="editorial-photo" aria-hidden="true"><Image src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9" alt="" fill sizes="(max-width: 680px) 100vw, 55vw" priority /></div>
             <div className="redesign-intro">
-              <span className="redesign-eyebrow"><PinIcon size={16}/> O portal do Alto Vale</span>
-              <h1>Seu próximo lar <em>está aqui.</em></h1>
+              <span className="redesign-eyebrow"><PinIcon size={16}/> IMÓVEIS • ALTO VALE DO ITAJAÍ</span>
+              <h1>Mais que um imóvel.<br/><em>Um lugar para viver.</em></h1>
               <p>Encontre imóveis e serviços de frete em {cityName} e região.</p>
             </div>
             <div className="redesign-search">
@@ -110,7 +111,7 @@ export default async function HomePage({ searchParams }: Props) {
         <section className="section properties-section">
           <div className="container">
             <div className="section-heading">
-              <div><h2>Imóveis recentes</h2><p>Anunciados em {cityName}.</p></div>
+              <div><h2>Descubra seu próximo lar</h2><p>Anunciados em {cityName}.</p></div>
               <Link prefetch={false} className="text-link" href={propertiesHref}>Ver todos <ArrowIcon/></Link>
             </div>
             <div className="property-grid">
@@ -167,6 +168,7 @@ export default async function HomePage({ searchParams }: Props) {
           </>
         )}
 
+        <section className="container editorial-region"><div className="editorial-region-photo"><Image src="/brand/rio-do-sul-centro.webp" alt="Rio do Sul" fill sizes="(max-width: 680px) 100vw, 50vw"/><div><small>EXPLORE O ALTO VALE</small><h2>Encontre o seu lugar na região.</h2><Link href="/rio-do-sul/imoveis" prefetch={false}>Conhecer Rio do Sul <ArrowIcon/></Link></div></div></section>
         <CityDiscovery category="imoveis" currentSlug={city.slug} />
         <section className="container trust-strip">
           <div className="trust-strip__icon"><ShieldIcon size={28}/></div>
