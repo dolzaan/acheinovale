@@ -310,19 +310,21 @@ const getCachedFreighters = unstable_cache(
   { revalidate: PUBLIC_DATA_REVALIDATE_SECONDS, tags: [PUBLIC_LISTINGS_TAG] },
 );
 
+const getCachedFreighterSearch = unstable_cache(queryFreighters, ["public-freighter-search-v1"], { revalidate: 60, tags: [PUBLIC_LISTINGS_TAG] });
+
 export function getPublicFreighters(cityId: string, citySlug: string, query: string, skip: number, take: number) {
   const cacheKey = `freighters:${JSON.stringify([cityId, citySlug, query, skip, take])}`;
   return loadPublicData<Awaited<ReturnType<typeof queryFreighters>>>(
     cacheKey,
     () => query
-      ? queryFreighters(cityId, citySlug, query, skip, take)
+      ? getCachedFreighterSearch(cityId, citySlug, query.trim(), skip, take)
       : getCachedFreighters(cityId, citySlug, skip, take),
     () => [],
   );
 }
 
 export function revalidatePublicListings() {
-  revalidateTag(PUBLIC_LISTINGS_TAG, "max");
+  revalidateTag(PUBLIC_LISTINGS_TAG, { expire: 0 });
 }
 
 export function revalidatePublicLocations() {

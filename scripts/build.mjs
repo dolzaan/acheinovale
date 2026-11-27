@@ -10,7 +10,7 @@ function run(command, args) {
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 
-if (process.env.VERCEL_ENV === "production") {
+if (process.argv.includes("--migrate-only") || (process.env.VERCEL_ENV === "production" && process.env.SKIP_BUILD_MIGRATIONS !== "1")) {
   const productionMigrations = [
     "prisma/migrations/20260909195500_add_neighborhood_review/migration.sql",
     "prisma/migrations/20260910173000_security_hardening/migration.sql",
@@ -44,6 +44,8 @@ if (process.env.VERCEL_ENV === "production") {
     ]);
   }
 }
+
+if (process.argv.includes("--migrate-only")) process.exit(0);
 
 run("prisma", ["generate"]);
 // Testes de comportamento antes do build: se uma regra deixou de valer, o deploy para aqui.

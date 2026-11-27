@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -201,50 +202,14 @@ export default async function PropertiesPage({ searchParams, prettyPath = false 
   // sugerir a busca regional. Bairro é da cidade atual, então nesse caso não há o que sugerir.
   const suggestsRegion = Boolean(selectedCity && !regional && requestedPage === 1
     && !selectedNeighborhood && !searchIntent.neighborhoodIds.length);
-  const regionalTotalPromise: Promise<number | null> = !suggestsRegion
+  const getRegionalTotal = (): Promise<number | null> => !suggestsRegion
     ? Promise.resolve(null)
     : query
-      ? prisma.$queryRaw<RankedPropertyRow[]>`
-        SELECT id, relevancia, total_resultados
-        FROM private.buscar_imoveis(
-          ${searchIntent.freeTerms.join(" ")}::text,
-          ${null}::text,
-          ${purpose ?? null}::text,
-          ${type ?? null}::text,
-          ${null}::text,
-          ${minimumPrice ?? null}::integer,
-          ${maximumPrice ?? null}::integer,
-          ${minimumBedrooms ?? null}::integer,
-          ${minimumBathrooms ?? null}::integer,
-          ${minimumParkingSpots ?? null}::integer,
-          ${minimumArea ?? null}::numeric,
-          ${acceptsPets ? true : null}::boolean,
-          ${furnished ? true : null}::boolean,
-          ${1}::integer
-        )
-      `.then(rows => Number(rows[0]?.total_resultados ?? 0)).catch(() => null)
+      ? cachedRankedSearch(searchIntent.freeTerms.join(" "), null, purpose ?? null, type ?? null, null, minimumPrice ?? null, maximumPrice ?? null, minimumBedrooms ?? null, minimumBathrooms ?? null, minimumParkingSpots ?? null, minimumArea ?? null, acceptsPets ? true : null, furnished ? true : null, 1).then(rows => Number(rows[0]?.total_resultados ?? 0)).catch(() => null)
       : getPublicPropertiesCount({ ...where, cityId: undefined, city: { isActive: true } }).catch(() => null);
   const [properties, resultCount] = query
     ? await (async () => {
-      const rankedRows = await prisma.$queryRaw<RankedPropertyRow[]>`
-        SELECT id, relevancia, total_resultados
-        FROM private.buscar_imoveis(
-          ${searchIntent.freeTerms.join(" ")}::text,
-          ${selectedCity?.id ?? null}::text,
-          ${purpose ?? null}::text,
-          ${type ?? null}::text,
-          ${neighborhoodId ?? null}::text,
-          ${minimumPrice ?? null}::integer,
-          ${maximumPrice ?? null}::integer,
-          ${minimumBedrooms ?? null}::integer,
-          ${minimumBathrooms ?? null}::integer,
-          ${minimumParkingSpots ?? null}::integer,
-          ${minimumArea ?? null}::numeric,
-          ${acceptsPets ? true : null}::boolean,
-          ${furnished ? true : null}::boolean,
-          ${MAX_RANKED_SEARCH_RESULTS}::integer
-        )
-      `;
+      const rankedRows = await cachedRankedSearch(searchIntent.freeTerms.join(" "), selectedCity?.id ?? null, purpose ?? null, type ?? null, neighborhoodId ?? null, minimumPrice ?? null, maximumPrice ?? null, minimumBedrooms ?? null, minimumBathrooms ?? null, minimumParkingSpots ?? null, minimumArea ?? null, acceptsPets ? true : null, furnished ? true : null, MAX_RANKED_SEARCH_RESULTS);
       let orderedIds = rankedRows.map(row => row.id);
       if (order === "preco-menor" || order === "preco-maior") {
         // Para ordenar por preço basta preço e data de todos; os cards completos vêm só da página atual.
@@ -265,7 +230,7 @@ export default async function PropertiesPage({ searchParams, prettyPath = false 
       return [items, Number(rankedRows[0]?.total_resultados ?? 0)] as const;
     })()
     : await getPublicPropertiesPage(where, orderBy, resultOffset, PROPERTY_PAGE_SIZE);
-  const regionalTotal = await regionalTotalPromise;
+  const regionalTotal = resultCount < REGION_SUGGESTION_THRESHOLD ? await getRegionalTotal() : null;
   // Só quando a cidade tem poucos resultados: com a página cheia, o aviso só atrapalha.
   const otherCitiesCount = regionalTotal !== null && resultCount < REGION_SUGGESTION_THRESHOLD
     ? Math.max(0, regionalTotal - resultCount)
@@ -418,3 +383,26 @@ export default async function PropertiesPage({ searchParams, prettyPath = false 
     <CityDiscovery category="imoveis" currentSlug={selectedCity?.slug} />
   </div></main><MobileNav citySlug={selectedCity?.slug}/></>;
 }
+
+const cachedRankedSearch = unstable_cache(async (...values: (string | number | boolean | null)[]) => {
+  const rows = await prisma.$queryRaw<RankedPropertyRow[]>`
+        SELECT id, relevancia, total_resultados
+        FROM private.buscar_imoveis(
+          ${values[0]}::text,
+          ${values[1]}::text,
+          ${values[2]}::text,
+          ${values[3]}::text,
+          ${values[4]}::text,
+          ${values[5]}::integer,
+          ${values[6]}::integer,
+          ${values[7]}::integer,
+          ${values[8]}::integer,
+          ${values[9]}::integer,
+          ${values[10]}::numeric,
+          ${values[11]}::boolean,
+          ${values[12]}::boolean,
+          ${values[13]}::integer
+        )
+      `;
+  return rows.map(row => ({ id: row.id, relevancia: Number(row.relevancia), total_resultados: Number(row.total_resultados) }));
+}, ["ranked-property-search-v1"], { revalidate: 60, tags: ["public-listings"] });

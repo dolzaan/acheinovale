@@ -46,6 +46,8 @@ const nextConfig: NextConfig = {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
   images: {
+    minimumCacheTTL: 86400,
+    formats: ["image/webp"],
     remotePatterns: [
       {
         protocol: "https",
