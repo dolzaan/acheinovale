@@ -14,6 +14,7 @@ import { ADVERTISER_KIND_LABELS, advertiserDisplayName, isProfessionalAdvertiser
 import { getPublicPropertiesPage } from "@/lib/listings/public-cache";
 import { SITE_URL } from "@/lib/site";
 import { SavedCityLink } from "@/components/saved-city-link";
+import { jsonLd } from "@/lib/seo/json-ld";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -84,7 +85,7 @@ export default async function AdvertiserPage({ params }: Props) {
 
   return (
     <>
-      <Script id={`advertiser-${advertiser.profileSlug}-jsonld`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      <Script id={`advertiser-${advertiser.profileSlug}-jsonld`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(structuredData) }} />
       <Header />
       <main id="conteudo" className="catalog-page">
         <div className="container catalog-container">

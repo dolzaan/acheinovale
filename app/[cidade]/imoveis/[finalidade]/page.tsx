@@ -5,6 +5,7 @@ import PropertiesPage from "@/app/imoveis/page";
 import { catalogBreadcrumbs, catalogPathWithFilters, getCatalogCity, purposeWords, type CatalogFilters } from "@/lib/listings/catalog-pages";
 import { isPurposeSlug, propertyCatalogPath } from "@/lib/listings/urls";
 import { SITE_URL } from "@/lib/site";
+import { jsonLd } from "@/lib/seo/json-ld";
 
 type Props = {
   params: Promise<{ cidade: string; finalidade: string }>;
@@ -39,7 +40,7 @@ export default async function CityPurposePropertiesPage({ params, searchParams }
   ]);
   return (
     <>
-      <Script id={`breadcrumbs-imoveis-${city.slug}-${finalidade}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }} />
+      <Script id={`breadcrumbs-imoveis-${city.slug}-${finalidade}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbs) }} />
       <PropertiesPage searchParams={Promise.resolve({ ...filters, cidade: city.slug, finalidade })} prettyPath />
     </>
   );

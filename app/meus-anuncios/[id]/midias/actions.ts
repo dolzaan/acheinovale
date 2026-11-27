@@ -41,8 +41,8 @@ function parseMedia(value: FormDataEntryValue | null): MediaItem[] | null {
   }
 }
 
-async function cleanup(keys: string[]) {
-  try { await removePropertyMedia(keys); }
+async function cleanup(keys: string[], authUserId: string) {
+  try { await removePropertyMedia(keys, authUserId); }
   catch (error) { console.warn("[meus-anuncios/midias] Falha ao limpar Storage.", error); }
 }
 
@@ -53,7 +53,7 @@ export async function updatePropertyMedia(propertyId: string, formData: FormData
   const items = parseMedia(formData.get("mediaOrder"));
   const newKeys = items?.flatMap(item => item.storageKey ? [item.storageKey] : []) ?? [];
   if (!items) {
-    await cleanup(newKeys);
+    await cleanup(newKeys, user.authUserId!);
     redirect(`/meus-anuncios/${propertyId}/midias?erro=dados`);
   }
 
@@ -61,7 +61,7 @@ export async function updatePropertyMedia(propertyId: string, formData: FormData
   const videoItems = items.filter(item => item.kind === "video");
   const newImageKeys = items.flatMap(item => item.storageKey && item.kind === "image" ? [item.storageKey] : []);
   if ((imageItems.length > PROPERTY_IMAGE_LIMIT && newImageKeys.length > 0) || videoItems.length > PROPERTY_VIDEO_LIMIT || (imageItems.length && items[0]?.kind !== "image")) {
-    await cleanup(newKeys);
+    await cleanup(newKeys, user.authUserId!);
     redirect(`/meus-anuncios/${propertyId}/midias?erro=limite`);
   }
 
@@ -85,7 +85,7 @@ export async function updatePropertyMedia(propertyId: string, formData: FormData
     keysAreValid ? verifyPropertyVideo(newVideoKeys[0] || "", user.authUserId) : false,
   ]);
   if (!validExisting || !keysAreValid || !imagesAreStored || !videosAreStored) {
-    await cleanup(newKeys);
+    await cleanup(newKeys, user.authUserId!);
     redirect(`/meus-anuncios/${propertyId}/midias?erro=dados`);
   }
 
@@ -114,13 +114,15 @@ export async function updatePropertyMedia(propertyId: string, formData: FormData
       });
     });
   } catch (error) {
-    await cleanup(newKeys);
+    await cleanup(newKeys, user.authUserId!);
     console.error("[meus-anuncios/midias] Falha ao salvar.", error);
     redirect(`/meus-anuncios/${propertyId}/midias?erro=salvar`);
   }
 
   await releasePropertyMediaUploadGrants(newKeys);
-  await cleanup([...removedImages.map(item => item.storageKey), ...removedVideos.map(item => item.storageKey)]);
+  // Arquivos que o anúncio deixou de usar ficam na pasta do dono (que pode não ser quem editou, se for admin).
+  const owner = await prisma.user.findUnique({ where: { id: property.ownerId }, select: { authUserId: true } });
+  if (owner?.authUserId) await cleanup([...removedImages.map(item => item.storageKey), ...removedVideos.map(item => item.storageKey)], owner.authUserId);
   revalidatePublicListings();
   revalidatePath("/meus-anuncios");
   revalidatePath(propertyUrl(property));

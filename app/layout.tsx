@@ -10,6 +10,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import { SITE_NAME, SITE_URL, INSTAGRAM_URL } from "@/lib/site";
 import { AccountSessionProvider } from "@/components/account-session-provider";
+import { jsonLd } from "@/lib/seo/json-ld";
 
 const organizationStructuredData = {
   "@context": "https://schema.org",
@@ -82,12 +83,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <Script
           id="organization-jsonld"
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationStructuredData) }}
+          dangerouslySetInnerHTML={{ __html: jsonLd(organizationStructuredData) }}
         />
         <Script
           id="website-jsonld"
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteStructuredData) }}
+          dangerouslySetInnerHTML={{ __html: jsonLd(websiteStructuredData) }}
         />
         <AccountSessionProvider>{children}</AccountSessionProvider>
         <PwaInstallPrompt />

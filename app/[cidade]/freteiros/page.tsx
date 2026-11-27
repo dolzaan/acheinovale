@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import FreightersPage from "@/app/freteiros/page";
 import { getCatalogCity } from "@/lib/listings/catalog-pages";
 import { SITE_URL } from "@/lib/site";
+import { jsonLd } from "@/lib/seo/json-ld";
 
 type Props = {
   params: Promise<{ cidade: string }>;
@@ -35,5 +36,5 @@ export default async function CityFreightersPage({ params, searchParams }: Props
       { "@type": "ListItem", position: 2, name: "Freteiros em " + city.name, item: `${SITE_URL}/${city.slug}/freteiros` },
     ],
   };
-  return <><Script id="breadcrumbs-freteiros-cidade" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }} /><FreightersPage searchParams={Promise.resolve({ ...filters, cidade: city.slug })} prettyPath /></>;
+  return <><Script id="breadcrumbs-freteiros-cidade" type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbs) }} /><FreightersPage searchParams={Promise.resolve({ ...filters, cidade: city.slug })} prettyPath /></>;
 }

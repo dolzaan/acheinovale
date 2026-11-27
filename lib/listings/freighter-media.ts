@@ -2,6 +2,7 @@ import "server-only";
 
 import { releasePropertyMediaUploadGrants } from "@/lib/listings/property-media";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { ownStorageKeys } from "@/lib/listings/media-ownership";
 import {
   freighterImagePublicUrl,
   isSupportedProfileImage,
@@ -58,9 +59,11 @@ export async function verifyFreighterImages(keys: string[], authUserId: string) 
   return checks.every(Boolean);
 }
 
-export async function removeFreighterImages(keys: string[]) {
-  if (!keys.length) return;
-  const { error } = await createAdminClient().storage.from(STORAGE_BUCKETS.freighters).remove(keys);
-  await releasePropertyMediaUploadGrants(keys);
+/** Apaga só arquivos da pasta de `authUserId`; chaves de outros usuários são ignoradas. */
+export async function removeFreighterImages(keys: string[], authUserId: string) {
+  const ownKeys = ownStorageKeys(keys, authUserId);
+  if (!ownKeys.length) return;
+  const { error } = await createAdminClient().storage.from(STORAGE_BUCKETS.freighters).remove(ownKeys);
+  await releasePropertyMediaUploadGrants(ownKeys);
   if (error) throw error;
 }

@@ -11,6 +11,7 @@ import { freighterUrl, propertyUrl } from "@/lib/listings/urls";
 import { revalidatePublicListings, revalidatePublicLocations } from "@/lib/listings/public-cache";
 import { normalizeNeighborhoodName } from "@/lib/location/neighborhood";
 import { slugify } from "@/lib/validation/listing";
+import { moderationPublishedAt } from "@/lib/listings/owner-status";
 
 type ModerationIntent = "approve" | "reject" | "pause";
 
@@ -64,7 +65,7 @@ export async function moderateProperty(formData: FormData) {
       ...next,
       moderatedAt: new Date(),
       moderatedById: admin.id,
-      publishedAt: intent === "approve" ? property.publishedAt ?? new Date() : property.publishedAt,
+      publishedAt: moderationPublishedAt(intent, property.publishedAt),
       ...(intent === "approve" ? { approvedPriceCents: property.priceCents } : {}),
       ...(priceDrop ? { priceDropNotifiedAt: new Date() } : {}),
     },
@@ -96,7 +97,7 @@ export async function moderateFreighter(formData: FormData) {
       ...next,
       moderatedAt: new Date(),
       moderatedById: admin.id,
-      publishedAt: intent === "approve" ? freighter.publishedAt ?? new Date() : freighter.publishedAt,
+      publishedAt: moderationPublishedAt(intent, freighter.publishedAt),
     },
   });
 

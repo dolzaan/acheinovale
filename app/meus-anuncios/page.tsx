@@ -9,6 +9,7 @@ import { prisma } from "@/lib/db";
 import { freighterUrl, propertyUrl } from "@/lib/listings/urls";
 import { availabilityDeadline, needsAvailabilityConfirmation } from "@/lib/listings/availability";
 import { archiveProperty, confirmPropertyAvailability, pauseFreighter, pauseProperty } from "./actions";
+import { ownerCanTogglePause } from "@/lib/listings/owner-status";
 
 const statusLabel = { DRAFT: "Rascunho", PENDING: "Em análise", ACTIVE: "Ativo", PAUSED: "Pausado", REJECTED: "Rejeitado", ARCHIVED: "Arquivado" } as const;
 
@@ -90,7 +91,7 @@ export default async function MyListingsPage({ searchParams }: Props) {
                     <Link href={propertyUrl(property)}>Visualizar</Link>
                     <Link href={`/meus-anuncios/${property.id}/editar`}>Editar dados</Link>
                     <Link href={`/meus-anuncios/${property.id}/midias`}>Editar mídias</Link>
-                    {property.status === "ACTIVE" || property.status === "PAUSED" ? <form action={pauseProperty}><input type="hidden" name="id" value={property.id} /><PendingSubmitButton pendingText={property.status === "PAUSED" ? "Reativando…" : "Pausando…"}>{property.status === "PAUSED" ? "Reativar" : "Pausar"}</PendingSubmitButton></form> : null}
+                    {ownerCanTogglePause(property) ? <form action={pauseProperty}><input type="hidden" name="id" value={property.id} /><PendingSubmitButton pendingText={property.status === "PAUSED" ? "Reativando…" : "Pausando…"}>{property.status === "PAUSED" ? "Reativar" : "Pausar"}</PendingSubmitButton></form> : null}
                     <form action={archiveProperty}><input type="hidden" name="id" value={property.id} /><PendingSubmitButton pendingText="Arquivando…" confirmMessage="Arquivar este anúncio? Ele sai do site e da sua lista de anúncios.">Arquivar</PendingSubmitButton></form>
                   </div>
                 </article>
@@ -109,7 +110,7 @@ export default async function MyListingsPage({ searchParams }: Props) {
                     <Link href={freighterUrl(freighter)}>Visualizar</Link>
                     <Link href="/publicar/frete">Editar cadastro</Link>
                     <Link href={`/meus-anuncios/${freighter.id}/freteiro-midias`}>Editar fotos</Link>
-                    {freighter.status === "ACTIVE" || freighter.status === "PAUSED" ? <form action={pauseFreighter}><input type="hidden" name="id" value={freighter.id} /><PendingSubmitButton pendingText={freighter.status === "PAUSED" ? "Reativando…" : "Pausando…"}>{freighter.status === "PAUSED" ? "Reativar" : "Pausar"}</PendingSubmitButton></form> : null}
+                    {ownerCanTogglePause(freighter) ? <form action={pauseFreighter}><input type="hidden" name="id" value={freighter.id} /><PendingSubmitButton pendingText={freighter.status === "PAUSED" ? "Reativando…" : "Pausando…"}>{freighter.status === "PAUSED" ? "Reativar" : "Pausar"}</PendingSubmitButton></form> : null}
                   </div>
                 </article>
               ) : null}
