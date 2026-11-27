@@ -10,6 +10,7 @@ import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { PhoneInput } from "@/components/phone-input";
 import { PropertyMediaOrganizer, type PropertyOrganizerItem } from "@/components/property-media-organizer";
 import { FloodLevelField } from "@/components/flood-level-field";
+import { PropertyCostFields } from "@/components/property-cost-fields";
 import { firstPhoto, moveMediaItem, reorderMediaItem } from "@/lib/listings/media-order";
 import {
   clearPropertyDraft,
@@ -546,6 +547,7 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
       <FloodLevelField />
       
         </div>
+        <PropertyCostFields />
         <details className="publish-optional-section field-wide">
           <summary>Adicionar endereço detalhado <span>Opcional</span></summary>
           <p>Esses dados ficam privados e não aparecem no anúncio público.</p>

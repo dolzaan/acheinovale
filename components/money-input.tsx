@@ -13,8 +13,9 @@ function formatCents(digits: string) {
   return brlNumberFormatter.format(Number(digits) / 100);
 }
 
-export function MoneyInput({ name = "price", defaultCents }: { name?: string; defaultCents?: number }) {
-  const [digits, setDigits] = useState(defaultCents ? String(Math.min(defaultCents, MAX_PRICE_CENTS)) : "");
+export function MoneyInput({ name = "price", defaultCents, required = true, label = "Preço do imóvel" }: { name?: string; defaultCents?: number | null; required?: boolean; label?: string }) {
+  // 0 é um valor válido nos campos opcionais (ex.: condomínio isento).
+  const [digits, setDigits] = useState(defaultCents !== undefined && defaultCents !== null ? String(Math.min(defaultCents, MAX_PRICE_CENTS)) : "");
 
   function updateValue(value: string) {
     const nextDigits = value.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
@@ -45,8 +46,8 @@ export function MoneyInput({ name = "price", defaultCents }: { name?: string; de
         autoComplete="off"
         placeholder="0,00"
         value={formatCents(digits)}
-        required
-        aria-label="Preço do imóvel"
+        required={required}
+        aria-label={label}
         onChange={(event) => updateValue(event.target.value)}
         onKeyDown={handleKeyDown}
       />

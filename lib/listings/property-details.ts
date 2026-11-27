@@ -7,6 +7,7 @@ import { normalizeNeighborhoodName } from "@/lib/location/neighborhood";
 import { normalizeBrazilianPhone } from "@/lib/validation/profile";
 import { parseMoneyToCents, slugify } from "@/lib/validation/listing";
 import { parseFloodLevel } from "@/lib/listings/flood-level";
+import { parseOptionalFee, parseUtility } from "@/lib/listings/property-costs";
 
 const PURPOSES: readonly PropertyPurpose[] = ["RENT", "SALE"];
 const TYPES: readonly PropertyType[] = ["HOUSE", "APARTMENT", "STUDIO", "LAND", "COMMERCIAL_ROOM", "WAREHOUSE", "OTHER"];
@@ -24,6 +25,12 @@ export type PropertyDetails = {
   bathrooms: number | null;
   parkingSpots: number | null;
   floodLevelCm: number | null;
+  condoFeeCents: number | null;
+  iptuCents: number | null;
+  garbageFeeCents: number | null;
+  waterIncluded: boolean | null;
+  electricityIncluded: boolean | null;
+  internetIncluded: boolean | null;
   neighborhood: { id: string; name: string; cityId: string; city: { name: string } };
   privateAddressData: Prisma.InputJsonValue | null;
 };
@@ -88,6 +95,12 @@ export async function parsePropertyDetails(formData: FormData): Promise<
   const bathrooms = optionalInteger(formData, "bathrooms", 0, 30);
   const parkingSpots = optionalInteger(formData, "parkingSpots", 0, 30);
   const floodLevel = parseFloodLevel(field(formData, "floodLevel"));
+  const condoFee = parseOptionalFee(field(formData, "condoFee"));
+  const iptu = parseOptionalFee(field(formData, "iptu"));
+  const garbageFee = parseOptionalFee(field(formData, "garbageFee"));
+  const water = parseUtility(field(formData, "water"));
+  const electricity = parseUtility(field(formData, "electricity"));
+  const internet = parseUtility(field(formData, "internet"));
   const street = field(formData, "street");
   const addressNumber = field(formData, "addressNumber");
   const addressComplement = field(formData, "addressComplement");
@@ -97,6 +110,7 @@ export async function parsePropertyDetails(formData: FormData): Promise<
     description.length < 30 || description.length > 3000 ||
     neighborhoodName.length > 80 || street.length > 160 || addressNumber.length > 20 || addressComplement.length > 120 ||
     !bedrooms.valid || !bathrooms.valid || !parkingSpots.valid || !floodLevel.valid ||
+    !condoFee.valid || !iptu.valid || !garbageFee.valid || !water.valid || !electricity.valid || !internet.valid ||
     !priceCents || !whatsapp || !PURPOSES.includes(purpose) || !TYPES.includes(type)
   ) {
     return { ok: false, error: "dados" };
@@ -152,6 +166,13 @@ export async function parsePropertyDetails(formData: FormData): Promise<
       bathrooms: bathrooms.value,
       parkingSpots: parkingSpots.value,
       floodLevelCm: floodLevel.value,
+      condoFeeCents: condoFee.value,
+      iptuCents: iptu.value,
+      garbageFeeCents: garbageFee.value,
+      // Quem paga água, luz e internet só faz sentido no aluguel.
+      waterIncluded: purpose === "RENT" ? water.value : null,
+      electricityIncluded: purpose === "RENT" ? electricity.value : null,
+      internetIncluded: purpose === "RENT" ? internet.value : null,
       neighborhood,
       privateAddressData: cep ? {
         cep,

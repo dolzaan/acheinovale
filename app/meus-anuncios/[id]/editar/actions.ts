@@ -36,6 +36,12 @@ export async function updatePropertyDetails(propertyId: string, formData: FormDa
     details.bathrooms !== property.bathrooms ||
     details.parkingSpots !== property.parkingSpots ||
     details.floodLevelCm !== property.floodLevelCm ||
+    details.condoFeeCents !== property.condoFeeCents ||
+    details.iptuCents !== property.iptuCents ||
+    details.garbageFeeCents !== property.garbageFeeCents ||
+    details.waterIncluded !== property.waterIncluded ||
+    details.electricityIncluded !== property.electricityIncluded ||
+    details.internetIncluded !== property.internetIncluded ||
     neighborhood.id !== property.neighborhoodId;
   const needsReview = publicContentChanged || property.status === "REJECTED";
 
