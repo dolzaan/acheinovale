@@ -91,7 +91,7 @@ export default async function HomePage({ searchParams }: Props) {
           </div>
           <div className="container market-photo-credit"><a href={cityPhoto.sourceUrl} target="_blank" rel="noreferrer">{cityPhoto.caption} · {cityPhoto.author}</a> · <a href={cityPhoto.licenseUrl} target="_blank" rel="noreferrer">{cityPhoto.license}</a></div>
         </section>
-        <section className="container market-categories"><div className="section-heading"><div><h2>Explore o Vale</h2><p>Encontre o que precisa, perto de você.</p></div></div><div className="market-category-grid"><Link href={propertiesHref} prefetch={false}><HomeIcon size={32}/><div><h3>Imóveis</h3><p>Encontre seu próximo lar</p></div><ArrowIcon/></Link><Link href={freightersHref} prefetch={false}><TruckIcon size={32}/><div><h3>Fretes</h3><p>Transporte e mudanças</p></div><ArrowIcon/></Link></div></section>
+        <section className="container market-categories"><div className="section-heading"><div><h2>Explore o Vale</h2><p>Encontre o que precisa, perto de você.</p></div></div><div className="market-category-grid"><Link href={propertiesHref} prefetch={false}><span className="market-render market-render-house" aria-hidden="true">🏡</span><div><h3>Imóveis</h3><p>Encontre seu próximo lar</p></div><ArrowIcon/></Link><Link href={freightersHref} prefetch={false}><span className="market-render market-render-truck" aria-hidden="true">🚚</span><div><h3>Fretes</h3><p>Transporte e mudanças</p></div><ArrowIcon/></Link></div></section>
         {cityIsEmpty ? (
           <section className="section launch-section" aria-labelledby="launch-title">
             <div className="container">
