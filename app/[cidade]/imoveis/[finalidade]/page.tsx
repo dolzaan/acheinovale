@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { notFound, permanentRedirect } from "next/navigation";
 import PropertiesPage from "@/app/imoveis/page";
-import { catalogBreadcrumbs, catalogPathWithFilters, getCatalogCity, purposeWords, type CatalogFilters } from "@/lib/listings/catalog-pages";
+import { catalogBreadcrumbs, countCatalogProperties, catalogPathWithFilters, getCatalogCity, purposeWords, type CatalogFilters } from "@/lib/listings/catalog-pages";
 import { isPurposeSlug, propertyCatalogPath } from "@/lib/listings/urls";
 import { SITE_URL } from "@/lib/site";
 import { jsonLd } from "@/lib/seo/json-ld";
@@ -17,12 +17,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const city = isPurposeSlug(finalidade) ? await getCatalogCity(cidade) : null;
   if (!city || !isPurposeSlug(finalidade)) return {};
   const words = purposeWords(finalidade);
-  const title = `Imóveis ${words.title} em ${city.name}, SC | Achei no Vale`;
+  const title = finalidade === "aluguel" ? `Aluguel em ${city.name}, SC: casas e imóveis | Achei no Vale` : `Imóveis ${words.title} em ${city.name}, SC | Achei no Vale`;
   const description = finalidade === "aluguel"
     ? `Encontre casas, apartamentos e imóveis para alugar em ${city.name}. Veja fotos, preços, bairros e fale direto com o anunciante.`
     : `Encontre casas, apartamentos e terrenos à venda em ${city.name}. Veja fotos, preços, bairros e fale direto com o anunciante.`;
   const canonical = `${SITE_URL}${propertyCatalogPath(city.slug, finalidade)}`;
-  return { title, description, alternates: { canonical }, openGraph: { title, description, url: canonical, type: "website" } };
+  const activeCount = await countCatalogProperties(city.id, finalidade);
+  return { title, description, alternates: { canonical }, robots: activeCount ? undefined : { index: false, follow: true }, openGraph: { title, description, url: canonical, type: "website" } };
 }
 
 export default async function CityPurposePropertiesPage({ params, searchParams }: Props) {
