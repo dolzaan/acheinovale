@@ -9,6 +9,7 @@ import { EMPTY_NEIGHBORHOOD, NeighborhoodPicker, type NeighborhoodValue } from "
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { PhoneInput } from "@/components/phone-input";
 import { PropertyMediaOrganizer, type PropertyOrganizerItem } from "@/components/property-media-organizer";
+import { firstPhoto, moveMediaItem, reorderMediaItem } from "@/lib/listings/media-order";
 import {
   clearPropertyDraft,
   loadPropertyDraftMedia,
@@ -347,29 +348,20 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
     });
   }
 
+  // A ordem manda: a capa é sempre a primeira foto da fila (o vídeo nunca vai para a frente).
+  const orderHelpers = { key: (id: string) => id, isImage: (id: string) => photos.some(photo => photo.id === id) };
+
+  function applyOrder(next: string[]) {
+    setMediaOrder(next);
+    setCoverPhotoId(firstPhoto(next, orderHelpers) ?? null);
+  }
+
   function reorderMedia(sourceId: string, targetId: string) {
-    setMediaOrder(current => {
-      const sourceIndex = current.indexOf(sourceId);
-      const targetIndex = current.indexOf(targetId);
-      if (sourceIndex < 0 || targetIndex < 0) return current;
-      const next = [...current];
-      next.splice(sourceIndex, 1);
-      next.splice(targetIndex, 0, sourceId);
-      if (coverPhotoId) return [coverPhotoId, ...next.filter(id => id !== coverPhotoId)];
-      return next;
-    });
+    applyOrder(reorderMediaItem(mediaOrder, sourceId, targetId, orderHelpers));
   }
 
   function moveMedia(id: string, direction: -1 | 1) {
-    setMediaOrder(current => {
-      const index = current.indexOf(id);
-      const targetIndex = index + direction;
-      if (index < 0 || targetIndex < 0 || targetIndex >= current.length) return current;
-      const next = [...current];
-      [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
-      if (coverPhotoId) return [coverPhotoId, ...next.filter(mediaId => mediaId !== coverPhotoId)];
-      return next;
-    });
+    applyOrder(moveMediaItem(mediaOrder, id, direction, orderHelpers));
   }
 
   function setCover(id: string) {
@@ -415,6 +407,8 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     if (readyToSubmit.current) return;
     event.preventDefault();
+    // Guardado antes de qualquer await: depois dele o React zera event.currentTarget.
+    const form = event.currentTarget;
     setMediaError("");
     if (optimizingPhotos) {
       setMediaError("Aguarde a otimização das fotos terminar.");
@@ -424,14 +418,13 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
 
     if (!photos.length && !video) {
       readyToSubmit.current = true;
-      event.currentTarget.requestSubmit();
+      form.requestSubmit();
       return;
     }
 
     setUploading(true);
     setPhotoProgress(0);
     setVideoProgress(0);
-    const form = event.currentTarget;
     // O cliente do Supabase só é necessário no envio; fica fora do carregamento inicial.
     const { createClient } = await import("@/lib/supabase/client");
     const supabase = createClient();

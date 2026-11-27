@@ -6,6 +6,7 @@ import { updatePropertyMedia } from "@/app/meus-anuncios/[id]/midias/actions";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { PropertyMediaOrganizer, type PropertyOrganizerItem } from "@/components/property-media-organizer";
 import { optimizePropertyImages } from "@/lib/images/optimize-property-image";
+import { moveMediaItem, reorderMediaItem } from "@/lib/listings/media-order";
 import { uploadPropertyVideo } from "@/lib/supabase/property-video-upload";
 import {
   createPropertyImagePath,
@@ -87,28 +88,15 @@ export function PropertyMediaEditor({ propertyId, authUserId, initialItems }: { 
     });
   }
 
+  // A ordem manda: a capa é sempre a primeira foto (o vídeo nunca vai para a frente).
+  const orderHelpers = { key: (item: MediaItem) => item.id, isImage: (item: MediaItem) => item.kind === "image" };
+
   function reorder(sourceId: string, targetId: string) {
-    setItems(current => {
-      const source = current.findIndex(item => item.id === sourceId);
-      const target = current.findIndex(item => item.id === targetId);
-      if (source < 0 || target < 0) return current;
-      const next = [...current];
-      next.splice(target, 0, next.splice(source, 1)[0]);
-      const cover = current.find(item => item.kind === "image")?.id;
-      return cover ? [next.find(item => item.id === cover)!, ...next.filter(item => item.id !== cover)] : next;
-    });
+    setItems(current => reorderMediaItem(current, sourceId, targetId, orderHelpers));
   }
 
   function move(id: string, direction: -1 | 1) {
-    setItems(current => {
-      const index = current.findIndex(item => item.id === id);
-      const target = index + direction;
-      if (index < 0 || target < 0 || target >= current.length) return current;
-      const next = [...current];
-      [next[index], next[target]] = [next[target], next[index]];
-      const cover = current.find(item => item.kind === "image")?.id;
-      return cover ? [next.find(item => item.id === cover)!, ...next.filter(item => item.id !== cover)] : next;
-    });
+    setItems(current => moveMediaItem(current, id, direction, orderHelpers));
   }
 
   function setCover(id: string) {
