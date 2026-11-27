@@ -67,11 +67,11 @@ export default async function HomePage({ searchParams }: Props) {
         <section className="redesign-hero">
           <div className="container editorial-shell">
                         <div className="redesign-intro">
-              <span className="redesign-eyebrow"><PinIcon size={16}/> EXPLORE O ALTO VALE</span>
-              <h1>Encontre seu próximo imóvel.</h1>
+              <span className="redesign-eyebrow"><span className="live-dot"/> O marketplace do Alto Vale</span>
+              <h1>Encontre seu próximo <em>lar.</em></h1>
               <p>Encontre imóveis e serviços de frete em {cityName} e região.</p>
             </div>
-            <div className="redesign-search">
+            <div className="redesign-search modern-search-panel">
               <nav aria-label="O que você procura" className="redesign-tabs">
                 <Link href={rentalsHref} prefetch={false}><HomeIcon size={20}/> Alugar</Link>
                 <Link href={salesHref} prefetch={false}><BuildingIcon size={20}/> Comprar</Link>
