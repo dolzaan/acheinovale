@@ -171,7 +171,7 @@ export default async function HomePage({ searchParams }: Props) {
           </>
         )}
 
-        <section className="container editorial-region"><div className="editorial-region-photo"><Image src="/brand/rio-do-sul-centro.webp" alt="Rio do Sul" fill sizes="(max-width: 680px) 100vw, 50vw"/><div><small>EXPLORE O ALTO VALE</small><h2>Encontre o seu lugar na região.</h2><Link href="/rio-do-sul/imoveis" prefetch={false}>Conhecer Rio do Sul <ArrowIcon/></Link></div></div></section>
+        
         <CityDiscovery category="imoveis" currentSlug={city.slug} />
         <section className="container trust-strip">
           <div className="trust-strip__icon"><ShieldIcon size={28}/></div>
