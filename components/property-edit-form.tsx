@@ -32,6 +32,9 @@ export type PropertyEditValues = {
   condoFeeCents: number | null;
   iptuCents: number | null;
   garbageFeeCents: number | null;
+  condoFeePeriod: string | null;
+  iptuPeriod: string | null;
+  garbageFeePeriod: string | null;
   waterIncluded: boolean | null;
   electricityIncluded: boolean | null;
   internetIncluded: boolean | null;
@@ -130,6 +133,9 @@ export function PropertyEditForm({ propertyId, cities, initial }: { propertyId: 
         condoFeeCents: initial.condoFeeCents,
         iptuCents: initial.iptuCents,
         garbageFeeCents: initial.garbageFeeCents,
+        condoFeePeriod: initial.condoFeePeriod,
+        iptuPeriod: initial.iptuPeriod,
+        garbageFeePeriod: initial.garbageFeePeriod,
         waterIncluded: initial.waterIncluded,
         electricityIncluded: initial.electricityIncluded,
         internetIncluded: initial.internetIncluded,

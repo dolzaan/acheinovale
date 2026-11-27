@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { parseOptionalFee, parseUtility, propertyCostLines } from "./property-costs";
+import { feePeriodFormValue, parseFeePeriod, parseOptionalFee, parseUtility, propertyCostLines } from "./property-costs";
 
-const empty = { condoFeeCents: null, iptuCents: null, garbageFeeCents: null, waterIncluded: null, electricityIncluded: null, internetIncluded: null };
+const empty = {
+  condoFeeCents: null, iptuCents: null, garbageFeeCents: null,
+  condoFeePeriod: null, iptuPeriod: null, garbageFeePeriod: null,
+  waterIncluded: null, electricityIncluded: null, internetIncluded: null,
+};
 
 describe("custos opcionais do imóvel", () => {
   it("entende valores escritos no formato brasileiro", () => {
@@ -28,22 +32,36 @@ describe("custos opcionais do imóvel", () => {
     expect(parseUtility("talvez").valid).toBe(false);
   });
 
-  it("mostra só o que foi informado, com período e quem paga", () => {
-    expect(propertyCostLines({ ...empty, purpose: "RENT", condoFeeCents: 45000, iptuCents: 0, waterIncluded: true, internetIncluded: false })).toEqual([
+  it("o anunciante escolhe se cada custo é por mês ou por ano", () => {
+    expect(parseFeePeriod("mes", "YEAR")).toEqual({ valid: true, value: "MONTH" });
+    expect(parseFeePeriod("ano", "MONTH")).toEqual({ valid: true, value: "YEAR" });
+    expect(parseFeePeriod("semana", "MONTH").valid).toBe(false);
+  });
+
+  it("mostra o valor com o período escolhido", () => {
+    expect(propertyCostLines({ ...empty, purpose: "RENT", iptuCents: 9000, iptuPeriod: "MONTH", condoFeeCents: 540000, condoFeePeriod: "YEAR" })).toEqual([
+      { label: "Condomínio", value: "R$ 5.400/ano" },
+      { label: "IPTU", value: "R$ 90/mês" },
+    ]);
+  });
+
+  it("anúncio antigo, sem período salvo, usa o período mais comum de cada custo", () => {
+    expect(propertyCostLines({ ...empty, purpose: "SALE", condoFeeCents: 45000, iptuCents: 120050 })).toEqual([
       { label: "Condomínio", value: "R$ 450/mês" },
-      { label: "IPTU", value: "isento" },
+      { label: "IPTU", value: "R$ 1.200,50/ano" },
+    ]);
+    expect(feePeriodFormValue(null, "YEAR")).toBe("ano");
+  });
+
+  it("mostra isento e quem paga as contas no aluguel", () => {
+    expect(propertyCostLines({ ...empty, purpose: "RENT", garbageFeeCents: 0, waterIncluded: true, internetIncluded: false })).toEqual([
+      { label: "Taxa de lixo", value: "isenta" },
       { label: "Água", value: "inclusa no aluguel" },
       { label: "Internet", value: "por conta do inquilino" },
     ]);
   });
 
   it("em imóvel à venda não fala de contas do inquilino", () => {
-    expect(propertyCostLines({ ...empty, purpose: "SALE", iptuCents: 120050, waterIncluded: false })).toEqual([
-      { label: "IPTU", value: "R$ 1.200,50/ano" },
-    ]);
-  });
-
-  it("sem nada informado, a seção não aparece", () => {
-    expect(propertyCostLines({ ...empty, purpose: "RENT" })).toEqual([]);
+    expect(propertyCostLines({ ...empty, purpose: "SALE", waterIncluded: false })).toEqual([]);
   });
 });

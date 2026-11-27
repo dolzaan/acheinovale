@@ -792,6 +792,10 @@ button { cursor: pointer; }
 .publish-optional-section .publish-optional-grid { margin-top: 12px; }
 .property-costs-hint { margin: 14px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
 .property-costs-hint strong { color: var(--ink); }
+.property-fee-field { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.property-fee-field > label { font-size: 13px; font-weight: 750; }
+.property-fee-field__row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: stretch; }
+.property-fee-field__row select { width: auto; min-width: 104px; }
 .publish-optional-section summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; cursor: pointer; font-weight: 750; }
 .publish-optional-section summary span { color: var(--muted); font-size: 12px; font-weight: 600; }
 .publish-optional-section > p { margin: 10px 0 14px; color: var(--muted); font-size: 13px; line-height: 1.5; }
