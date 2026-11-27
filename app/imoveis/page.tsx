@@ -324,10 +324,10 @@ export default async function PropertiesPage({ searchParams, prettyPath = false 
     : regional && purpose === "SALE"
       ? "Imóveis à venda no Alto Vale"
       : purpose === "RENT" && selectedCity
-        ? `Imóveis para alugar em ${selectedCity.name}`
+        ? `Aluguel em ${selectedCity.name}: imóveis para alugar`
         : purpose === "SALE" && selectedCity
           ? `Imóveis à venda em ${selectedCity.name}`
-          : regional ? "Imóveis no Alto Vale" : "Imóveis";
+          : regional ? "Imóveis no Alto Vale" : selectedCity ? `Imóveis em ${selectedCity.name}` : "Imóveis";
   const catalogDescription = selectedNeighborhood && selectedCity
     ? `Veja casas, apartamentos e outros imóveis ${purposePhrase || "para comprar ou alugar"} no bairro ${selectedNeighborhood.name}, em ${selectedCity.name}. Compare preços e fale diretamente com o anunciante.`
     : regional

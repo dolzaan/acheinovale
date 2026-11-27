@@ -36,7 +36,7 @@ const getSitemapData = unstable_cache(async () => {
   const [catalogGroups, freighters] = await Promise.all([
     prisma.property.groupBy({
       by: ["cityId", "purpose", "neighborhoodId"],
-      where: { status: "ACTIVE", city: { isActive: true }, neighborhood: { needsReview: false } },
+      where: { status: "ACTIVE", city: { isActive: true } },
     }),
     prisma.freighterProfile.findMany({
       where: { status: "ACTIVE" },
@@ -46,7 +46,7 @@ const getSitemapData = unstable_cache(async () => {
   ]);
   const [neighborhoods, advertisers] = await Promise.all([
     prisma.neighborhood.findMany({
-      where: { id: { in: [...new Set(catalogGroups.map(group => group.neighborhoodId))] } },
+      where: { id: { in: [...new Set(catalogGroups.map(group => group.neighborhoodId))] }, needsReview: false },
       select: { id: true, slug: true },
     }),
     // Perfis de corretor e imobiliária com pelo menos um imóvel ativo.
@@ -69,7 +69,7 @@ const getSitemapData = unstable_cache(async () => {
     properties: properties.map(({ updatedAt, ...property }) => ({ ...property, updatedAt: updatedAt.toISOString() })),
     freighters: freighters.map(({ updatedAt, ...freighter }) => ({ ...freighter, updatedAt: updatedAt.toISOString() })),
   };
-}, ["sitemap-data-v2"], { revalidate: 60 * 60, tags: [PUBLIC_LISTINGS_TAG, PUBLIC_LOCATIONS_TAG] });
+}, ["sitemap-data-v3"], { revalidate: 60 * 60, tags: [PUBLIC_LISTINGS_TAG, PUBLIC_LOCATIONS_TAG] });
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { cities, properties, catalogGroups, neighborhoods, freighters, advertiserSlugs } = await getSitemapData();

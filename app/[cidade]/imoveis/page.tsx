@@ -16,12 +16,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { cidade } = await params;
   const city = await getCatalogCity(cidade);
   if (!city) return {};
-  const description = `Casas, apartamentos e terrenos para venda ou aluguel em ${city.name}.`;
+  const description = `Encontre casas, apartamentos e terrenos para alugar ou comprar em ${city.name}, SC. Compare preços e fale diretamente com os anunciantes.`;
+  const canonical = `${SITE_URL}/${city.slug}/imoveis`;
   return {
-    title: `Imóveis em ${city.name} | AcheiNoVale`,
+    title: `Imóveis em ${city.name}, SC: aluguel e venda | Achei no Vale`,
     description,
-    alternates: { canonical: `${SITE_URL}/${city.slug}/imoveis` },
-    openGraph: { title: `Imóveis em ${city.name} | AcheiNoVale`, description },
+    alternates: { canonical },
+    openGraph: { title: `Imóveis em ${city.name}, SC: aluguel e venda | Achei no Vale`, description, url: canonical },
   };
 }
 
