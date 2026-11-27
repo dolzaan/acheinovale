@@ -9,6 +9,7 @@ import { EMPTY_NEIGHBORHOOD, NeighborhoodPicker, type NeighborhoodValue } from "
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { PhoneInput } from "@/components/phone-input";
 import { PropertyMediaOrganizer, type PropertyOrganizerItem } from "@/components/property-media-organizer";
+import { FloodLevelField } from "@/components/flood-level-field";
 import { firstPhoto, moveMediaItem, reorderMediaItem } from "@/lib/listings/media-order";
 import {
   clearPropertyDraft,
@@ -542,6 +543,7 @@ export function PropertyPublishForm({ authUserId, cityId, phone, cities }: { aut
 <label><span>Quartos</span><input name="bedrooms" type="number" min="0" max="30" /></label>
       <label><span>Banheiros</span><input name="bathrooms" type="number" min="0" max="30" /></label>
       <label><span>Vagas</span><input name="parkingSpots" type="number" min="0" max="30" /></label>
+      <FloodLevelField />
       
         </div>
         <details className="publish-optional-section field-wide">

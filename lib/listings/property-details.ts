@@ -6,6 +6,7 @@ import { getAddressByCep, normalizeCep } from "@/lib/location/cep";
 import { normalizeNeighborhoodName } from "@/lib/location/neighborhood";
 import { normalizeBrazilianPhone } from "@/lib/validation/profile";
 import { parseMoneyToCents, slugify } from "@/lib/validation/listing";
+import { parseFloodLevel } from "@/lib/listings/flood-level";
 
 const PURPOSES: readonly PropertyPurpose[] = ["RENT", "SALE"];
 const TYPES: readonly PropertyType[] = ["HOUSE", "APARTMENT", "STUDIO", "LAND", "COMMERCIAL_ROOM", "WAREHOUSE", "OTHER"];
@@ -22,6 +23,7 @@ export type PropertyDetails = {
   bedrooms: number | null;
   bathrooms: number | null;
   parkingSpots: number | null;
+  floodLevelCm: number | null;
   neighborhood: { id: string; name: string; cityId: string; city: { name: string } };
   privateAddressData: Prisma.InputJsonValue | null;
 };
@@ -85,6 +87,7 @@ export async function parsePropertyDetails(formData: FormData): Promise<
   const bedrooms = optionalInteger(formData, "bedrooms", 0, 30);
   const bathrooms = optionalInteger(formData, "bathrooms", 0, 30);
   const parkingSpots = optionalInteger(formData, "parkingSpots", 0, 30);
+  const floodLevel = parseFloodLevel(field(formData, "floodLevel"));
   const street = field(formData, "street");
   const addressNumber = field(formData, "addressNumber");
   const addressComplement = field(formData, "addressComplement");
@@ -93,7 +96,7 @@ export async function parsePropertyDetails(formData: FormData): Promise<
     title.length < 8 || title.length > 120 ||
     description.length < 30 || description.length > 3000 ||
     neighborhoodName.length > 80 || street.length > 160 || addressNumber.length > 20 || addressComplement.length > 120 ||
-    !bedrooms.valid || !bathrooms.valid || !parkingSpots.valid ||
+    !bedrooms.valid || !bathrooms.valid || !parkingSpots.valid || !floodLevel.valid ||
     !priceCents || !whatsapp || !PURPOSES.includes(purpose) || !TYPES.includes(type)
   ) {
     return { ok: false, error: "dados" };
@@ -148,6 +151,7 @@ export async function parsePropertyDetails(formData: FormData): Promise<
       bedrooms: bedrooms.value,
       bathrooms: bathrooms.value,
       parkingSpots: parkingSpots.value,
+      floodLevelCm: floodLevel.value,
       neighborhood,
       privateAddressData: cep ? {
         cep,

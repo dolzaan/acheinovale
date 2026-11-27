@@ -60,6 +60,7 @@ export default async function EditPropertyPage({ params, searchParams }: Props) 
               bedrooms: property.bedrooms,
               bathrooms: property.bathrooms,
               parkingSpots: property.parkingSpots,
+              floodLevelCm: property.floodLevelCm,
               cityId: property.cityId,
               neighborhood: property.neighborhood,
               cep: address.cep ?? "",
