@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal-page";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Termos de Uso — AcheiNoVale",
@@ -24,7 +25,7 @@ export default function TermsPage() {
       <section><h2>13. Suspensão, encerramento e exclusão</h2><p>Contas e anúncios podem ser suspensos ou removidos em caso de violação destes Termos, fraude, abuso, risco a usuários ou ordem de autoridade competente. O usuário pode solicitar a exclusão da conta; certos registros poderão ser preservados para cumprir obrigações legais, prevenir fraude e exercer direitos.</p></section>
       <section><h2>14. Privacidade</h2><p>O tratamento de dados pessoais está explicado na Política de Privacidade, que integra estes Termos.</p></section>
       <section><h2>15. Atualizações destes Termos</h2><p>Estes Termos podem ser atualizados para refletir mudanças na plataforma ou na legislação. A versão vigente e a data da última atualização permanecerão publicadas nesta página. Mudanças relevantes poderão ser comunicadas por outros meios disponíveis.</p></section>
-      <section><h2>16. Lei aplicável e contato</h2><p>Estes Termos são regidos pelas leis brasileiras, inclusive as normas de proteção do consumidor quando aplicáveis. O AcheiNoVale é um projeto operado por Paulo Cesar Dolzan, em Rio do Sul, Santa Catarina. Dúvidas, denúncias e solicitações podem ser enviadas para <a href="mailto:contato@acheinovale.com.br">contato@acheinovale.com.br</a>.</p></section>
+      <section><h2>16. Lei aplicável e contato</h2><p>Estes Termos são regidos pelas leis brasileiras, inclusive as normas de proteção do consumidor quando aplicáveis. O AcheiNoVale é um projeto operado por Paulo Cesar Dolzan, em Rio do Sul, Santa Catarina. Dúvidas, denúncias e solicitações podem ser enviadas para <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p></section>
     </LegalPage>
   );
 }

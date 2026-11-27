@@ -30,7 +30,13 @@ export function PwaInstallPrompt() {
   const [isInstalling, setIsInstalling] = useState(false);
 
   useEffect(() => {
-    if ("serviceWorker" in navigator) {
+    if ("serviceWorker" in navigator && process.env.NODE_ENV !== "production") {
+      // Em desenvolvimento os scripts não têm hash no nome; um service worker antigo
+      // mostraria código velho. Remove o que tiver ficado de visitas anteriores.
+      navigator.serviceWorker.getRegistrations()
+        .then(registrations => Promise.all(registrations.map(registration => registration.unregister())))
+        .catch(() => {});
+    } else if ("serviceWorker" in navigator) {
       const registerServiceWorker = () => {
         navigator.serviceWorker.register("/sw.js").catch(() => {
           // O site continua funcionando normalmente caso o navegador bloqueie o service worker.

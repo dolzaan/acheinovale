@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Header } from "./header";
 import { MobileNav } from "./mobile-nav";
 import { SiteFooter } from "./footer";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 type LegalPageProps = {
   title: string;
@@ -24,7 +25,7 @@ export function LegalPage({ title, description, updatedAt = "1º de setembro de 
           <article className="legal-content">{children}</article>
           <aside className="legal-help">
             <strong>Ficou com alguma dúvida?</strong>
-            <p>Fale com a equipe do AcheiNoVale pelo e-mail <a href="mailto:contato@acheinovale.com.br">contato@acheinovale.com.br</a>.</p>
+            <p>Fale com a equipe do AcheiNoVale pelo e-mail <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p>
           </aside>
           <nav className="legal-switcher" aria-label="Documentos legais">
             <Link href="/termos">Termos de Uso</Link>
