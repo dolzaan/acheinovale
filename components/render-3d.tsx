@@ -1,15 +1,16 @@
 import Image from "next/image";
 
-// Objetos 3D da marca, renderizados em public/renders/<nome>.webp (fundo transparente).
+// Objetos 3D da marca em public/renders/<nome>.webp (fundo transparente),
+// gerados por IA no estilo de miniatura realista de estúdio e recortados.
 // Proporção de cada arquivo, para o navegador reservar o espaço certo.
 export const RENDERS_3D = {
-  casa: [640, 613],
-  caminhao: [640, 510],
-  chave: [557, 640],
-  caixa: [538, 640],
-  lupa: [590, 640],
-  pin: [498, 640],
-  predio: [402, 640],
+  casa: [695, 720],
+  caminhao: [720, 603],
+  chave: [720, 444],
+  caixa: [590, 720],
+  lupa: [353, 720],
+  pin: [610, 720],
+  predio: [557, 720],
 } as const;
 
 export type Render3DNome = keyof typeof RENDERS_3D;
