@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Render3D } from "@/components/render-3d";
 import type { PropertyPurpose, PropertyType } from "@prisma/client";
-import { AreaIcon, BathIcon, BedIcon, HomeIcon, PinIcon } from "@/components/icons";
+import { PinIcon } from "@/components/icons";
 import { formatArea, formatCount } from "@/lib/format";
 import { propertyUrl } from "@/lib/listings/urls";
 import { propertyImagePublicUrl } from "@/lib/supabase/storage";
@@ -45,16 +46,16 @@ export function PropertyCard({ property }: { property: PropertyCardProperty }) {
       <Link prefetch={false} className={cover ? "catalog-property-image" : "catalog-image-placeholder"} href={url} aria-label={`Ver ${property.title}`}>
         {cover
           ? <Image src={propertyImagePublicUrl(cover.storageKey)} alt={cover.altText || property.title} fill sizes="(max-width: 680px) 100vw, (max-width: 1000px) 50vw, 33vw" />
-          : <><HomeIcon size={42} /><span>Ver imóvel</span></>}
+          : <><Render3D nome="casa" tamanho={120}/><span>Ver imóvel</span></>}
       </Link>
       <div className="property-card__body">
         <span className="property-card__purpose">{property.purpose === "RENT" ? "Aluguel" : "Venda"} · {propertyTypeLabels[property.type]}</span>
         <span className="property-card__location"><PinIcon size={15} />{property.neighborhood.name}, {property.city.name}</span>
         <h3><Link prefetch={false} href={url}>{property.title}</Link></h3>
         <div className="property-card__features">
-          {property.bedrooms !== null ? <span><BedIcon />{formatCount(property.bedrooms, "quarto", "quartos")}</span> : null}
-          {property.bathrooms !== null ? <span><BathIcon />{property.bathrooms} banh.</span> : null}
-          {property.areaM2 ? <span><AreaIcon />{formatArea(property.areaM2)}</span> : null}
+          {property.bedrooms !== null ? <span><Render3D nome="quarto" tamanho={30}/>{formatCount(property.bedrooms, "quarto", "quartos")}</span> : null}
+          {property.bathrooms !== null ? <span><Render3D nome="banheiro" tamanho={30}/>{property.bathrooms} banh.</span> : null}
+          {property.areaM2 ? <span><Render3D nome="area" tamanho={30}/>{formatArea(property.areaM2)}</span> : null}
         </div>
         <div className="property-card__price"><strong>{formatPrice(property.priceCents)}</strong><span>{property.purpose === "RENT" ? "/mês" : ""}</span></div>
         <Link prefetch={false} className="button button--primary property-card__cta" href={url} aria-label={`Ver imóvel: ${property.title}`}>Ver imóvel</Link>

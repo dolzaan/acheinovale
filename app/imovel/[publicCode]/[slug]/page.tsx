@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Render3D } from "@/components/render-3d";
 import Script from "next/script";
 import { notFound, permanentRedirect } from "next/navigation";
 import { after } from "next/server";
@@ -13,7 +14,7 @@ import { UserAvatar } from "@/components/user-avatar";
 import { FavoriteButton } from "@/components/favorite-button";
 import { ListingReportForm } from "@/components/listing-report-form";
 import { TrackedWhatsappContact } from "@/components/tracked-whatsapp-contact";
-import { AreaIcon, BathIcon, BedIcon, BuildingIcon, CarIcon, HomeIcon, LandIcon, PinIcon, WavesIcon } from "@/components/icons";
+import { HomeIcon, PinIcon } from "@/components/icons";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { prisma } from "@/lib/db";
 import { getPublicProperty } from "@/lib/listings/public";
@@ -162,12 +163,12 @@ export default async function PropertyPage({ params, searchParams }: Props) {
               <span className="listing-location"><PinIcon size={17} />{property.neighborhood.name}, {property.city.name} — {property.city.stateCode}</span>
               <h1>{property.title}</h1>
               <div className="listing-facts">
-                <span>{property.type === "LAND" ? <LandIcon /> : property.type === "HOUSE" || property.type === "OTHER" ? <HomeIcon size={17} /> : <BuildingIcon size={17} />}{propertyTypes[property.type]}</span>
-                {property.bedrooms !== null ? <span><BedIcon />{formatCount(property.bedrooms, "quarto", "quartos")}</span> : null}
-                {property.bathrooms !== null ? <span><BathIcon />{formatCount(property.bathrooms, "banheiro", "banheiros")}</span> : null}
-                {property.parkingSpots !== null ? <span><CarIcon />{formatCount(property.parkingSpots, "vaga", "vagas")}</span> : null}
-                {property.areaM2 ? <span><AreaIcon />{formatArea(property.areaM2)}</span> : null}
-                {property.floodLevelCm !== null ? <span title="Nível do rio em que a água chega ao imóvel, segundo o anunciante"><WavesIcon />Cota de enchente: {formatFloodLevel(property.floodLevelCm)}</span> : null}
+                <span>{property.type === "LAND" ? <Render3D nome="terreno" tamanho={36}/> : property.type === "HOUSE" || property.type === "OTHER" ? <Render3D nome="casa" tamanho={36}/> : <Render3D nome="predio" tamanho={36}/>}{propertyTypes[property.type]}</span>
+                {property.bedrooms !== null ? <span><Render3D nome="quarto" tamanho={36}/>{formatCount(property.bedrooms, "quarto", "quartos")}</span> : null}
+                {property.bathrooms !== null ? <span><Render3D nome="banheiro" tamanho={36}/>{formatCount(property.bathrooms, "banheiro", "banheiros")}</span> : null}
+                {property.parkingSpots !== null ? <span><Render3D nome="vaga" tamanho={36}/>{formatCount(property.parkingSpots, "vaga", "vagas")}</span> : null}
+                {property.areaM2 ? <span><Render3D nome="area" tamanho={36}/>{formatArea(property.areaM2)}</span> : null}
+                {property.floodLevelCm !== null ? <span title="Nível do rio em que a água chega ao imóvel, segundo o anunciante"><Render3D nome="enchente" tamanho={36}/>Cota de enchente: {formatFloodLevel(property.floodLevelCm)}</span> : null}
               </div>
               <section className="listing-description">
                 <h2>Sobre o imóvel</h2>

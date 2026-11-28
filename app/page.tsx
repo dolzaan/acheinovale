@@ -18,14 +18,9 @@ import { freighterUrl, propertyCatalogPath, propertyUrl } from "@/lib/listings/u
 import { propertyImagePublicUrl } from "@/lib/supabase/storage";
 import { SITE_URL } from "@/lib/site";
 import {
-  AreaIcon,
   ArrowIcon,
-  BathIcon,
-  BedIcon,
-  HomeIcon,
   PinIcon,
   SearchIcon,
-  ShieldIcon,
   StarIcon,
 } from "@/components/icons";
 import { formatArea, formatCount, formatRating } from "@/lib/format";
@@ -123,7 +118,7 @@ export default async function HomePage({ searchParams }: Props) {
                 <article className="property-card" key={property.id}>
                   <div className="property-card__image">
                     <Link prefetch={false} href={propertyUrl(property)} aria-label={`Ver ${property.title}`}>
-                      {property.images[0] ? <Image src={propertyImagePublicUrl(property.images[0].storageKey)} alt={property.images[0].altText || property.title} fill sizes="(max-width: 680px) 88vw, 33vw" /> : <span className="catalog-image-placeholder"><HomeIcon size={42}/><span>Ver imóvel</span></span>}
+                      {property.images[0] ? <Image src={propertyImagePublicUrl(property.images[0].storageKey)} alt={property.images[0].altText || property.title} fill sizes="(max-width: 680px) 88vw, 33vw" /> : <span className="catalog-image-placeholder"><Render3D nome="casa" tamanho={120}/><span>Ver imóvel</span></span>}
                     </Link>
                     <span className="property-card__tag">{property.purpose === "RENT" ? "Aluguel" : "Venda"}</span>
                   </div>
@@ -132,9 +127,9 @@ export default async function HomePage({ searchParams }: Props) {
                     <span className="property-card__location"><PinIcon size={15}/>{property.neighborhood.name}, {property.city.name}</span>
                     <h3><Link prefetch={false} href={propertyUrl(property)}>{property.title}</Link></h3>
                     <div className="property-card__features">
-                      {property.bedrooms !== null ? <span><BedIcon/>{formatCount(property.bedrooms, "quarto", "quartos")}</span> : null}
-                      {property.bathrooms !== null ? <span><BathIcon/>{property.bathrooms} banh.</span> : null}
-                      {property.areaM2 ? <span><AreaIcon/>{formatArea(property.areaM2)}</span> : null}
+                      {property.bedrooms !== null ? <span><Render3D nome="quarto" tamanho={30}/>{formatCount(property.bedrooms, "quarto", "quartos")}</span> : null}
+                      {property.bathrooms !== null ? <span><Render3D nome="banheiro" tamanho={30}/>{property.bathrooms} banh.</span> : null}
+                      {property.areaM2 ? <span><Render3D nome="area" tamanho={30}/>{formatArea(property.areaM2)}</span> : null}
                     </div>
                     
                     <Link prefetch={false} className="button button--secondary property-card__cta" href={propertyUrl(property)}>Ver imóvel</Link>
@@ -173,10 +168,10 @@ export default async function HomePage({ searchParams }: Props) {
         )}
 
         
-        {regionalProperties.length > 0 ? <section className="section properties-section"><div className="container"><div className="section-heading"><div><h2>Imóveis em outras cidades do Vale</h2><p>Explore anúncios disponíveis na região.</p></div><Link className="text-link" href="/imoveis?regiao=1" prefetch={false}>Ver todos <ArrowIcon/></Link></div><div className="property-grid">{regionalProperties.map(property => <article className="property-card" key={property.id}><div className="property-card__image"><Link href={propertyUrl(property)} prefetch={false}>{property.images[0] ? <Image src={propertyImagePublicUrl(property.images[0].storageKey)} alt={property.title} fill sizes="(max-width: 680px) 50vw, 25vw"/> : <span className="catalog-image-placeholder"><HomeIcon size={42}/></span>}</Link><span className="property-card__tag">{property.purpose === "RENT" ? "Aluguel" : "Venda"}</span></div><div className="property-card__body"><span className="property-card__location"><PinIcon size={15}/>{property.city.name}</span><h3><Link href={propertyUrl(property)} prefetch={false}>{property.title}</Link></h3><div className="property-card__price"><strong>{new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0}).format(property.priceCents/100)}</strong><span>{property.purpose === "RENT" ? "/mês" : ""}</span></div></div></article>)}</div></div></section> : null}
+        {regionalProperties.length > 0 ? <section className="section properties-section"><div className="container"><div className="section-heading"><div><h2>Imóveis em outras cidades do Vale</h2><p>Explore anúncios disponíveis na região.</p></div><Link className="text-link" href="/imoveis?regiao=1" prefetch={false}>Ver todos <ArrowIcon/></Link></div><div className="property-grid">{regionalProperties.map(property => <article className="property-card" key={property.id}><div className="property-card__image"><Link href={propertyUrl(property)} prefetch={false}>{property.images[0] ? <Image src={propertyImagePublicUrl(property.images[0].storageKey)} alt={property.title} fill sizes="(max-width: 680px) 50vw, 25vw"/> : <span className="catalog-image-placeholder"><Render3D nome="casa" tamanho={120}/></span>}</Link><span className="property-card__tag">{property.purpose === "RENT" ? "Aluguel" : "Venda"}</span></div><div className="property-card__body"><span className="property-card__location"><PinIcon size={15}/>{property.city.name}</span><h3><Link href={propertyUrl(property)} prefetch={false}>{property.title}</Link></h3><div className="property-card__price"><strong>{new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0}).format(property.priceCents/100)}</strong><span>{property.purpose === "RENT" ? "/mês" : ""}</span></div></div></article>)}</div></div></section> : null}
         <CityDiscovery category="imoveis" currentSlug={city.slug} />
         <section className="container trust-strip">
-          <div className="trust-strip__icon"><ShieldIcon size={28}/></div>
+          <div className="trust-strip__icon trust-strip__icon--3d"><Render3D nome="seguranca" tamanho={60}/></div>
           <div><strong>Mais confiança para negociar perto de casa</strong><span>Perfis, avaliações e denúncias ajudam a comunidade a fazer escolhas melhores.</span></div>
           <Link prefetch={false} href="/seguranca">Dicas de segurança <ArrowIcon/></Link>
         </section>

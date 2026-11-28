@@ -1,0 +1,17 @@
+/* Miniaturas 3D da marca (components/render-3d.tsx) fora da home */
+.render-3d { display: block; flex: 0 0 auto; object-fit: contain; }
+
+/* Características nos cards de imóvel (home e catálogo) */
+.property-card__features span { gap: 6px; }
+.property-card__features .render-3d { width: 30px; height: 26px; filter: drop-shadow(0 2px 3px #1d402d26); }
+
+/* Características na página do imóvel */
+.listing-facts > span { gap: 8px; padding: 6px 12px 6px 8px; }
+.listing-facts .render-3d { width: 36px; height: 30px; margin: -2px 0; filter: drop-shadow(0 3px 4px #1d402d26); }
+
+/* Card de imóvel sem foto */
+.catalog-image-placeholder .render-3d { width: 120px; height: 96px; filter: drop-shadow(0 10px 12px #1d402d33); }
+
+/* Faixa de segurança da home */
+.trust-strip__icon--3d { background: none !important; width: 64px; height: 64px; }
+.trust-strip__icon--3d .render-3d { width: 60px; height: 60px; filter: drop-shadow(0 6px 8px #1d402d33); }

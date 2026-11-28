@@ -11,6 +11,14 @@ export const RENDERS_3D = {
   lupa: [353, 720],
   pin: [610, 720],
   predio: [572, 720],
+  // características do imóvel
+  quarto: [400, 255],
+  banheiro: [311, 400],
+  vaga: [400, 241],
+  area: [400, 233],
+  enchente: [400, 337],
+  terreno: [400, 241],
+  seguranca: [323, 400],
 } as const;
 
 export type Render3DNome = keyof typeof RENDERS_3D;
