@@ -1,0 +1,92 @@
+/* Objetos 3D da marca (components/objeto-3d.tsx) */
+.objeto-3d {
+  --objeto-3d-tamanho: 64px;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: var(--objeto-3d-tamanho);
+  height: var(--objeto-3d-tamanho);
+  flex: 0 0 auto;
+}
+/* Sombra de contato: dá peso ao objeto, como nos carrosséis. */
+.objeto-3d::after {
+  content: "";
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: -4%;
+  height: 12%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(19, 41, 29, .28), transparent);
+  transition: transform .35s ease, opacity .35s ease;
+  z-index: 0;
+}
+.objeto-3d img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform .35s cubic-bezier(.2, .8, .3, 1.3);
+}
+.objeto-3d--flutuar img { animation: objeto-3d-flutua 4.5s ease-in-out infinite; }
+.objeto-3d--flutuar::after { animation: objeto-3d-sombra 4.5s ease-in-out infinite; }
+
+/* Ao passar o mouse no card que contém o objeto, ele "pula" e gira um pouco. */
+a:hover > .objeto-3d img, a:focus-visible > .objeto-3d img,
+a:hover .category-card__icon .objeto-3d img, a:focus-visible .category-card__icon .objeto-3d img {
+  transform: translateY(-6px) rotate(-6deg) scale(1.08);
+}
+a:hover > .objeto-3d::after, a:hover .category-card__icon .objeto-3d::after { transform: scale(.8); opacity: .7; }
+
+@keyframes objeto-3d-flutua {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-7%) rotate(-3deg); }
+}
+@keyframes objeto-3d-sombra {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(.82); opacity: .65; }
+}
+
+/* Cards de categoria da home: o objeto ocupa o lugar do ícone e sai um pouco da caixa. */
+.category-card__icon--3d { overflow: visible; }
+.category-card__icon--3d .objeto-3d { --objeto-3d-tamanho: 72px; margin: -12px -6px -2px -10px; }
+
+/* Estado vazio da home */
+.home-empty-note--3d { display: flex; align-items: center; gap: 16px; }
+.home-empty-note--3d .objeto-3d { --objeto-3d-tamanho: 52px; }
+
+/* Banner "Anunciar grátis": objetos coloridos no lugar dos ícones apagados. */
+.publish-banner__art--3d { right: 240px; bottom: 50%; gap: 0; transform: translateY(50%); color: inherit; }
+.publish-banner:has(.publish-banner__art--3d) p { max-width: 400px; }
+.publish-banner__art--3d .objeto-3d { --objeto-3d-tamanho: 96px; }
+.publish-banner__art--3d .objeto-3d + .objeto-3d { margin-left: -14px; }
+.publish-banner__art--3d .objeto-3d:nth-child(2) img { animation-delay: -1.5s; }
+.publish-banner__art--3d .objeto-3d:nth-child(2)::after { animation-delay: -1.5s; }
+.publish-banner__art--3d .objeto-3d:nth-child(3) img { animation-delay: -3s; }
+.publish-banner__art--3d .objeto-3d:nth-child(3)::after { animation-delay: -3s; }
+
+@media (max-width: 1100px) {
+  .publish-banner__art--3d { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .objeto-3d img, .objeto-3d::after { animation: none !important; transition: none !important; }
+  a:hover > .objeto-3d img, a:hover .category-card__icon .objeto-3d img { transform: none; }
+}
+
+/* Vitrine /vitrine-3d */
+.vitrine-3d { padding-block: 48px 80px; }
+.vitrine-3d h1 { margin: 0 0 6px; font-family: var(--font-display); font-size: 36px; letter-spacing: -1.2px; }
+.vitrine-3d > p { margin: 0 0 32px; color: var(--muted); max-width: 640px; }
+.vitrine-3d h2 { margin: 40px 0 16px; font-family: var(--font-display); font-size: 22px; }
+.vitrine-3d__fundos { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.vitrine-3d__fundo { border-radius: 20px; padding: 24px; border: 1px solid rgba(29, 64, 45, .1); }
+.vitrine-3d__fundo > strong { display: block; margin-bottom: 16px; font-size: 13px; opacity: .7; }
+.vitrine-3d__fundo--creme { background: #fff9ec; color: #1d402d; }
+.vitrine-3d__fundo--branco { background: #fff; color: #1d402d; }
+.vitrine-3d__fundo--verde { background: #1d402d; color: #fff9ec; }
+.vitrine-3d__grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)); gap: 18px 10px; }
+.vitrine-3d__item { display: grid; justify-items: center; gap: 8px; font-size: 12px; }
+.vitrine-3d__tamanhos { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 28px; }
+.vitrine-3d__tamanhos figure { margin: 0; display: grid; justify-items: center; gap: 8px; font-size: 12px; color: var(--muted); }

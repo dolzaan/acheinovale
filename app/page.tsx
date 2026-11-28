@@ -11,6 +11,7 @@ import { MobileNav } from "@/components/mobile-nav";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { SiteFooter } from "@/components/footer";
 import { UserAvatar } from "@/components/user-avatar";
+import { Objeto3D } from "@/components/objeto-3d";
 import { getHomeListings } from "@/lib/listings/public-cache";
 import { freighterUrl, propertyCatalogPath, propertyUrl } from "@/lib/listings/urls";
 import { propertyImagePublicUrl } from "@/lib/supabase/storage";
@@ -20,13 +21,11 @@ import {
   ArrowIcon,
   BathIcon,
   BedIcon,
-  BuildingIcon,
   HomeIcon,
   PinIcon,
   SearchIcon,
   ShieldIcon,
   StarIcon,
-  TruckIcon,
 } from "@/components/icons";
 import { formatArea, formatCount, formatRating } from "@/lib/format";
 
@@ -91,12 +90,12 @@ export default async function HomePage({ searchParams }: Props) {
           <div className="container category-wrap">
             <div className="category-grid">
               <Link prefetch={false} className="category-card category-card--property" href={propertiesHref}>
-                <span className="category-card__icon"><HomeIcon size={31}/></span>
+                <span className="category-card__icon category-card__icon--3d"><Objeto3D nome="casa" tamanho={72} prioridade/></span>
                 <span className="category-card__copy"><small>Quero encontrar</small><strong>Um imóvel</strong><span>Casas, apartamentos e terrenos</span></span>
                 <span className="category-card__arrow"><ArrowIcon/></span>
               </Link>
               <Link prefetch={false} className="category-card category-card--freight" href={freightersHref}>
-                <span className="category-card__icon"><TruckIcon size={31}/></span>
+                <span className="category-card__icon category-card__icon--3d"><Objeto3D nome="caminhao" tamanho={72} prioridade/></span>
                 <span className="category-card__copy"><small>Preciso de</small><strong>Um freteiro</strong><span>Mudanças, entregas e transportes</span></span>
                 <span className="category-card__arrow"><ArrowIcon/></span>
               </Link>
@@ -154,7 +153,7 @@ export default async function HomePage({ searchParams }: Props) {
                 </article>
               ))}
             </div>
-            {!properties.length ? <p className="home-empty-note">Ainda não há imóveis anunciados em {cityName}. <Link prefetch={false} href={propertiesHref}>Criar um alerta</Link> para saber quando aparecer.</p> : null}
+            {!properties.length ? <p className="home-empty-note home-empty-note--3d"><Objeto3D nome="lupa" tamanho={52}/><span>Ainda não há imóveis anunciados em {cityName}. <Link prefetch={false} href={propertiesHref}>Criar um alerta</Link> para saber quando aparecer.</span></p> : null}
             <Link prefetch={false} className="mobile-more-button" href={propertiesHref}>Ver todos os imóveis <ArrowIcon/></Link>
           </div>
         </section>
@@ -177,7 +176,7 @@ export default async function HomePage({ searchParams }: Props) {
                 </article>
               ))}
             </div>
-            {!freighters.length ? <p className="home-empty-note">Ainda não há freteiros anunciados em {cityName}. Faz fretes? <Link prefetch={false} href="/publicar/frete">Anuncie seu serviço de graça</Link>.</p> : null}
+            {!freighters.length ? <p className="home-empty-note home-empty-note--3d"><Objeto3D nome="caixa" tamanho={52}/><span>Ainda não há freteiros anunciados em {cityName}. Faz fretes? <Link prefetch={false} href="/publicar/frete">Anuncie seu serviço de graça</Link>.</span></p> : null}
             <Link prefetch={false} className="mobile-more-button" href={freightersHref}>Encontrar um freteiro <ArrowIcon/></Link>
           </div>
         </section>
@@ -193,7 +192,7 @@ export default async function HomePage({ searchParams }: Props) {
 
         {/* Com a cidade vazia, o bloco de lançamento já faz este convite. */}
         {!cityIsEmpty ? <section className="container publish-banner">
-          <div className="publish-banner__art" aria-hidden="true"><BuildingIcon size={52}/><TruckIcon size={59}/></div>
+          <div className="publish-banner__art publish-banner__art--3d" aria-hidden="true"><Objeto3D nome="casa" tamanho={96} flutuar/><Objeto3D nome="chave" tamanho={96} flutuar/><Objeto3D nome="caminhao" tamanho={96} flutuar/></div>
           <div><h2>Tem algo para anunciar?</h2><p>Anuncie seu imóvel ou serviço de frete para gente da região. É grátis.</p></div>
           <Link prefetch={false} className="button button--light" href="/publicar">Anunciar grátis</Link>
         </section> : null}
