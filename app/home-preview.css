@@ -23,3 +23,21 @@ body:has(.home-preview){background:#fff}body:has(.home-preview) .site-header{bac
 .home-preview .market-category-grid>a{position:relative;overflow:hidden;min-height:150px;padding:24px;align-items:center;isolation:isolate}.home-preview .market-category-grid>a:first-child{background:linear-gradient(120deg,#153020,#315b40);color:#fff9ec}.home-preview .market-category-grid>a:nth-child(2){background:linear-gradient(120deg,#fff9ec,#f8e8c5)}.home-preview .market-category-grid>a>div{position:relative;z-index:1;flex:0 1 58%}.home-preview .market-category-grid>a>svg{position:relative;z-index:1}.home-preview .market-render{position:absolute;right:12px;bottom:0;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;font-size:clamp(70px,10vw,145px);line-height:1.1;filter:drop-shadow(0 9px 9px #0003);transition:transform .3s ease;z-index:-1}.home-preview .market-category-grid>a:hover .market-render{transform:translateY(-4px) scale(1.05)}@media(max-width:680px){.home-preview .market-category-grid>a{padding:14px;min-height:120px;align-items:flex-start}.home-preview .market-render{font-size:65px;right:4px}.home-preview .market-category-grid>a>div{flex-basis:100%}}@media(prefers-reduced-motion:reduce){.home-preview .market-render{transition:none}.home-preview .market-category-grid>a:hover .market-render{transform:none}}
 /* Rendered category objects — no platform emojis */
 .home-preview .market-category-grid>a{min-height:166px;padding:24px;align-items:center;gap:12px}.home-preview .market-category-grid>a>div{flex:0 1 50%;min-width:0}.home-preview .market-category-grid>a>.market-render{width:44%;height:calc(100% - 20px);object-fit:contain;object-position:right center;right:10px;bottom:10px;filter:drop-shadow(0 7px 8px #0002);z-index:0;pointer-events:none}.home-preview .market-category-grid>a>svg{flex-shrink:0}.home-preview .market-category-grid>a>div,.home-preview .market-category-grid>a>svg{z-index:1}@media(max-width:680px){.home-preview .market-category-grid>a{padding:12px;min-height:154px;align-items:flex-start}.home-preview .market-category-grid>a>div{flex:1 1 100%}.home-preview .market-category-grid>a>.market-render{width:66%;height:72px;bottom:6px;right:7px}.home-preview .market-category-grid>a>svg{align-self:flex-end;margin-right:auto}}
+/* Objetos 3D renderizados (components/render-3d.tsx), no estilo dos ícones 3D do Airbnb */
+.home-preview .render-3d{display:block;object-fit:contain;flex:0 0 auto;filter:drop-shadow(0 6px 8px #1d402d1f)}
+.home-preview .modern-search-panel .redesign-tabs a .render-3d{width:32px;height:32px;transition:transform .35s cubic-bezier(.2,.8,.3,1.4)}
+.home-preview .modern-search-panel .redesign-tabs a:hover .render-3d{transform:translateY(-2px) rotate(-6deg) scale(1.1)}
+.home-preview .market-category-grid>a>.market-render{filter:drop-shadow(0 14px 14px #0000002e);transition:transform .45s cubic-bezier(.2,.8,.3,1.3)}
+.home-preview .market-category-grid>a:hover>.market-render{transform:translateY(-6px) rotate(-3deg) scale(1.05)}
+.home-preview .home-empty-note--3d{display:flex;align-items:center;gap:16px}
+.home-preview .home-empty-note--3d .render-3d{width:64px;height:64px}
+.home-preview .publish-banner__art--3d{right:250px;bottom:50%;transform:translateY(50%);gap:0;color:inherit;align-items:flex-end}
+.home-preview .publish-banner__art--3d .render-3d{width:120px;height:120px;filter:drop-shadow(0 12px 14px #0000004d);animation:render-3d-flutua 5s ease-in-out infinite}
+.home-preview .publish-banner__art--3d .render-3d:nth-child(2){width:86px;height:86px;margin:0 -10px 22px;animation-delay:-1.6s}
+.home-preview .publish-banner__art--3d .render-3d:nth-child(3){animation-delay:-3.2s}
+.home-preview .publish-banner:has(.publish-banner__art--3d) p{max-width:400px}
+@keyframes render-3d-flutua{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-8px) rotate(-2deg)}}
+@media(max-width:1100px){.home-preview .publish-banner__art--3d{display:none}}
+@media(max-width:680px){.home-preview .modern-search-panel .redesign-tabs a .render-3d{width:26px;height:26px}}
+@media(prefers-reduced-motion:reduce){.home-preview .render-3d{animation:none!important;transition:none!important}
+.home-preview .redesign-tabs a:hover .render-3d,.home-preview .market-category-grid>a:hover>.market-render{transform:none}}

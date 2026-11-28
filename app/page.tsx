@@ -12,6 +12,7 @@ import { MobileNav } from "@/components/mobile-nav";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { SiteFooter } from "@/components/footer";
 import { UserAvatar } from "@/components/user-avatar";
+import { Render3D } from "@/components/render-3d";
 import { getHomeListings, getPublicPropertiesPage } from "@/lib/listings/public-cache";
 import { freighterUrl, propertyCatalogPath, propertyUrl } from "@/lib/listings/urls";
 import { propertyImagePublicUrl } from "@/lib/supabase/storage";
@@ -21,13 +22,11 @@ import {
   ArrowIcon,
   BathIcon,
   BedIcon,
-  BuildingIcon,
   HomeIcon,
   PinIcon,
   SearchIcon,
   ShieldIcon,
   StarIcon,
-  TruckIcon,
 } from "@/components/icons";
 import { formatArea, formatCount, formatRating } from "@/lib/format";
 
@@ -77,9 +76,9 @@ export default async function HomePage({ searchParams }: Props) {
             </div>
             <div className="redesign-search modern-search-panel">
               <nav aria-label="O que você procura" className="redesign-tabs">
-                <Link href={rentalsHref} prefetch={false}><HomeIcon size={20}/> Alugar</Link>
-                <Link href={salesHref} prefetch={false}><BuildingIcon size={20}/> Comprar</Link>
-                <Link href={freightersHref} prefetch={false}><TruckIcon size={20}/> Fretes</Link>
+                <Link href={rentalsHref} prefetch={false}><Render3D nome="chave" tamanho={32} prioridade/> Alugar</Link>
+                <Link href={salesHref} prefetch={false}><Render3D nome="casa" tamanho={32} prioridade/> Comprar</Link>
+                <Link href={freightersHref} prefetch={false}><Render3D nome="caminhao" tamanho={32} prioridade/> Fretes</Link>
               </nav>
               <Form action="/buscar" className="redesign-form">
                 <input type="hidden" name="cidade" value={city.slug}/>
@@ -91,7 +90,7 @@ export default async function HomePage({ searchParams }: Props) {
           </div>
           <div className="container market-photo-credit"><a href={cityPhoto.sourceUrl} target="_blank" rel="noreferrer">{cityPhoto.caption} · {cityPhoto.author}</a> · <a href={cityPhoto.licenseUrl} target="_blank" rel="noreferrer">{cityPhoto.license}</a></div>
         </section>
-        <section className="container market-categories"><div className="section-heading"><div><h2>Explore o Vale</h2><p>Encontre o que precisa, perto de você.</p></div></div><div className="market-category-grid"><Link href={propertiesHref} prefetch={false}><Image className="market-render market-render-house" src="/renders/house-3d.webp" alt="" width={180} height={110} unoptimized/><div><h3>Imóveis</h3><p>Encontre seu próximo lar</p></div><ArrowIcon/></Link><Link href={freightersHref} prefetch={false}><Image className="market-render market-render-truck" src="/renders/truck-3d.webp" alt="" width={180} height={115} unoptimized/><div><h3>Fretes</h3><p>Transporte e mudanças</p></div><ArrowIcon/></Link></div></section>
+        <section className="container market-categories"><div className="section-heading"><div><h2>Explore o Vale</h2><p>Encontre o que precisa, perto de você.</p></div></div><div className="market-category-grid"><Link href={propertiesHref} prefetch={false}><Render3D className="market-render market-render-house" nome="casa" tamanho={300}/><div><h3>Imóveis</h3><p>Encontre seu próximo lar</p></div><ArrowIcon/></Link><Link href={freightersHref} prefetch={false}><Render3D className="market-render market-render-truck" nome="caminhao" tamanho={300}/><div><h3>Fretes</h3><p>Transporte e mudanças</p></div><ArrowIcon/></Link></div></section>
         {cityIsEmpty ? (
           <section className="section launch-section" aria-labelledby="launch-title">
             <div className="container">
@@ -143,7 +142,7 @@ export default async function HomePage({ searchParams }: Props) {
                 </article>
               ))}
             </div>
-            {!properties.length ? <p className="home-empty-note">Ainda não há imóveis anunciados em {cityName}. <Link prefetch={false} href={propertiesHref}>Criar um alerta</Link> para saber quando aparecer.</p> : null}
+            {!properties.length ? <p className="home-empty-note home-empty-note--3d"><Render3D nome="lupa" tamanho={64}/><span>Ainda não há imóveis anunciados em {cityName}. <Link prefetch={false} href={propertiesHref}>Criar um alerta</Link> para saber quando aparecer.</span></p> : null}
             <Link prefetch={false} className="mobile-more-button" href={propertiesHref}>Ver todos os imóveis <ArrowIcon/></Link>
           </div>
         </section>
@@ -166,7 +165,7 @@ export default async function HomePage({ searchParams }: Props) {
                 </article>
               ))}
             </div>
-            {!freighters.length ? <p className="home-empty-note">Ainda não há freteiros anunciados em {cityName}. Faz fretes? <Link prefetch={false} href="/publicar/frete">Anuncie seu serviço de graça</Link>.</p> : null}
+            {!freighters.length ? <p className="home-empty-note home-empty-note--3d"><Render3D nome="caixa" tamanho={64}/><span>Ainda não há freteiros anunciados em {cityName}. Faz fretes? <Link prefetch={false} href="/publicar/frete">Anuncie seu serviço de graça</Link>.</span></p> : null}
             <Link prefetch={false} className="mobile-more-button" href={freightersHref}>Encontrar um freteiro <ArrowIcon/></Link>
           </div>
         </section>
@@ -184,7 +183,7 @@ export default async function HomePage({ searchParams }: Props) {
 
         {/* Com a cidade vazia, o bloco de lançamento já faz este convite. */}
         {!cityIsEmpty ? <section className="container publish-banner">
-          <div className="publish-banner__art" aria-hidden="true"><BuildingIcon size={52}/><TruckIcon size={59}/></div>
+          <div className="publish-banner__art publish-banner__art--3d" aria-hidden="true"><Render3D nome="casa" tamanho={120}/><Render3D nome="chave" tamanho={96}/><Render3D nome="caminhao" tamanho={120}/></div>
           <div><h2>Tem algo para anunciar?</h2><p>Anuncie seu imóvel ou serviço de frete para gente da região. É grátis.</p></div>
           <Link prefetch={false} className="button button--light" href="/publicar">Anunciar grátis</Link>
         </section> : null}
